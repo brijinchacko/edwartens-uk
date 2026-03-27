@@ -7,7 +7,7 @@ echo "=========================================="
 
 # Configuration
 APP_DIR="/var/www/edwartens-uk"
-APP_PORT=3001
+APP_PORT=3006
 APP_NAME="edwartens-uk"
 DOMAIN="edwartens.co.uk"
 REPO_URL="https://github.com/brijinchacko/edwartens-uk.git"
