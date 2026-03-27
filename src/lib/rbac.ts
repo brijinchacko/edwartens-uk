@@ -1,0 +1,157 @@
+// Role-Based Access Control for EDWartens CRM
+
+export type Permission =
+  | "users:manage"
+  | "settings:manage"
+  | "leads:read"
+  | "leads:write"
+  | "leads:assign"
+  | "students:read"
+  | "students:write"
+  | "batches:manage"
+  | "sessions:manage"
+  | "assessments:manage"
+  | "documents:manage"
+  | "alumni:read"
+  | "career:manage"
+  | "certificates:manage"
+  | "software:verify"
+  | "jobs:manage"
+  | "pipeline:read"
+  | "notifications:read"
+  | "dashboard:read";
+
+const ROLE_PERMISSIONS: Record<string, Permission[]> = {
+  SUPER_ADMIN: [
+    "users:manage",
+    "settings:manage",
+    "leads:read",
+    "leads:write",
+    "leads:assign",
+    "students:read",
+    "students:write",
+    "batches:manage",
+    "sessions:manage",
+    "assessments:manage",
+    "documents:manage",
+    "alumni:read",
+    "career:manage",
+    "certificates:manage",
+    "software:verify",
+    "jobs:manage",
+    "pipeline:read",
+    "notifications:read",
+    "dashboard:read",
+  ],
+  ADMIN: [
+    "leads:read",
+    "leads:write",
+    "leads:assign",
+    "students:read",
+    "students:write",
+    "batches:manage",
+    "sessions:manage",
+    "assessments:manage",
+    "documents:manage",
+    "alumni:read",
+    "career:manage",
+    "certificates:manage",
+    "software:verify",
+    "jobs:manage",
+    "pipeline:read",
+    "notifications:read",
+    "dashboard:read",
+  ],
+  SALES_LEAD: [
+    "leads:read",
+    "leads:write",
+    "leads:assign",
+    "pipeline:read",
+    "dashboard:read",
+  ],
+  ADMISSION_COUNSELLOR: [
+    "leads:read",
+    "leads:write",
+    "students:read",
+    "students:write",
+    "documents:manage",
+    "alumni:read",
+    "career:manage",
+    "pipeline:read",
+    "dashboard:read",
+  ],
+  TRAINER: [
+    "students:read",
+    "batches:manage",
+    "sessions:manage",
+    "assessments:manage",
+    "software:verify",
+    "dashboard:read",
+  ],
+};
+
+export function hasPermission(role: string, permission: Permission): boolean {
+  const permissions = ROLE_PERMISSIONS[role];
+  if (!permissions) return false;
+  return permissions.includes(permission);
+}
+
+export function hasAnyPermission(role: string, permissions: Permission[]): boolean {
+  return permissions.some((p) => hasPermission(role, p));
+}
+
+export function getPermissions(role: string): Permission[] {
+  return ROLE_PERMISSIONS[role] || [];
+}
+
+// CRM roles that can access the admin panel
+export const CRM_ROLES = [
+  "SUPER_ADMIN",
+  "ADMIN",
+  "SALES_LEAD",
+  "ADMISSION_COUNSELLOR",
+  "TRAINER",
+];
+
+// Check if a role can access admin panel
+export function isCrmRole(role: string): boolean {
+  return CRM_ROLES.includes(role);
+}
+
+// Role display labels
+export const ROLE_LABELS: Record<string, string> = {
+  SUPER_ADMIN: "Super Admin",
+  ADMIN: "Admin",
+  SALES_LEAD: "Sales Lead",
+  ADMISSION_COUNSELLOR: "Admission Counsellor",
+  TRAINER: "Trainer",
+  STUDENT: "Student",
+};
+
+// Navigation items per role for the admin sidebar
+export function getNavItemsForRole(role: string): string[] {
+  switch (role) {
+    case "SUPER_ADMIN":
+      return [
+        "dashboard", "leads", "pipeline", "students", "batches", "sessions",
+        "assessments", "career", "certificates", "jobs", "alumni", "employees",
+        "users", "notifications", "settings",
+      ];
+    case "ADMIN":
+      return [
+        "dashboard", "leads", "pipeline", "students", "batches", "sessions",
+        "assessments", "career", "certificates", "jobs", "alumni", "employees",
+        "notifications", "settings",
+      ];
+    case "SALES_LEAD":
+      return ["dashboard", "leads", "pipeline"];
+    case "ADMISSION_COUNSELLOR":
+      return [
+        "dashboard", "leads", "pipeline", "students", "career", "alumni",
+      ];
+    case "TRAINER":
+      return ["dashboard", "batches", "sessions", "assessments", "students"];
+    default:
+      return ["dashboard"];
+  }
+}

@@ -1,0 +1,608 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  SUPER_ADMIN
+  ADMIN
+  SALES_LEAD
+  ADMISSION_COUNSELLOR
+  TRAINER
+  STUDENT
+}
+
+enum LeadStatus {
+  NEW
+  CONTACTED
+  QUALIFIED
+  ENROLLED
+  LOST
+}
+
+enum StudentStatus {
+  ONBOARDING
+  ACTIVE
+  ON_HOLD
+  POST_TRAINING
+  CAREER_SUPPORT
+  COMPLETED
+  ALUMNI
+  DROPPED
+}
+
+enum CourseType {
+  PROFESSIONAL_MODULE
+  AI_MODULE
+}
+
+enum BatchStatus {
+  UPCOMING
+  ACTIVE
+  COMPLETED
+  CANCELLED
+}
+
+enum PlacementStatus {
+  PREPARING
+  INTERVIEW
+  OFFERED
+  CONFIRMED
+  REJECTED
+}
+
+enum CertificateType {
+  CPD
+  EXPERIENCE
+  ISO
+  COMPLETION
+}
+
+enum SessionStatus {
+  NOT_STARTED
+  IN_PROGRESS
+  COMPLETED
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  PARTIAL
+  REFUNDED
+}
+
+enum PaymentType {
+  DEPOSIT
+  FULL
+}
+
+enum DocumentStatus {
+  UPLOADED
+  VERIFIED
+  REJECTED
+}
+
+enum JobPlatform {
+  CV_LIBRARY
+  LINKEDIN
+  INDEED
+  OTHER
+}
+
+enum JourneyEventType {
+  LEAD_CREATED
+  LEAD_ASSIGNED
+  LEAD_CONTACTED
+  DEPOSIT_PAID
+  FULL_PAYMENT
+  STUDENT_CREATED
+  ONBOARDING_STARTED
+  ONBOARDING_COMPLETED
+  BATCH_ASSIGNED
+  DOCUMENT_UPLOADED
+  DOCUMENT_VERIFIED
+  SOFTWARE_VERIFIED
+  TRAINING_STARTED
+  TRAINING_COMPLETED
+  PROJECT_SUBMITTED
+  ASSESSMENT_COMPLETED
+  RESUME_REVIEW
+  LINKEDIN_VERIFIED
+  JOB_APPLICATION
+  INTERVIEW_SCHEDULED
+  INTERVIEW_COMPLETED
+  CERTIFICATE_ISSUED
+  STATUS_CHANGE
+  NOTE_ADDED
+  FEEDBACK_RECEIVED
+}
+
+model User {
+  id              String    @id @default(cuid())
+  email           String    @unique
+  password        String
+  name            String
+  phone           String?
+  role            Role      @default(STUDENT)
+  avatar          String?
+  dateOfBirth     DateTime?
+  address         String?
+  emergencyName   String?
+  emergencyPhone  String?
+  isActive        Boolean   @default(true)
+  onboarded       Boolean   @default(false)
+  termsAccepted   Boolean   @default(false)
+  termsAcceptedAt DateTime?
+  lastLoginAt     DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  student         Student?
+  employeeProfile Employee?
+  activityLogs    ActivityLog[]
+  notifications   Notification[]
+}
+
+model Employee {
+  id              String    @id @default(cuid())
+  userId          String    @unique
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  department      String?
+  specialization  String?
+  bio             String?
+  hireDate        DateTime  @default(now())
+
+  assignedLeads   Lead[]
+  batches         Batch[]
+  sessions        Session[]
+  assessments     Assessment[]
+  counselledStudents Student[] @relation("CounsellorStudents")
+  salesTargets     SalesTarget[]
+  salesIncentives  SalesIncentive[]
+}
+
+model Student {
+  id              String        @id @default(cuid())
+  userId          String        @unique
+  user            User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  enrollmentDate  DateTime      @default(now())
+  batchId         String?
+  batch           Batch?        @relation(fields: [batchId], references: [id])
+  currentPhase    Int           @default(0)
+  course          CourseType
+  status          StudentStatus @default(ONBOARDING)
+  counsellorId    String?
+  counsellor      Employee?     @relation("CounsellorStudents", fields: [counsellorId], references: [id])
+  qualification   String?
+  passoutYear     Int?
+  previousExp     String?
+  paymentStatus   PaymentStatus @default(PENDING)
+  paidAmount      Float?
+  stripePaymentId String?
+
+  assessments     Assessment[]
+  placements      Placement[]
+  certificates    Certificate[]
+  sessionProgress SessionProgress[]
+  documents       Document[]
+  jobApplications JobApplication[]
+  payments        Payment[]
+  journeyEvents       StudentJourney[]
+  assessmentAttempts   AssessmentAttempt[]
+  projectSubmissions   ProjectSubmission[]
+  resumeReviews        ResumeReview[]
+  linkedInProfile      LinkedInProfile?
+  jobApplicationLogs   JobApplicationLog[]
+  weeklyJobShares      WeeklyJobShare[]
+  interviewSupports    InterviewSupport[]
+  softwareChecklist    SoftwareChecklist?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+}
+
+model Lead {
+  id              String     @id @default(cuid())
+  name            String
+  email           String
+  phone           String
+  qualification   String?
+  courseInterest  CourseType?
+  source          String     @default("website")
+  status          LeadStatus @default(NEW)
+  assignedToId    String?
+  assignedTo      Employee?  @relation(fields: [assignedToId], references: [id])
+  followUpDate    DateTime?
+  notes           LeadNote[]
+  payments        Payment[]
+  utmSource       String?
+  utmMedium       String?
+  utmCampaign     String?
+  convertedToStudentId String?
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+}
+
+model LeadNote {
+  id          String   @id @default(cuid())
+  leadId      String
+  lead        Lead     @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  content     String
+  createdBy   String
+  createdAt   DateTime @default(now())
+}
+
+model Batch {
+  id              String      @id @default(cuid())
+  name            String
+  course          CourseType
+  startDate       DateTime
+  endDate         DateTime?
+  capacity        Int         @default(6)
+  status          BatchStatus @default(UPCOMING)
+  instructorId    String?
+  instructor      Employee?   @relation(fields: [instructorId], references: [id])
+  location        String?     @default("Milton Keynes")
+  isAutoGenerated Boolean     @default(false)
+
+  students        Student[]
+  sessions        Session[]
+  payments        Payment[]
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+}
+
+model Phase {
+  id              String    @id @default(cuid())
+  number          Int
+  name            String
+  description     String
+  course          CourseType
+  durationDays    Int
+  order           Int
+
+  assessments     Assessment[]
+  sessions        Session[]
+  @@unique([number, course])
+}
+
+model Session {
+  id              String    @id @default(cuid())
+  title           String
+  description     String?
+  phaseId         String
+  phase           Phase     @relation(fields: [phaseId], references: [id])
+  batchId         String?
+  batch           Batch?    @relation(fields: [batchId], references: [id])
+  instructorId    String?
+  instructor      Employee? @relation(fields: [instructorId], references: [id])
+  videoUrl        String?
+  videoPlatform   String?
+  videoId         String?
+  thumbnailUrl    String?
+  duration        Int?
+  isMandatory     Boolean   @default(true)
+  order           Int
+  materials       Json?
+
+  progress        SessionProgress[]
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+}
+
+model SessionProgress {
+  id              String        @id @default(cuid())
+  studentId       String
+  student         Student       @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  sessionId       String
+  session         Session       @relation(fields: [sessionId], references: [id])
+  status          SessionStatus @default(NOT_STARTED)
+  watchedSeconds  Int           @default(0)
+  completedAt     DateTime?
+  lastAccessedAt  DateTime?
+  @@unique([studentId, sessionId])
+}
+
+model Assessment {
+  id              String    @id @default(cuid())
+  studentId       String
+  student         Student   @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  phaseId         String
+  phase           Phase     @relation(fields: [phaseId], references: [id])
+  assessorId      String?
+  assessor        Employee? @relation(fields: [assessorId], references: [id])
+  score           Float?
+  maxScore        Float     @default(100)
+  passed          Boolean   @default(false)
+  feedback        String?
+  assessedAt      DateTime  @default(now())
+}
+
+model Placement {
+  id              String          @id @default(cuid())
+  studentId       String
+  student         Student         @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  company         String
+  role            String
+  salary          Float?
+  location        String?
+  status          PlacementStatus @default(PREPARING)
+  interviewDate   DateTime?
+  offerDate       DateTime?
+  joinDate        DateTime?
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+}
+
+model Certificate {
+  id              String          @id @default(cuid())
+  studentId       String
+  student         Student         @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  type            CertificateType
+  certificateNo   String          @unique
+  issuedDate      DateTime        @default(now())
+  expiryDate      DateTime?
+  pdfUrl          String?
+  qrCode          String?
+  isValid         Boolean         @default(true)
+  metadata        Json?
+  @@index([certificateNo])
+}
+
+model Document {
+  id              String         @id @default(cuid())
+  studentId       String
+  student         Student        @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  name            String
+  type            String
+  fileUrl         String
+  fileSize        Int?
+  mimeType        String?
+  status          DocumentStatus @default(UPLOADED)
+  reviewedBy      String?
+  reviewNote      String?
+  uploadedAt      DateTime       @default(now())
+}
+
+model JobNotification {
+  id              String   @id @default(cuid())
+  company         String
+  role            String
+  location        String?
+  salaryRange     String?
+  description     String
+  requirements    String?
+  targetCourse    CourseType?
+  targetBatchId   String?
+  sentTo          String[]
+  sentAt          DateTime @default(now())
+  createdBy       String
+
+  applications    JobApplication[]
+}
+
+model JobApplication {
+  id              String          @id @default(cuid())
+  jobId           String
+  job             JobNotification @relation(fields: [jobId], references: [id])
+  studentId       String
+  student         Student         @relation(fields: [studentId], references: [id])
+  status          String          @default("INTERESTED")
+  appliedAt       DateTime        @default(now())
+  @@unique([jobId, studentId])
+}
+
+model Notification {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title       String
+  message     String
+  type        String
+  read        Boolean  @default(false)
+  link        String?
+  createdAt   DateTime @default(now())
+}
+
+model ActivityLog {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  action      String
+  details     Json?
+  ipAddress   String?
+  createdAt   DateTime @default(now())
+  @@index([userId, createdAt])
+}
+
+model Payment {
+  id                    String      @id @default(cuid())
+  stripeSessionId       String      @unique
+  stripePaymentIntentId String?
+  amount                Int         // amount in pence
+  currency              String      @default("gbp")
+  type                  PaymentType
+  status                String      @default("pending") // pending, completed, failed
+  customerEmail         String
+  customerName          String
+  phone                 String?
+  courseInterest        CourseType
+  batchId               String?
+  batch                 Batch?      @relation(fields: [batchId], references: [id])
+  leadId                String?
+  lead                  Lead?       @relation(fields: [leadId], references: [id])
+  studentId             String?
+  student               Student?    @relation(fields: [studentId], references: [id])
+  metadata              Json?
+  createdAt             DateTime    @default(now())
+  updatedAt             DateTime    @updatedAt
+  @@index([stripeSessionId])
+  @@index([customerEmail])
+}
+
+model StudentJourney {
+  id          String           @id @default(cuid())
+  studentId   String
+  student     Student          @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  eventType   JourneyEventType
+  title       String
+  description String?
+  metadata    Json?
+  createdBy   String?
+  createdAt   DateTime         @default(now())
+  @@index([studentId, createdAt])
+}
+
+model AssessmentQuestion {
+  id            String     @id @default(cuid())
+  course        CourseType
+  question      String
+  optionA       String
+  optionB       String
+  optionC       String
+  optionD       String
+  correctAnswer String
+  explanation   String?
+  order         Int
+  isActive      Boolean    @default(true)
+  createdAt     DateTime   @default(now())
+  @@index([course, isActive])
+}
+
+model AssessmentAttempt {
+  id             String     @id @default(cuid())
+  studentId      String
+  student        Student    @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  course         CourseType
+  score          Int
+  totalQuestions Int        @default(50)
+  passed         Boolean    @default(false)
+  answers        Json
+  startedAt      DateTime   @default(now())
+  completedAt    DateTime?
+}
+
+model ProjectSubmission {
+  id          String   @id @default(cuid())
+  studentId   String
+  student     Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  title       String
+  description String?
+  fileUrl     String?
+  fileSize    Int?
+  submittedAt DateTime @default(now())
+  gradedBy    String?
+  grade       String?
+  feedback    String?
+  status      String   @default("SUBMITTED")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model ResumeReview {
+  id            String    @id @default(cuid())
+  studentId     String
+  student       Student   @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  sessionNumber Int
+  scheduledAt   DateTime?
+  completedAt   DateTime?
+  notes         String?
+  reviewerId    String?
+  status        String    @default("PENDING")
+  createdAt     DateTime  @default(now())
+}
+
+model LinkedInProfile {
+  id          String    @id @default(cuid())
+  studentId   String    @unique
+  student     Student   @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  profileUrl  String?
+  isVerified  Boolean   @default(false)
+  verifiedBy  String?
+  verifiedAt  DateTime?
+  feedback    String?
+  updatedAt   DateTime  @updatedAt
+}
+
+model JobApplicationLog {
+  id          String      @id @default(cuid())
+  studentId   String
+  student     Student     @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  platform    JobPlatform
+  count       Int         @default(1)
+  date        DateTime    @default(now())
+  notes       String?
+  verifiedBy  String?
+  @@index([studentId, platform])
+}
+
+model WeeklyJobShare {
+  id           String   @id @default(cuid())
+  studentId    String
+  student      Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  weekStarting DateTime
+  links        Json
+  sharedBy     String
+  createdAt    DateTime @default(now())
+}
+
+model InterviewSupport {
+  id          String    @id @default(cuid())
+  studentId   String
+  student     Student   @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  company     String
+  role        String?
+  scheduledAt DateTime?
+  completedAt DateTime?
+  notes       String?
+  outcome     String?
+  supportedBy String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model SoftwareChecklist {
+  id          String   @id @default(cuid())
+  studentId   String   @unique
+  student     Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  items       Json
+  allVerified Boolean  @default(false)
+  verifiedBy  String?
+  verifiedAt  DateTime?
+  updatedAt   DateTime @updatedAt
+}
+
+model SalesTarget {
+  id             String   @id @default(cuid())
+  employeeId     String
+  employee       Employee @relation(fields: [employeeId], references: [id])
+  month          Int
+  year           Int
+  salesTarget    Int      @default(15)
+  leadTarget     Int      @default(50)
+  salesAchieved  Int      @default(0)
+  leadsGenerated Int      @default(0)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  @@unique([employeeId, month, year])
+}
+
+model SalesIncentive {
+  id               String   @id @default(cuid())
+  employeeId       String
+  employee         Employee @relation(fields: [employeeId], references: [id])
+  month            Int
+  year             Int
+  totalSales       Int      @default(0)
+  mandatorySales   Int      @default(5)
+  incentivePerSale Float    @default(107)
+  totalEarned      Float    @default(0)
+  distributed      Float    @default(0)
+  distributions    Json?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  @@unique([employeeId, month, year])
+}
