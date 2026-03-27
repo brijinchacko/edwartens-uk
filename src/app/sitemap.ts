@@ -1,36 +1,52 @@
-import type { MetadataRoute } from 'next'
-import { getAllPosts } from '@/lib/blog-data'
+import type { MetadataRoute } from "next";
+import { getAllPosts } from "@/lib/blog-data";
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = 'https://edwartens.co.uk'
-  const posts = getAllPosts()
+  const baseUrl = "https://edwartens.co.uk";
+  const posts = getAllPosts();
+  const now = new Date();
 
   const blogUrls = posts.map((post) => ({
     url: `${baseUrl}/blog/${post.slug}`,
     lastModified: new Date(post.publishedAt),
-    changeFrequency: 'monthly' as const,
+    changeFrequency: "monthly" as const,
     priority: 0.6,
-  }))
+  }));
 
   return [
-    { url: baseUrl, lastModified: new Date(), changeFrequency: 'weekly', priority: 1.0 },
-    { url: `${baseUrl}/about`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.8 },
-    { url: `${baseUrl}/courses`, lastModified: new Date(), changeFrequency: 'weekly', priority: 0.9 },
-    { url: `${baseUrl}/courses/siemens-module`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.8 },
-    { url: `${baseUrl}/courses/allen-bradley`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.8 },
-    { url: `${baseUrl}/courses/professional`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.9 },
-    { url: `${baseUrl}/training`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.7 },
-    { url: `${baseUrl}/placements`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.7 },
-    { url: `${baseUrl}/recruitment`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.6 },
-    { url: `${baseUrl}/reviews`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.7 },
-    { url: `${baseUrl}/contact`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.8 },
-    { url: `${baseUrl}/blog`, lastModified: new Date(), changeFrequency: 'weekly', priority: 0.7 },
-    { url: `${baseUrl}/verify`, lastModified: new Date(), changeFrequency: 'yearly', priority: 0.4 },
-    { url: `${baseUrl}/privacy`, lastModified: new Date(), changeFrequency: 'yearly', priority: 0.3 },
-    { url: `${baseUrl}/terms`, lastModified: new Date(), changeFrequency: 'yearly', priority: 0.3 },
-    { url: `${baseUrl}/cookies`, lastModified: new Date(), changeFrequency: 'yearly', priority: 0.3 },
-    { url: `${baseUrl}/complaints`, lastModified: new Date(), changeFrequency: 'yearly', priority: 0.3 },
-    { url: `${baseUrl}/accessibility`, lastModified: new Date(), changeFrequency: 'yearly', priority: 0.3 },
+    // Core pages
+    { url: baseUrl, lastModified: now, changeFrequency: "weekly", priority: 1.0 },
+    { url: `${baseUrl}/about`, lastModified: now, changeFrequency: "monthly", priority: 0.8 },
+    { url: `${baseUrl}/contact`, lastModified: now, changeFrequency: "monthly", priority: 0.8 },
+
+    // Courses (high priority)
+    { url: `${baseUrl}/courses`, lastModified: now, changeFrequency: "weekly", priority: 0.95 },
+    { url: `${baseUrl}/courses/professional`, lastModified: now, changeFrequency: "weekly", priority: 0.9 },
+    { url: `${baseUrl}/courses/ai-module`, lastModified: now, changeFrequency: "weekly", priority: 0.9 },
+
+    // Training & careers
+    { url: `${baseUrl}/training`, lastModified: now, changeFrequency: "monthly", priority: 0.8 },
+    { url: `${baseUrl}/case-studies`, lastModified: now, changeFrequency: "monthly", priority: 0.7 },
+    { url: `${baseUrl}/reviews`, lastModified: now, changeFrequency: "monthly", priority: 0.7 },
+    { url: `${baseUrl}/placements`, lastModified: now, changeFrequency: "monthly", priority: 0.7 },
+    { url: `${baseUrl}/recruitment`, lastModified: now, changeFrequency: "monthly", priority: 0.6 },
+    { url: `${baseUrl}/integration`, lastModified: now, changeFrequency: "monthly", priority: 0.5 },
+
+    // Blog
+    { url: `${baseUrl}/blog`, lastModified: now, changeFrequency: "weekly", priority: 0.7 },
+
+    // Utility
+    { url: `${baseUrl}/verify`, lastModified: now, changeFrequency: "yearly", priority: 0.4 },
+    { url: `${baseUrl}/login`, lastModified: now, changeFrequency: "yearly", priority: 0.3 },
+
+    // Legal & compliance
+    { url: `${baseUrl}/terms`, lastModified: now, changeFrequency: "yearly", priority: 0.3 },
+    { url: `${baseUrl}/privacy`, lastModified: now, changeFrequency: "yearly", priority: 0.3 },
+    { url: `${baseUrl}/cookies`, lastModified: now, changeFrequency: "yearly", priority: 0.3 },
+    { url: `${baseUrl}/complaints`, lastModified: now, changeFrequency: "yearly", priority: 0.3 },
+    { url: `${baseUrl}/accessibility`, lastModified: now, changeFrequency: "yearly", priority: 0.3 },
+
+    // Blog posts
     ...blogUrls,
-  ]
+  ];
 }
