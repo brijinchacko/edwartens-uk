@@ -21,7 +21,9 @@ const STATUS_COLORS: Record<string, string> = {
   DROPPED: "bg-red-500/10 text-red-400 border-red-500/20",
 };
 
-async function getStudents(search?: string) {
+async function getStudents(search?: string, page: number = 1) {
+  const perPage = 50;
+  const skip = (page - 1) * perPage;
   try {
     const where = search
       ? {
@@ -34,17 +36,22 @@ async function getStudents(search?: string) {
         }
       : {};
 
-    return await prisma.student.findMany({
-      where,
-      include: {
-        user: { select: { name: true, email: true } },
-        batch: { select: { name: true } },
-      },
-      orderBy: { createdAt: "desc" },
-      take: 100,
-    });
+    const [students, total] = await Promise.all([
+      prisma.student.findMany({
+        where,
+        include: {
+          user: { select: { name: true, email: true } },
+          batch: { select: { name: true } },
+        },
+        orderBy: { createdAt: "desc" },
+        skip,
+        take: perPage,
+      }),
+      prisma.student.count({ where }),
+    ]);
+    return { students, total, page, perPage, totalPages: Math.ceil(total / perPage) };
   } catch {
-    return [];
+    return { students: [], total: 0, page: 1, perPage, totalPages: 0 };
   }
 }
 
@@ -55,7 +62,8 @@ export default async function StudentsPage({
 }) {
   const params = await searchParams;
   const search = typeof params.search === "string" ? params.search : undefined;
-  const students = await getStudents(search);
+  const page = typeof params.page === "string" ? parseInt(params.page) || 1 : 1;
+  const { students, total, totalPages } = await getStudents(search, page);
 
   return (
     <div className="space-y-6">
@@ -63,7 +71,7 @@ export default async function StudentsPage({
       <div>
         <h1 className="text-2xl font-bold text-text-primary">Students</h1>
         <p className="text-text-muted mt-1">
-          {students.length} student{students.length !== 1 ? "s" : ""} found
+          {total.toLocaleString()} student{total !== 1 ? "s" : ""} found{totalPages > 1 ? ` (page ${page} of ${totalPages})` : ""}
         </p>
       </div>
 
@@ -164,6 +172,50 @@ export default async function StudentsPage({
           </table>
         </div>
       </div>
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between">
+          <p className="text-xs text-text-muted">
+            Showing {(page - 1) * 50 + 1}–{Math.min(page * 50, total)} of {total.toLocaleString()}
+          </p>
+          <div className="flex gap-2">
+            {page > 1 && (
+              <Link
+                href={`/admin/students?page=${page - 1}${search ? `&search=${search}` : ""}`}
+                className="px-3 py-1.5 rounded-lg bg-white/[0.03] border border-white/[0.06] text-text-muted text-xs hover:bg-white/[0.06] transition-colors"
+              >
+                Previous
+              </Link>
+            )}
+            {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+              const p = page <= 3 ? i + 1 : page + i - 2;
+              if (p < 1 || p > totalPages) return null;
+              return (
+                <Link
+                  key={p}
+                  href={`/admin/students?page=${p}${search ? `&search=${search}` : ""}`}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+                    p === page
+                      ? "bg-neon-blue/10 text-neon-blue border border-neon-blue/20"
+                      : "bg-white/[0.03] border border-white/[0.06] text-text-muted hover:bg-white/[0.06]"
+                  }`}
+                >
+                  {p}
+                </Link>
+              );
+            })}
+            {page < totalPages && (
+              <Link
+                href={`/admin/students?page=${page + 1}${search ? `&search=${search}` : ""}`}
+                className="px-3 py-1.5 rounded-lg bg-white/[0.03] border border-white/[0.06] text-text-muted text-xs hover:bg-white/[0.06] transition-colors"
+              >
+                Next
+              </Link>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
