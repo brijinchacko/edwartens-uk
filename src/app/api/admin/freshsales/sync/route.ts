@@ -6,6 +6,7 @@ import {
   fetchAllContacts,
   fetchAllDeals,
   fetchDealStages,
+  fetchContactNotes,
   FreshsalesContact,
 } from "@/lib/freshsales";
 
@@ -165,6 +166,58 @@ export async function POST(req: NextRequest) {
           const newEntry: LeadEntry = { id: newLead.id, email: newLead.email, phone: newLead.phone, source: "Freshsales", notesText: noteContent };
           if (email) emailIndex.set(email, newEntry);
           if (phone) phoneIndex.set(phone, newEntry);
+
+          // Fetch and import notes for this contact
+          try {
+            const notes = await fetchContactNotes(contact.id);
+            for (const note of notes) {
+              const desc = note.description || "";
+              if (!desc) continue;
+              // Parse form field data from notes
+              let parsedNote = desc;
+              if (desc.includes("form_fields[")) {
+                const fields: string[] = [];
+                const fieldMap: Record<string, string> = {
+                  field_8fbbb65: "Course Interest",
+                  field_9bf0a98: "Gender",
+                  field_5e61ba2: "Address",
+                  field_77e24d7: "Qualification",
+                  field_a3aaf82: "Experience Level",
+                  field_a9850cb: "Country",
+                  field_a5cc46b: "Batch Preference",
+                  field_e876b56: "Date of Birth",
+                  field_5b4b727: "Current Job",
+                  field_31913e8: "Location",
+                  field_e08e8bb: "Interested",
+                  field_40f872d: "Previous Experience",
+                  referer_title: "Source Page",
+                };
+                const parts = desc.split(",").map((s: string) => s.trim());
+                for (const part of parts) {
+                  const match = part.match(/(?:form_fields\[)?(\w+)\]?=(.+)/);
+                  if (match) {
+                    const key = match[1];
+                    const val = match[2].trim();
+                    if (val && val !== "false" && val !== "") {
+                      const label = fieldMap[key] || key;
+                      fields.push(`${label}: ${val}`);
+                    }
+                  }
+                }
+                parsedNote = fields.length > 0 ? fields.join("\n") : desc;
+              }
+              await prisma.leadNote.create({
+                data: {
+                  leadId: newLead.id,
+                  content: `[Freshsales Form] ${parsedNote}`,
+                  createdBy: "Freshsales Sync",
+                  createdAt: new Date(note.created_at),
+                },
+              });
+            }
+          } catch {
+            // Notes fetch failed — non-critical
+          }
 
           imported++;
         } catch (err: any) {
