@@ -17,6 +17,13 @@ export const metadata: Metadata = {
     default: "EDWartens UK - Best PLC & SCADA Training in UK | CPD Accredited",
     template: "%s | EDWartens UK",
   },
+  manifest: "/manifest.json",
+  themeColor: "#2891FF",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "EDWartens",
+  },
   description:
     "EDWartens UK offers industry-leading PLC, SCADA, and Industrial Automation training in Milton Keynes. CPD Accredited courses with Siemens, Allen Bradley, HMI & WinCC SCADA. Dedicated career support. Training Division of Wartens.",
   keywords: [

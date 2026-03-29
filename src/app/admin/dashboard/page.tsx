@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
+import ConversionFunnel from "@/components/ConversionFunnel";
 import {
   Users,
   Target,
@@ -1277,6 +1278,9 @@ export default async function AdminDashboard() {
           );
         })}
       </div>
+
+      {/* Conversion Funnel */}
+      <ConversionFunnel />
 
       {/* Pending Actions */}
       <div className="glass-card p-5">

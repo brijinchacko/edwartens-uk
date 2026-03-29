@@ -23,6 +23,7 @@ import {
   Menu,
   X,
   File,
+  MessageSquare,
 } from "lucide-react";
 
 interface StudentSidebarProps {
@@ -46,6 +47,7 @@ const navItems = [
   { href: "/student/documents", label: "Documents", icon: FileText },
   { href: "/student/payments", label: "Payments", icon: CreditCard },
   { href: "/student/jobs", label: "Jobs", icon: Briefcase },
+  { href: "/student/feedback", label: "Feedback", icon: MessageSquare },
   { href: "/student/profile", label: "Profile", icon: User },
   { href: "/student/support", label: "Support", icon: HelpCircle },
 ];

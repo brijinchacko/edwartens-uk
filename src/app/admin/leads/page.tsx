@@ -31,7 +31,15 @@ interface FilterParams {
   dateTo?: string;
   hasNotes?: string; // true/false
   converted?: string; // true/false
+  sortBy?: string; // score_desc, score_asc, created_desc
   page: number;
+}
+
+function getScoreBadge(score: number) {
+  if (score >= 61) return { label: "Very Hot", color: "bg-red-500/10 text-red-400 border-red-500/20" };
+  if (score >= 41) return { label: "Hot", color: "bg-yellow-500/10 text-yellow-400 border-yellow-500/20" };
+  if (score >= 21) return { label: "Warm", color: "bg-blue-500/10 text-blue-400 border-blue-500/20" };
+  return { label: "Cold", color: "bg-white/[0.05] text-text-muted border-white/[0.08]" };
 }
 
 async function getLeads(filters: FilterParams) {
@@ -115,6 +123,11 @@ async function getLeads(filters: FilterParams) {
 
     if (AND.length > 0) where.AND = AND;
 
+    // Determine sort order
+    let orderBy: any = { createdAt: "desc" };
+    if (filters.sortBy === "score_desc") orderBy = { leadScore: "desc" };
+    else if (filters.sortBy === "score_asc") orderBy = { leadScore: "asc" };
+
     const [leads, total, statusCounts] = await Promise.all([
       prisma.lead.findMany({
         where,
@@ -122,7 +135,7 @@ async function getLeads(filters: FilterParams) {
           assignedTo: { include: { user: { select: { name: true } } } },
           _count: { select: { notes: true } },
         },
-        orderBy: { createdAt: "desc" },
+        orderBy,
         skip,
         take: perPage,
       }),
@@ -190,6 +203,7 @@ export default async function LeadsPage({
     dateFrom: getParam("dateFrom"),
     dateTo: getParam("dateTo"),
     converted: getParam("converted"),
+    sortBy: getParam("sortBy"),
     page: parseInt(getParam("page") || "1") || 1,
   };
 
@@ -207,6 +221,7 @@ export default async function LeadsPage({
     search: filters.search, status: filters.status, source: filters.source,
     course: filters.course, assignedTo: filters.assignedTo, followUp: filters.followUp,
     dateFrom: filters.dateFrom, dateTo: filters.dateTo, converted: filters.converted,
+    sortBy: filters.sortBy,
   };
 
   return (
@@ -275,6 +290,28 @@ export default async function LeadsPage({
           <LeadFilters options={filterOptions} />
         </Suspense>
 
+        {/* Sort Options */}
+        <div className="flex items-center gap-2">
+          <span className="text-xs text-text-muted">Sort:</span>
+          {[
+            { value: undefined, label: "Newest" },
+            { value: "score_desc", label: "Score (High)" },
+            { value: "score_asc", label: "Score (Low)" },
+          ].map((s) => (
+            <Link
+              key={s.label}
+              href={buildFilterUrl(currentParams, { sortBy: s.value })}
+              className={`px-2.5 py-1 rounded-md text-[11px] font-medium transition-colors ${
+                (filters.sortBy || undefined) === s.value
+                  ? "bg-neon-blue/10 text-neon-blue border border-neon-blue/20"
+                  : "bg-white/[0.03] text-text-muted border border-white/[0.06] hover:bg-white/[0.06]"
+              }`}
+            >
+              {s.label}
+            </Link>
+          ))}
+        </div>
+
         {/* Clear Filters */}
         {activeFilterCount > 0 && (
           <div>
@@ -301,6 +338,7 @@ export default async function LeadsPage({
                 <th className="text-left px-4 py-3 text-text-muted font-medium hidden lg:table-cell">Course</th>
                 <th className="text-left px-4 py-3 text-text-muted font-medium hidden xl:table-cell">Source</th>
                 <th className="text-left px-4 py-3 text-text-muted font-medium">Status</th>
+                <th className="text-left px-4 py-3 text-text-muted font-medium hidden md:table-cell">Score</th>
                 <th className="text-left px-4 py-3 text-text-muted font-medium hidden xl:table-cell">Assigned</th>
                 <th className="text-left px-4 py-3 text-text-muted font-medium hidden lg:table-cell">Follow-up</th>
                 <th className="text-left px-4 py-3 text-text-muted font-medium hidden md:table-cell">Notes</th>
@@ -310,7 +348,7 @@ export default async function LeadsPage({
             <tbody>
               {leads.length === 0 ? (
                 <tr>
-                  <td colSpan={10} className="px-4 py-12 text-center text-text-muted">
+                  <td colSpan={11} className="px-4 py-12 text-center text-text-muted">
                     No leads found matching your filters
                   </td>
                 </tr>
@@ -346,6 +384,17 @@ export default async function LeadsPage({
                         <span className={`inline-flex px-2 py-0.5 rounded-full text-[10px] font-medium border ${STATUS_COLORS[lead.status] || "bg-white/[0.05] text-text-muted"}`}>
                           {LEAD_STATUS_LABELS[lead.status] || lead.status}
                         </span>
+                      </td>
+                      <td className="px-4 py-3 hidden md:table-cell">
+                        {(() => {
+                          const badge = getScoreBadge(lead.leadScore || 0);
+                          return (
+                            <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium border ${badge.color}`}>
+                              <span className="font-bold">{lead.leadScore || 0}</span>
+                              <span className="opacity-70">{badge.label}</span>
+                            </span>
+                          );
+                        })()}
                       </td>
                       <td className="px-4 py-3 text-text-secondary hidden xl:table-cell text-xs">
                         {lead.assignedTo?.user?.name || <span className="text-text-muted">—</span>}
