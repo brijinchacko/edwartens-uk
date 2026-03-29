@@ -154,14 +154,18 @@ export function WorkTracker() {
     fetchSession();
   }, []);
 
-  /* ── Live timer ── */
+  /* ── Live timer (pauses when IDLE or on BREAK) ── */
   useEffect(() => {
     if (!session) return;
     const checkIn = new Date(session.checkInTime).getTime();
 
     const interval = setInterval(() => {
       const now = Date.now();
-      setElapsed(Math.floor((now - checkIn) / 1000));
+
+      // Only count active time (not break or idle)
+      if (session.status === "ACTIVE") {
+        setElapsed((prev) => prev + 1);
+      }
 
       // Break timer
       const currentBreak = session.breaks.find((b) => !b.endTime);
@@ -190,11 +194,25 @@ export function WorkTracker() {
     const events = ["mousemove", "keypress", "click", "scroll"];
     events.forEach((e) => document.addEventListener(e, onActivity));
 
-    // Heartbeat every 60s
+    // Heartbeat every 60s — detect idle and auto-pause timer
     const heartbeat = setInterval(async () => {
       const idleMs = Date.now() - lastActivity.current;
       const active = idleMs < 5 * 60 * 1000; // 5 min threshold
       isUserActive.current = active;
+
+      // If idle for 20+ minutes, mark as uninformed break and pause timer
+      if (idleMs >= 20 * 60 * 1000 && session?.status === "ACTIVE") {
+        setSession((prev) =>
+          prev ? { ...prev, status: "IDLE" } : prev
+        );
+      }
+
+      // If user comes back from idle, resume as active
+      if (active && session?.status === "IDLE") {
+        setSession((prev) =>
+          prev ? { ...prev, status: "ACTIVE" } : prev
+        );
+      }
 
       try {
         await fetch("/api/admin/work-session/heartbeat", {

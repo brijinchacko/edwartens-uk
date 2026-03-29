@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { exchangeCodeForTokens } from "@/lib/microsoft-graph";
 
+const BASE_URL = process.env.NEXTAUTH_URL || "https://edwartens.co.uk";
+
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = req.nextUrl;
@@ -10,15 +12,11 @@ export async function GET(req: NextRequest) {
     const error = searchParams.get("error");
 
     if (error) {
-      return NextResponse.redirect(
-        new URL(`/admin/emails?error=${encodeURIComponent(error)}`, req.url)
-      );
+      return NextResponse.redirect(`${BASE_URL}/admin/emails?error=${encodeURIComponent(error)}`);
     }
 
     if (!code || !state) {
-      return NextResponse.redirect(
-        new URL("/admin/emails?error=missing_code", req.url)
-      );
+      return NextResponse.redirect(`${BASE_URL}/admin/emails?error=missing_code`);
     }
 
     // Exchange code for tokens
@@ -35,14 +33,9 @@ export async function GET(req: NextRequest) {
       },
     });
 
-    // Redirect back to emails page with success
-    return NextResponse.redirect(
-      new URL(`/admin/emails?connected=true&email=${encodeURIComponent(tokens.email)}`, req.url)
-    );
+    return NextResponse.redirect(`${BASE_URL}/admin/emails?connected=true&email=${encodeURIComponent(tokens.email)}`);
   } catch (error: any) {
     console.error("Outlook callback error:", error);
-    return NextResponse.redirect(
-      new URL(`/admin/emails?error=${encodeURIComponent(error.message || "callback_failed")}`, req.url)
-    );
+    return NextResponse.redirect(`${BASE_URL}/admin/emails?error=${encodeURIComponent(error.message || "callback_failed")}`);
   }
 }
