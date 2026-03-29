@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { Menu, X, Globe, ChevronDown } from "lucide-react";
+import { Menu, X, Globe, ChevronDown, LayoutDashboard } from "lucide-react";
 
 // Desktop nav - compact, only key pages
 const desktopLinks = [
@@ -39,11 +39,26 @@ export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [regionOpen, setRegionOpen] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [userRole, setUserRole] = useState<string | null>(null);
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20);
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  // Check if user is logged in
+  useEffect(() => {
+    fetch("/api/auth/session")
+      .then((r) => r.json())
+      .then((data) => {
+        if (data?.user?.email) {
+          setIsLoggedIn(true);
+          setUserRole(data.user.role || null);
+        }
+      })
+      .catch(() => {});
   }, []);
 
   useEffect(() => {
@@ -94,13 +109,23 @@ export default function Navbar() {
 
           {/* Right side */}
           <div className="flex items-center gap-2">
-            {/* Desktop: Login + Region */}
-            <Link
-              href="/login"
-              className="hidden lg:inline-flex items-center px-4 py-2 rounded-lg border border-white/10 text-text-secondary text-sm hover:border-white/20 hover:bg-white/[0.03] transition-colors"
-            >
-              Login
-            </Link>
+            {/* Desktop: Login/Dashboard + Region */}
+            {isLoggedIn ? (
+              <Link
+                href={userRole === "STUDENT" ? "/student/dashboard" : "/admin/dashboard"}
+                className="hidden lg:inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-neon-blue/10 text-neon-blue border border-neon-blue/20 text-sm hover:bg-neon-blue/20 transition-colors font-medium"
+              >
+                <LayoutDashboard size={16} />
+                Dashboard
+              </Link>
+            ) : (
+              <Link
+                href="/login"
+                className="hidden lg:inline-flex items-center px-4 py-2 rounded-lg border border-white/10 text-text-secondary text-sm hover:border-white/20 hover:bg-white/[0.03] transition-colors"
+              >
+                Login
+              </Link>
+            )}
 
             {/* Region selector */}
             <div className="relative">
@@ -223,11 +248,15 @@ export default function Navbar() {
 
             <div className="mt-3 pt-3 border-t border-white/[0.06]">
               <Link
-                href="/login"
+                href={isLoggedIn ? (userRole === "STUDENT" ? "/student/dashboard" : "/admin/dashboard") : "/login"}
                 onClick={() => setIsOpen(false)}
-                className="block w-full text-center px-4 py-2 rounded-lg border border-white/10 text-text-secondary text-sm hover:border-white/20 hover:bg-white/[0.03] transition-colors"
+                className={`block w-full text-center px-4 py-2 rounded-lg text-sm transition-colors ${
+                  isLoggedIn
+                    ? "bg-neon-blue/10 text-neon-blue border border-neon-blue/20 font-medium"
+                    : "border border-white/10 text-text-secondary hover:border-white/20 hover:bg-white/[0.03]"
+                }`}
               >
-                Login
+                {isLoggedIn ? "Dashboard" : "Login"}
               </Link>
             </div>
           </div>

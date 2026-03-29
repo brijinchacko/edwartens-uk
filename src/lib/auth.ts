@@ -66,6 +66,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   },
   session: {
     strategy: "jwt",
+    maxAge: 30 * 24 * 60 * 60, // 30 days — stay logged in even after closing browser
   },
   trustHost: true,
   secret: process.env.NEXTAUTH_SECRET || process.env.AUTH_SECRET,
