@@ -27,7 +27,11 @@ export async function GET(req: NextRequest) {
           },
         },
         _count: {
-          select: { students: true, sessions: true },
+          select: { students: true, sessions: true, readiness: true },
+        },
+        readiness: {
+          where: { isReady: true },
+          select: { id: true },
         },
       },
       orderBy: { startDate: "desc" },
@@ -59,6 +63,8 @@ export async function POST(req: NextRequest) {
       capacity,
       instructorId,
       location,
+      mode,
+      teamsLink,
     } = body;
 
     if (!name || !course || !startDate) {
@@ -77,6 +83,8 @@ export async function POST(req: NextRequest) {
         capacity: capacity || 15,
         instructorId: instructorId || null,
         location: location || "Milton Keynes",
+        mode: mode || "ONLINE",
+        teamsLink: teamsLink || null,
       },
       include: {
         instructor: {
