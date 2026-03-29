@@ -15,7 +15,7 @@ export function JobActionButtons({ jobId, currentStatus }: JobActionButtonsProps
   const handleAction = async (newStatus: string) => {
     setLoading(true);
     try {
-      const res = await fetch("/api/student/jobs/apply", {
+      const res = await fetch("/api/student/job-applications", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ jobId, status: newStatus }),

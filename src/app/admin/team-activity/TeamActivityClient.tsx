@@ -256,7 +256,22 @@ export default function TeamActivityClient() {
       const res = await fetch("/api/admin/work-session/team");
       if (res.ok) {
         const data = await res.json();
-        setMembers(data.members ?? data.team ?? []);
+        const raw = data.members ?? data.team ?? [];
+        // Map API response to component interface
+        const mapped = raw.map((m: any) => ({
+          id: m.id,
+          name: m.name,
+          role: m.role,
+          image: m.avatar || m.image,
+          status: (m.currentStatus || m.status || "OFFLINE") as TeamMember["status"],
+          location: m.workLocation || m.location,
+          checkInTime: m.checkInTime,
+          activeSeconds: (m.totalActiveMinutes ?? m.activeSeconds ?? 0) * (m.totalActiveMinutes !== undefined ? 60 : 1),
+          breakCount: m.breakCount ?? 0,
+          totalBreakSeconds: (m.totalBreakMinutes ?? m.totalBreakSeconds ?? 0) * (m.totalBreakMinutes !== undefined ? 60 : 1),
+          idleMinutes: m.totalIdleMinutes ?? m.idleMinutes ?? 0,
+        }));
+        setMembers(mapped);
       }
     } catch {
       // silent
