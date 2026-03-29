@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import { prisma } from "@/lib/prisma";
 import { formatDate, getInitials } from "@/lib/utils";
-import { Plus, UserCog } from "lucide-react";
+import { UserCog } from "lucide-react";
+import AddEmployeeModal from "./AddEmployeeModal";
 
 export const metadata: Metadata = {
   title: "Employees | EDWartens Admin",
@@ -54,10 +55,7 @@ export default async function EmployeesPage() {
             {employees.length} team member{employees.length !== 1 ? "s" : ""}
           </p>
         </div>
-        <button className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-neon-blue/10 text-neon-blue border border-neon-blue/20 hover:bg-neon-blue/20 transition-colors text-sm font-medium w-fit">
-          <Plus size={16} />
-          Add Staff
-        </button>
+        <AddEmployeeModal />
       </div>
 
       {employees.length === 0 ? (

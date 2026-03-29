@@ -15,9 +15,8 @@ import {
   Tag,
   User,
   Clock,
-  MessageSquare,
-  UserPlus,
 } from "lucide-react";
+import LeadActions from "./LeadActions";
 
 export const metadata: Metadata = {
   title: "Lead Detail | EDWartens Admin",
@@ -84,15 +83,6 @@ export default async function LeadDetailPage({
             </span>
           </div>
         </div>
-        {lead.status !== "ENROLLED" && (
-          <Link
-            href={`/admin/leads/${lead.id}?action=convert`}
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-neon-green/10 text-neon-green border border-neon-green/20 hover:bg-neon-green/20 transition-colors text-sm font-medium"
-          >
-            <UserPlus size={16} />
-            Convert to Student
-          </Link>
-        )}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -186,74 +176,50 @@ export default async function LeadDetailPage({
               </div>
             </div>
           )}
-
-          {/* Status Change */}
-          <div className="glass-card p-5">
-            <h2 className="text-base font-semibold text-text-primary mb-4">
-              Update Status
-            </h2>
-            <div className="flex flex-wrap gap-2">
-              {Object.entries(LEAD_STATUS_LABELS).map(([key, label]) => (
-                <button
-                  key={key}
-                  disabled={lead.status === key}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
-                    lead.status === key
-                      ? "opacity-50 cursor-not-allowed " + STATUS_COLORS[key]
-                      : STATUS_COLORS[key] + " hover:opacity-80 cursor-pointer"
-                  }`}
-                >
-                  {label}
-                </button>
-              ))}
-            </div>
-          </div>
         </div>
 
-        {/* Notes Timeline */}
-        <div className="lg:col-span-2">
-          <div className="glass-card p-5">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-base font-semibold text-text-primary">
-                Notes & Activity
-              </h2>
-              <button className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-neon-blue/10 text-neon-blue border border-neon-blue/20 hover:bg-neon-blue/20 transition-colors text-xs font-medium">
-                <MessageSquare size={14} />
-                Add Note
-              </button>
-            </div>
+        {/* Actions + Notes Timeline */}
+        <div className="lg:col-span-2 space-y-6">
+          <LeadActions
+            leadId={lead.id}
+            currentStatus={lead.status}
+            isConverted={!!lead.convertedToStudentId}
+            courseInterest={lead.courseInterest}
+            phone={lead.phone}
+            email={lead.email}
+          />
 
-            {lead.notes.length === 0 ? (
-              <p className="text-text-muted text-sm py-8 text-center">
-                No notes yet. Add a note to track your interactions.
-              </p>
-            ) : (
-              <div className="space-y-4">
-                {lead.notes.map((note: any) => (
-                  <div
-                    key={note.id}
-                    className="relative pl-6 pb-4 border-l border-white/[0.06] last:pb-0"
-                  >
-                    <div className="absolute -left-[5px] top-0 w-2.5 h-2.5 rounded-full bg-neon-blue" />
-                    <div className="bg-white/[0.02] rounded-lg p-3">
-                      <p className="text-sm text-text-secondary whitespace-pre-wrap">
-                        {note.content}
-                      </p>
-                      <div className="flex items-center gap-3 mt-2">
-                        <span className="text-xs text-text-muted">
-                          {note.createdBy}
-                        </span>
-                        <span className="text-xs text-text-muted flex items-center gap-1">
-                          <Clock size={12} />
-                          {formatDate(note.createdAt)}
-                        </span>
-                      </div>
+          {/* Notes List (server-rendered) */}
+          {lead.notes.length === 0 ? (
+            <p className="text-text-muted text-sm py-8 text-center">
+              No notes yet. Add a note to track your interactions.
+            </p>
+          ) : (
+            <div className="space-y-4">
+              {lead.notes.map((note: any) => (
+                <div
+                  key={note.id}
+                  className="relative pl-6 pb-4 border-l border-white/[0.06] last:pb-0"
+                >
+                  <div className="absolute -left-[5px] top-0 w-2.5 h-2.5 rounded-full bg-neon-blue" />
+                  <div className="bg-white/[0.02] rounded-lg p-3">
+                    <p className="text-sm text-text-secondary whitespace-pre-wrap">
+                      {note.content}
+                    </p>
+                    <div className="flex items-center gap-3 mt-2">
+                      <span className="text-xs text-text-muted">
+                        {note.createdBy}
+                      </span>
+                      <span className="text-xs text-text-muted flex items-center gap-1">
+                        <Clock size={12} />
+                        {formatDate(note.createdAt)}
+                      </span>
                     </div>
                   </div>
-                ))}
-              </div>
-            )}
-          </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </div>

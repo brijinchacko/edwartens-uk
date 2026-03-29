@@ -27,6 +27,11 @@ export function generateCertificateNo(sequence: number): string {
   return `EDW-UK-${year}-${String(sequence).padStart(5, "0")}`;
 }
 
+export function generateInvoiceNumber(sequence: number): string {
+  const year = new Date().getFullYear();
+  return `EDW-INV-${year}-${String(sequence).padStart(5, "0")}`;
+}
+
 export function generateTempPassword(): string {
   const chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789";
   let password = "";

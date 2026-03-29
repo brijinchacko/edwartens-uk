@@ -15,6 +15,8 @@ export interface BlogPost {
   readTime: string;
   publishedAt: string;
   author: string;
+  image?: string;
+  seoKeywords?: string[];
 }
 
 const blogPosts: BlogPost[] = [
@@ -70,6 +72,7 @@ At EDWartens, our PLC training programmes provide hands-on experience with real 
     readTime: "8 min read",
     publishedAt: "2025-11-15",
     author: "EDWartens Team",
+    image: "https://images.unsplash.com/photo-1581092160562-40aa08e78837?w=1200&h=630&fit=crop",
   },
   {
     slug: "top-5-plc-programming-languages-every-engineer-should-know",
@@ -149,6 +152,7 @@ At EDWartens, our curriculum covers all five languages with practical exercises 
     readTime: "10 min read",
     publishedAt: "2025-12-02",
     author: "EDWartens Team",
+    image: "https://images.unsplash.com/photo-1518770660439-4636190af475?w=1200&h=630&fit=crop",
   },
   {
     slug: "siemens-vs-allen-bradley-which-plc-should-you-learn",
@@ -214,6 +218,7 @@ The premium for engineers who know both platforms is significant, making it wort
     readTime: "9 min read",
     publishedAt: "2026-01-10",
     author: "EDWartens Team",
+    image: "https://images.unsplash.com/photo-1581092918056-0c4c3acd3789?w=1200&h=630&fit=crop",
   },
   {
     slug: "how-to-start-a-career-in-industrial-automation-in-the-uk",
@@ -299,6 +304,7 @@ At EDWartens, our UK programmes are specifically designed to bridge the gap betw
     readTime: "11 min read",
     publishedAt: "2026-02-05",
     author: "EDWartens Team",
+    image: "https://images.unsplash.com/photo-1504384308090-c894fdcc538d?w=1200&h=630&fit=crop",
   },
   {
     slug: "the-future-of-scada-systems-in-industry-4-0",
@@ -381,6 +387,7 @@ At EDWartens, our SCADA training modules cover both traditional and Industry 4.0
     readTime: "12 min read",
     publishedAt: "2026-03-01",
     author: "EDWartens Team",
+    image: "https://images.unsplash.com/photo-1535378917042-10a22c95931a?w=1200&h=630&fit=crop",
   },
   {
     slug: "why-vr-training-is-transforming-industrial-education",
@@ -458,18 +465,34 @@ Industrial education is at an inflection point. Organisations that embrace VR tr
     readTime: "10 min read",
     publishedAt: "2026-03-18",
     author: "EDWartens Team",
+    image: "https://images.unsplash.com/photo-1592478411213-6153e4ebc07d?w=1200&h=630&fit=crop",
   },
 ];
 
+import { physicalAIPosts } from "./blog-physical-ai";
+import { digitalAIPosts } from "./blog-digital-ai";
+import { industryPosts } from "./blog-industry";
+import { careerPosts } from "./blog-career";
+import { companyPosts } from "./blog-company";
+
+const allPosts: BlogPost[] = [
+  ...blogPosts,
+  ...physicalAIPosts,
+  ...digitalAIPosts,
+  ...industryPosts,
+  ...careerPosts,
+  ...companyPosts,
+];
+
 export function getAllPosts(): BlogPost[] {
-  return blogPosts.sort(
+  return allPosts.sort(
     (a, b) =>
       new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime()
   );
 }
 
 export function getBlogPost(slug: string): BlogPost | undefined {
-  return blogPosts.find((post) => post.slug === slug);
+  return allPosts.find((post) => post.slug === slug);
 }
 
 export function getPostsByCategory(category: BlogCategory): BlogPost[] {

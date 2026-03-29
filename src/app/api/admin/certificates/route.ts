@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { generateCertificateNo } from "@/lib/utils";
+import { generateCertificateNo, formatDate } from "@/lib/utils";
 import { hasPermission } from "@/lib/rbac";
+import { generateCertificateImage } from "@/lib/certificate-generator";
 
 export async function GET(req: NextRequest) {
   try {
@@ -85,6 +86,25 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // Check if student already has a certificate of this type — replace it
+    const existingCert = await prisma.certificate.findFirst({
+      where: { studentId, type },
+    });
+
+    if (existingCert) {
+      // Delete old certificate file
+      if (existingCert.pdfUrl) {
+        const fs = await import("fs");
+        const path = await import("path");
+        const oldFileName = existingCert.pdfUrl.split("/").pop();
+        if (oldFileName) {
+          const oldPath = path.join(process.cwd(), "uploads", "certificates", oldFileName);
+          if (fs.existsSync(oldPath)) fs.unlinkSync(oldPath);
+        }
+      }
+      await prisma.certificate.delete({ where: { id: existingCert.id } });
+    }
+
     // Determine next sequence number
     const lastCert = await prisma.certificate.findFirst({
       where: {
@@ -103,12 +123,27 @@ export async function POST(req: NextRequest) {
 
     const certificateNo = generateCertificateNo(sequence);
 
+    // Generate certificate image from template
+    let pdfUrl: string | null = null;
+    try {
+      pdfUrl = await generateCertificateImage({
+        studentName: student.user.name,
+        date: formatDate(new Date()),
+        certNo: certificateNo,
+        verifyUrl: `https://edwartens.co.uk/verify/${certificateNo}`,
+      });
+    } catch (imgErr) {
+      console.error("Certificate image generation error:", imgErr);
+    }
+
     const certificate = await prisma.certificate.create({
       data: {
         studentId,
         type,
         certificateNo,
         expiryDate: expiryDate ? new Date(expiryDate) : null,
+        pdfUrl,
+        qrCode: `https://edwartens.co.uk/verify/${certificateNo}`,
         metadata: metadata || null,
         isValid: true,
       },
@@ -121,7 +156,13 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    return NextResponse.json(certificate, { status: 201 });
+    return NextResponse.json({
+      ...certificate,
+      replaced: !!existingCert,
+      message: existingCert
+        ? `Previous ${type} certificate replaced with new one`
+        : "Certificate generated successfully",
+    }, { status: 201 });
   } catch (error) {
     console.error("Admin certificate create error:", error);
     return NextResponse.json(

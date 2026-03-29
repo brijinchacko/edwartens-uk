@@ -1,11 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { getTestSession } from "@/lib/test-session";
+import { auth } from "@/lib/auth";
 
 export async function GET() {
   try {
-    const session = getTestSession("STUDENT");
-    const userId = session.user.id;
+    const session = await auth();
+    if (!session?.user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+    const userId = session.user.id as string;
 
     const user = await prisma.user.findUnique({
       where: { id: userId },
@@ -73,8 +76,11 @@ export async function GET() {
 
 export async function PUT(req: NextRequest) {
   try {
-    const session = getTestSession("STUDENT");
-    const userId = session.user.id;
+    const session = await auth();
+    if (!session?.user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+    const userId = session.user.id as string;
 
     const body = await req.json();
     const { name, phone, address, dateOfBirth, emergencyName, emergencyPhone } =
@@ -108,6 +114,60 @@ export async function PUT(req: NextRequest) {
     return NextResponse.json(user);
   } catch (error) {
     console.error("Update profile error:", error);
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
+  }
+}
+
+export async function PATCH(req: NextRequest) {
+  try {
+    const session = await auth();
+    if (!session?.user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+    const userId = session.user.id as string;
+
+    const body = await req.json();
+    const {
+      name,
+      phone,
+      address,
+      dateOfBirth,
+      emergencyName,
+      emergencyPhone,
+    } = body;
+
+    const updateData: Record<string, unknown> = {};
+    if (name !== undefined) updateData.name = name;
+    if (phone !== undefined) updateData.phone = phone;
+    if (address !== undefined) updateData.address = address;
+    if (dateOfBirth !== undefined)
+      updateData.dateOfBirth = dateOfBirth ? new Date(dateOfBirth) : null;
+    if (emergencyName !== undefined) updateData.emergencyName = emergencyName;
+    if (emergencyPhone !== undefined)
+      updateData.emergencyPhone = emergencyPhone;
+
+    const user = await prisma.user.update({
+      where: { id: userId },
+      data: updateData,
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        phone: true,
+        dateOfBirth: true,
+        address: true,
+        emergencyName: true,
+        emergencyPhone: true,
+        avatar: true,
+      },
+    });
+
+    return NextResponse.json(user);
+  } catch (error) {
+    console.error("Patch profile error:", error);
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }

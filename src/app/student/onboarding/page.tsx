@@ -12,6 +12,7 @@ import {
   Loader2,
   CreditCard,
   PartyPopper,
+  Camera,
 } from "lucide-react";
 
 interface ProfileData {
@@ -58,6 +59,10 @@ export default function OnboardingPage() {
     emergencyPhone: "",
     qualification: "",
   });
+  const [photoFile, setPhotoFile] = useState<File | null>(null);
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+  const [existingAvatar, setExistingAvatar] = useState<string | null>(null);
+  const photoRef = useRef<HTMLInputElement>(null);
 
   // Step 3: Documents
   const [idProof, setIdProof] = useState<UploadedFile | null>(null);
@@ -95,6 +100,9 @@ export default function OnboardingPage() {
           if (data.termsAccepted) {
             setTermsAccepted(true);
           }
+          if (data.avatar) {
+            setExistingAvatar(data.avatar);
+          }
         }
       } catch {
         // Ignore load errors, user can fill fresh
@@ -124,6 +132,12 @@ export default function OnboardingPage() {
       }
 
       if (currentStep === 1) {
+        // Validate photo
+        if (!photoFile && !existingAvatar) {
+          setError("Profile photo is required.");
+          setLoading(false);
+          return;
+        }
         // Validate profile
         if (
           !profile.name ||
@@ -138,6 +152,19 @@ export default function OnboardingPage() {
           setLoading(false);
           return;
         }
+        // Upload photo first if a new file was selected
+        if (photoFile) {
+          const avatarFormData = new FormData();
+          avatarFormData.append("avatar", photoFile);
+          const avatarRes = await fetch("/api/student/profile/avatar", {
+            method: "POST",
+            body: avatarFormData,
+          });
+          if (!avatarRes.ok) throw new Error("Failed to upload profile photo");
+          const avatarData = await avatarRes.json();
+          setExistingAvatar(avatarData.avatar);
+        }
+        // Save profile
         const res = await fetch("/api/student/onboarding", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -421,6 +448,20 @@ export default function OnboardingPage() {
                 <br />
                 These Terms are governed by the laws of England and Wales. Any disputes will be handled exclusively in the courts of England and Wales.
               </p>
+              <div className="mt-4 p-3 bg-neon-blue/5 border border-neon-blue/20 rounded-lg">
+                <p className="flex items-start gap-2">
+                  <Camera size={16} className="text-neon-blue mt-0.5 shrink-0" />
+                  <span>
+                    <strong className="text-text-primary">
+                      14. Photography &amp; Marketing
+                    </strong>
+                    <br />
+                    By enrolling in EDWartens UK training programmes, you acknowledge that: (a) You are required to submit a recent photograph during onboarding for identification and certification purposes. (b) EDWartens UK may use photographs, testimonials, and success stories of candidates for marketing and promotional purposes, including our website, social media channels, brochures, and advertising materials. (c) If you do not wish your photograph or success story to be used for marketing purposes, you must notify us in writing by emailing{" "}
+                    <span className="text-neon-blue">privacy@edwartens.co.uk</span>{" "}
+                    within 30 days of your course completion. (d) All personal data, including photographs, will be handled in accordance with UK GDPR and the Data Protection Act 2018.
+                  </span>
+                </p>
+              </div>
               <p className="text-xs text-text-muted mt-4">
                 For the full Terms and Conditions document, please visit{" "}
                 <a href="/terms" target="_blank" className="text-neon-blue hover:underline">
@@ -437,8 +478,10 @@ export default function OnboardingPage() {
                 className="mt-1 w-4 h-4 rounded border-border bg-dark-primary accent-neon-blue"
               />
               <span className="text-sm text-text-secondary">
-                I have read and agree to the Terms & Conditions, Privacy
-                Policy, and Enrollment Agreement of EDWartens UK.
+                I have read and agree to the Terms &amp; Conditions, Privacy
+                Policy, Enrollment Agreement, and Photography &amp; Marketing
+                clause of EDWartens UK, including consent for photo usage as
+                described in Section 14.
               </span>
             </label>
           </div>
@@ -450,6 +493,53 @@ export default function OnboardingPage() {
             <h2 className="text-xl font-bold text-text-primary">
               Complete Your Profile
             </h2>
+
+            {/* Photo Upload */}
+            <div className="flex flex-col items-center gap-3">
+              <label className="text-sm font-medium text-text-primary">
+                Profile Photo <span className="text-red-400">(Required)</span>
+              </label>
+              <div
+                onClick={() => photoRef.current?.click()}
+                className="relative w-24 h-24 rounded-full cursor-pointer group"
+              >
+                {photoPreview || existingAvatar ? (
+                  <img
+                    src={photoPreview || existingAvatar || ""}
+                    alt="Profile preview"
+                    className="w-24 h-24 rounded-full object-cover border-2 border-neon-blue/30"
+                  />
+                ) : (
+                  <div className="w-24 h-24 rounded-full bg-white/[0.03] border-2 border-dashed border-border flex items-center justify-center">
+                    <Camera size={28} className="text-text-muted" />
+                  </div>
+                )}
+                <div className="absolute inset-0 rounded-full bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                  <Camera size={20} className="text-white" />
+                </div>
+                <input
+                  ref={photoRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      setPhotoFile(file);
+                      const reader = new FileReader();
+                      reader.onloadend = () => {
+                        setPhotoPreview(reader.result as string);
+                      };
+                      reader.readAsDataURL(file);
+                    }
+                  }}
+                />
+              </div>
+              <p className="text-xs text-text-muted text-center">
+                Your photo is required for your student profile and certificate.
+              </p>
+            </div>
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-1">
                 <label className="text-sm text-text-secondary">

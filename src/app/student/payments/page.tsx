@@ -1,5 +1,6 @@
-import { getTestSession } from "@/lib/test-session";
+import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { redirect } from "next/navigation";
 import { formatCurrency } from "@/lib/utils";
 import {
   CreditCard,
@@ -8,7 +9,10 @@ import {
   AlertCircle,
   Receipt,
   ExternalLink,
+  Download,
+  FileText,
 } from "lucide-react";
+import { formatDate } from "@/lib/utils";
 
 const COURSE_FEES: Record<string, number> = {
   PROFESSIONAL_MODULE: 2140,
@@ -16,7 +20,8 @@ const COURSE_FEES: Record<string, number> = {
 };
 
 export default async function PaymentsPage() {
-  const session = getTestSession("STUDENT");
+  const session = await auth();
+  if (!session?.user) redirect("/login");
 
   let student: {
     id: string;
@@ -28,7 +33,7 @@ export default async function PaymentsPage() {
 
   try {
     student = await prisma.student.findUnique({
-      where: { userId: session.user.id },
+      where: { userId: session?.user?.id },
       select: {
         id: true,
         course: true,
@@ -39,6 +44,20 @@ export default async function PaymentsPage() {
     });
   } catch (error) {
     console.error("Payment data error:", error);
+  }
+
+  // Fetch invoices
+  let invoices: { id: string; invoiceNumber: string; date: Date; total: number; status: string; pdfUrl: string | null; description: string }[] = [];
+  if (student) {
+    try {
+      invoices = await prisma.invoice.findMany({
+        where: { studentId: student.id },
+        orderBy: { date: "desc" },
+        select: { id: true, invoiceNumber: true, date: true, total: true, status: true, pdfUrl: true, description: true },
+      });
+    } catch (error) {
+      console.error("Invoice fetch error:", error);
+    }
   }
 
   const courseFee = student ? COURSE_FEES[student.course] || 2140 : 2140;
@@ -212,6 +231,51 @@ export default async function PaymentsPage() {
           </div>
         </div>
       </div>
+
+      {/* Invoices & Receipts */}
+      {invoices.length > 0 && (
+        <div className="glass-card p-5">
+          <div className="flex items-center gap-2 mb-4">
+            <FileText size={18} className="text-neon-blue" />
+            <h3 className="text-sm font-semibold text-text-primary">
+              Invoices & Receipts
+            </h3>
+          </div>
+          <div className="space-y-3">
+            {invoices.map((inv) => (
+              <div
+                key={inv.id}
+                className="flex items-center justify-between p-3 bg-dark-primary rounded-lg"
+              >
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-text-primary">
+                    {inv.invoiceNumber}
+                  </p>
+                  <p className="text-xs text-text-muted mt-0.5">
+                    {inv.description} &middot; {formatDate(inv.date)}
+                  </p>
+                </div>
+                <div className="flex items-center gap-3">
+                  <span className="text-sm font-semibold text-text-primary">
+                    {formatCurrency(inv.total / 100)}
+                  </span>
+                  {inv.pdfUrl && (
+                    <a
+                      href={inv.pdfUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-neon-blue/10 border border-neon-blue/20 text-neon-blue text-xs font-medium hover:bg-neon-blue/20 transition-colors"
+                    >
+                      <Download size={14} />
+                      Download
+                    </a>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Note */}
       <div className="p-4 bg-neon-blue/5 border border-neon-blue/10 rounded-lg">

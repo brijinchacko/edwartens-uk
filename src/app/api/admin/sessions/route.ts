@@ -124,3 +124,30 @@ export async function POST(req: NextRequest) {
     );
   }
 }
+
+export async function DELETE(req: NextRequest) {
+  try {
+    const session = await auth();
+    if (!session?.user || !hasPermission(session.user.role, "sessions:manage")) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const { searchParams } = req.nextUrl;
+    const id = searchParams.get("id");
+    if (!id) {
+      return NextResponse.json({ error: "Session ID required" }, { status: 400 });
+    }
+
+    // Delete progress records first
+    await prisma.sessionProgress.deleteMany({ where: { sessionId: id } });
+    await prisma.session.delete({ where: { id } });
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error("Admin session delete error:", error);
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
+  }
+}

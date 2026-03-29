@@ -93,6 +93,17 @@ enum JobPlatform {
   OTHER
 }
 
+enum QuestionCategory {
+  PRE_COURSE
+  THEORY
+}
+
+enum AssessmentType {
+  PRE_COURSE
+  THEORY
+  PRACTICAL
+}
+
 enum JourneyEventType {
   LEAD_CREATED
   LEAD_ASSIGNED
@@ -110,6 +121,12 @@ enum JourneyEventType {
   TRAINING_COMPLETED
   PROJECT_SUBMITTED
   ASSESSMENT_COMPLETED
+  PRE_COURSE_COMPLETED
+  THEORY_ASSESSMENT_COMPLETED
+  PRACTICAL_SUBMITTED
+  PRACTICAL_GRADED
+  CERTIFICATE_DISPATCH_PENDING
+  CERTIFICATE_SENT
   RESUME_REVIEW
   LINKEDIN_VERIFIED
   JOB_APPLICATION
@@ -200,6 +217,7 @@ model Student {
   weeklyJobShares      WeeklyJobShare[]
   interviewSupports    InterviewSupport[]
   softwareChecklist    SoftwareChecklist?
+  invoices             Invoice[]
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
 }
@@ -338,18 +356,33 @@ model Placement {
 }
 
 model Certificate {
-  id              String          @id @default(cuid())
+  id              String               @id @default(cuid())
   studentId       String
-  student         Student         @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  student         Student              @relation(fields: [studentId], references: [id], onDelete: Cascade)
   type            CertificateType
-  certificateNo   String          @unique
-  issuedDate      DateTime        @default(now())
+  certificateNo   String               @unique
+  issuedDate      DateTime             @default(now())
   expiryDate      DateTime?
   pdfUrl          String?
   qrCode          String?
-  isValid         Boolean         @default(true)
+  isValid         Boolean              @default(true)
   metadata        Json?
+  dispatch        CertificateDispatch?
   @@index([certificateNo])
+}
+
+model CertificateDispatch {
+  id            String      @id @default(cuid())
+  certificateId String      @unique
+  certificate   Certificate @relation(fields: [certificateId], references: [id], onDelete: Cascade)
+  status        String      @default("PENDING")
+  assignedTo    String?
+  sentAt        DateTime?
+  trackingNo    String?
+  notes         String?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  @@index([status])
 }
 
 model Document {
@@ -418,6 +451,36 @@ model ActivityLog {
   @@index([userId, createdAt])
 }
 
+enum InvoiceStatus {
+  DRAFT
+  ISSUED
+  PAID
+  CANCELLED
+}
+
+model Invoice {
+  id            String        @id @default(cuid())
+  invoiceNumber String        @unique
+  date          DateTime      @default(now())
+  dueDate       DateTime?
+  studentId     String
+  student       Student       @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  paymentId     String?
+  description   String
+  lineItems     Json
+  subtotal      Int           // in pence
+  vatRate       Float         @default(20)
+  vatAmount     Int           // in pence
+  total         Int           // in pence
+  status        InvoiceStatus @default(ISSUED)
+  pdfUrl        String?
+  notes         String?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  @@index([invoiceNumber])
+  @@index([studentId])
+}
+
 model Payment {
   id                    String      @id @default(cuid())
   stripeSessionId       String      @unique
@@ -457,8 +520,9 @@ model StudentJourney {
 }
 
 model AssessmentQuestion {
-  id            String     @id @default(cuid())
+  id            String           @id @default(cuid())
   course        CourseType
+  category      QuestionCategory @default(THEORY)
   question      String
   optionA       String
   optionB       String
@@ -467,39 +531,50 @@ model AssessmentQuestion {
   correctAnswer String
   explanation   String?
   order         Int
-  isActive      Boolean    @default(true)
-  createdAt     DateTime   @default(now())
-  @@index([course, isActive])
+  isActive      Boolean          @default(true)
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt @default(now())
+  createdBy     String?
+  @@index([course, category, isActive])
 }
 
 model AssessmentAttempt {
-  id             String     @id @default(cuid())
+  id             String         @id @default(cuid())
   studentId      String
-  student        Student    @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  student        Student        @relation(fields: [studentId], references: [id], onDelete: Cascade)
   course         CourseType
+  type           AssessmentType @default(THEORY)
   score          Int
-  totalQuestions Int        @default(50)
-  passed         Boolean    @default(false)
+  totalQuestions Int            @default(50)
+  passed         Boolean        @default(false)
   answers        Json
-  startedAt      DateTime   @default(now())
+  suggestions    Json?
+  questionIds    String[]
+  attemptNumber  Int            @default(1)
+  startedAt      DateTime       @default(now())
   completedAt    DateTime?
+  @@index([studentId, type])
 }
 
 model ProjectSubmission {
-  id          String   @id @default(cuid())
-  studentId   String
-  student     Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
-  title       String
-  description String?
-  fileUrl     String?
-  fileSize    Int?
-  submittedAt DateTime @default(now())
-  gradedBy    String?
-  grade       String?
-  feedback    String?
-  status      String   @default("SUBMITTED")
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id            String     @id @default(cuid())
+  studentId     String
+  student       Student    @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  title         String
+  description   String?
+  fileUrl       String?
+  fileSize      Int?
+  submittedAt   DateTime   @default(now())
+  gradedBy      String?
+  grade         String?
+  score         Int?
+  feedback      String?
+  status        String     @default("SUBMITTED")
+  course        CourseType?
+  attemptNumber Int        @default(1)
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+  @@index([studentId, status])
 }
 
 model ResumeReview {

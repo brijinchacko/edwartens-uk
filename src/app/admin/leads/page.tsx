@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { COURSE_LABELS, LEAD_STATUS_LABELS, formatDate } from "@/lib/utils";
-import { Plus, Search } from "lucide-react";
+import { Search } from "lucide-react";
+import AddLeadModal from "./AddLeadModal";
 
 export const metadata: Metadata = {
   title: "Lead Management | EDWartens Admin",
@@ -65,13 +66,7 @@ export default async function LeadsPage({
             {leads.length} lead{leads.length !== 1 ? "s" : ""} found
           </p>
         </div>
-        <Link
-          href="/admin/leads?action=add"
-          className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-neon-blue/10 text-neon-blue border border-neon-blue/20 hover:bg-neon-blue/20 transition-colors text-sm font-medium w-fit"
-        >
-          <Plus size={16} />
-          Add Lead
-        </Link>
+        <AddLeadModal />
       </div>
 
       {/* Search */}

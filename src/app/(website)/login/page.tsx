@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { signIn } from "next-auth/react";
 import Image from "next/image";
 import Link from "next/link";
 import { LogIn, GraduationCap, Briefcase, AlertCircle, Eye, EyeOff } from "lucide-react";
@@ -28,24 +27,44 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      const result = await signIn("credentials", {
-        email,
-        password,
-        redirect: false,
+      // Use fetch to call CSRF + credentials callback directly
+      // Auth.js v5 beta signIn with redirect:false has known issues
+      const csrfRes = await fetch("/api/auth/csrf");
+      const { csrfToken } = await csrfRes.json();
+
+      const res = await fetch("/api/auth/callback/credentials", {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: new URLSearchParams({
+          csrfToken,
+          email,
+          password,
+        }),
+        redirect: "manual",
       });
 
-      if (result?.error) {
-        setError("Invalid email or password. Please try again.");
-        setLoading(false);
-        return;
+      // 302 redirect = successful login, 200 with error = failed
+      if (res.type === "opaqueredirect" || res.status === 302 || res.status === 200) {
+        // Verify session was actually created
+        const sessionRes = await fetch("/api/auth/session");
+        const session = await sessionRes.json();
+
+        if (session?.user?.email) {
+          // Login successful — redirect based on role
+          const role = session.user.role;
+          if (role === "STUDENT") {
+            window.location.href = "/student/dashboard";
+          } else if (tab === "student") {
+            window.location.href = "/student/dashboard";
+          } else {
+            window.location.href = "/admin/dashboard";
+          }
+          return;
+        }
       }
 
-      // Redirect based on tab selection
-      if (tab === "student") {
-        window.location.href = "/student/dashboard";
-      } else {
-        window.location.href = "/admin/dashboard";
-      }
+      setError("Invalid email or password. Please try again.");
+      setLoading(false);
     } catch {
       setError("Something went wrong. Please try again.");
       setLoading(false);
@@ -61,7 +80,7 @@ export default function LoginPage() {
             <Link href="/" className="inline-block">
               <Image
                 src="/images/EDWARTENS ICON Transparent.png"
-                alt="EDWartens"
+                alt="EDWartens UK Logo"
                 width={56}
                 height={56}
                 className="mx-auto mb-4"

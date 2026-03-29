@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   User,
   Save,
@@ -9,6 +9,9 @@ import {
   Eye,
   EyeOff,
   CheckCircle2,
+  Camera,
+  Pencil,
+  X,
 } from "lucide-react";
 
 interface ProfileData {
@@ -33,6 +36,17 @@ export default function ProfilePage() {
     emergencyPhone: "",
     qualification: "",
   });
+  const [savedProfile, setSavedProfile] = useState<ProfileData>({
+    name: "",
+    email: "",
+    phone: "",
+    dateOfBirth: "",
+    address: "",
+    emergencyName: "",
+    emergencyPhone: "",
+    qualification: "",
+  });
+  const [editing, setEditing] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
@@ -47,13 +61,18 @@ export default function ProfilePage() {
   const [passwordError, setPasswordError] = useState("");
   const [passwordSuccess, setPasswordSuccess] = useState("");
 
+  // Avatar
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [avatarUploading, setAvatarUploading] = useState(false);
+  const avatarRef = useRef<HTMLInputElement>(null);
+
   useEffect(() => {
     async function loadProfile() {
       try {
         const res = await fetch("/api/student/profile");
         if (res.ok) {
           const data = await res.json();
-          setProfile({
+          const loaded: ProfileData = {
             name: data.name || "",
             email: data.email || "",
             phone: data.phone || "",
@@ -64,7 +83,12 @@ export default function ProfilePage() {
             emergencyName: data.emergencyName || "",
             emergencyPhone: data.emergencyPhone || "",
             qualification: data.qualification || "",
-          });
+          };
+          setProfile(loaded);
+          setSavedProfile(loaded);
+          if (data.avatar) {
+            setAvatarUrl(data.avatar);
+          }
         }
       } catch {
         setError("Failed to load profile");
@@ -74,6 +98,19 @@ export default function ProfilePage() {
     }
     loadProfile();
   }, []);
+
+  const handleEnterEdit = () => {
+    setError("");
+    setSuccess("");
+    setEditing(true);
+  };
+
+  const handleCancelEdit = () => {
+    setProfile({ ...savedProfile });
+    setEditing(false);
+    setError("");
+    setSuccess("");
+  };
 
   const handleSaveProfile = async () => {
     setError("");
@@ -88,7 +125,7 @@ export default function ProfilePage() {
       }
 
       const res = await fetch("/api/student/profile", {
-        method: "PUT",
+        method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           name: profile.name,
@@ -97,7 +134,6 @@ export default function ProfilePage() {
           address: profile.address,
           emergencyName: profile.emergencyName,
           emergencyPhone: profile.emergencyPhone,
-          qualification: profile.qualification,
         }),
       });
 
@@ -106,12 +142,38 @@ export default function ProfilePage() {
         throw new Error(data.error || "Failed to save profile");
       }
 
+      setSavedProfile({ ...profile });
+      setEditing(false);
       setSuccess("Profile updated successfully");
       setTimeout(() => setSuccess(""), 3000);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to save profile");
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleAvatarUpload = async (file: File) => {
+    setAvatarUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append("avatar", file);
+      const res = await fetch("/api/student/profile/avatar", {
+        method: "POST",
+        body: formData,
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || "Failed to upload photo");
+      }
+      const data = await res.json();
+      setAvatarUrl(data.avatar);
+      setSuccess("Profile photo updated");
+      setTimeout(() => setSuccess(""), 3000);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to upload photo");
+    } finally {
+      setAvatarUploading(false);
     }
   };
 
@@ -162,6 +224,10 @@ export default function ProfilePage() {
     }
   };
 
+  const inputClasses = editing
+    ? "w-full px-3 py-2 bg-dark-primary border border-border rounded-lg text-sm text-text-primary"
+    : "w-full px-3 py-2 bg-dark-tertiary border border-border rounded-lg text-sm text-text-muted cursor-default";
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20">
@@ -173,25 +239,67 @@ export default function ProfilePage() {
   return (
     <div className="max-w-2xl mx-auto space-y-6">
       {/* Header */}
-      <div>
-        <h1 className="text-xl font-bold text-text-primary">Profile</h1>
-        <p className="text-sm text-text-muted mt-1">
-          Manage your personal information
-        </p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-xl font-bold text-text-primary">Profile</h1>
+          <p className="text-sm text-text-muted mt-1">
+            Manage your personal information
+          </p>
+        </div>
+        {!editing && (
+          <button
+            onClick={handleEnterEdit}
+            className="flex items-center gap-2 px-4 py-2 bg-neon-blue/10 border border-neon-blue/30 text-neon-blue rounded-lg hover:bg-neon-blue/20 transition-colors text-sm font-medium"
+          >
+            <Pencil size={14} />
+            Edit Profile
+          </button>
+        )}
       </div>
 
       {/* Profile Form */}
       <div className="glass-card p-6 space-y-5">
-        <div className="flex items-center gap-3 pb-4 border-b border-border">
-          <div className="w-10 h-10 rounded-full bg-neon-blue/10 flex items-center justify-center">
-            <User size={20} className="text-neon-blue" />
+        {/* Avatar Upload */}
+        <div className="flex flex-col items-center gap-3 pb-5 border-b border-border">
+          <div
+            onClick={() => avatarRef.current?.click()}
+            className="relative w-24 h-24 rounded-full cursor-pointer group"
+          >
+            {avatarUploading ? (
+              <div className="w-24 h-24 rounded-full bg-white/[0.03] border-2 border-neon-blue/30 flex items-center justify-center">
+                <Loader2 size={24} className="animate-spin text-neon-blue" />
+              </div>
+            ) : avatarUrl ? (
+              <img
+                src={avatarUrl}
+                alt="Profile photo"
+                className="w-24 h-24 rounded-full object-cover border-2 border-neon-blue/30"
+              />
+            ) : (
+              <div className="w-24 h-24 rounded-full bg-white/[0.03] border-2 border-dashed border-border flex items-center justify-center">
+                <User size={28} className="text-text-muted" />
+              </div>
+            )}
+            <div className="absolute inset-0 rounded-full bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+              <Camera size={20} className="text-white" />
+            </div>
+            <input
+              ref={avatarRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) handleAvatarUpload(file);
+              }}
+            />
           </div>
-          <div>
+          <div className="text-center">
             <p className="text-sm font-semibold text-text-primary">
-              Personal Information
+              Profile Photo
             </p>
             <p className="text-xs text-text-muted">
-              Update your details below
+              Click to change your photo
             </p>
           </div>
         </div>
@@ -204,10 +312,11 @@ export default function ProfilePage() {
             <input
               type="text"
               value={profile.name}
+              readOnly={!editing}
               onChange={(e) =>
                 setProfile({ ...profile, name: e.target.value })
               }
-              className="w-full px-3 py-2 bg-dark-primary border border-border rounded-lg text-sm text-text-primary"
+              className={inputClasses}
             />
           </div>
           <div className="space-y-1">
@@ -226,10 +335,11 @@ export default function ProfilePage() {
             <input
               type="tel"
               value={profile.phone}
+              readOnly={!editing}
               onChange={(e) =>
                 setProfile({ ...profile, phone: e.target.value })
               }
-              className="w-full px-3 py-2 bg-dark-primary border border-border rounded-lg text-sm text-text-primary"
+              className={inputClasses}
               placeholder="+44 7XXX XXXXXX"
             />
           </div>
@@ -238,21 +348,23 @@ export default function ProfilePage() {
             <input
               type="date"
               value={profile.dateOfBirth}
+              readOnly={!editing}
               onChange={(e) =>
                 setProfile({ ...profile, dateOfBirth: e.target.value })
               }
-              className="w-full px-3 py-2 bg-dark-primary border border-border rounded-lg text-sm text-text-primary"
+              className={inputClasses}
             />
           </div>
           <div className="md:col-span-2 space-y-1">
             <label className="text-sm text-text-secondary">Address</label>
             <textarea
               value={profile.address}
+              readOnly={!editing}
               onChange={(e) =>
                 setProfile({ ...profile, address: e.target.value })
               }
               rows={2}
-              className="w-full px-3 py-2 bg-dark-primary border border-border rounded-lg text-sm text-text-primary resize-none"
+              className={`${inputClasses} resize-none`}
             />
           </div>
           <div className="space-y-1">
@@ -262,10 +374,11 @@ export default function ProfilePage() {
             <input
               type="text"
               value={profile.emergencyName}
+              readOnly={!editing}
               onChange={(e) =>
                 setProfile({ ...profile, emergencyName: e.target.value })
               }
-              className="w-full px-3 py-2 bg-dark-primary border border-border rounded-lg text-sm text-text-primary"
+              className={inputClasses}
             />
           </div>
           <div className="space-y-1">
@@ -275,20 +388,26 @@ export default function ProfilePage() {
             <input
               type="tel"
               value={profile.emergencyPhone}
+              readOnly={!editing}
               onChange={(e) =>
                 setProfile({ ...profile, emergencyPhone: e.target.value })
               }
-              className="w-full px-3 py-2 bg-dark-primary border border-border rounded-lg text-sm text-text-primary"
+              className={inputClasses}
             />
           </div>
           <div className="space-y-1">
             <label className="text-sm text-text-secondary">Qualification</label>
             <select
               value={profile.qualification}
+              disabled={!editing}
               onChange={(e) =>
                 setProfile({ ...profile, qualification: e.target.value })
               }
-              className="w-full px-3 py-2 bg-dark-primary border border-border rounded-lg text-sm text-text-primary"
+              className={
+                editing
+                  ? "w-full px-3 py-2 bg-dark-primary border border-border rounded-lg text-sm text-text-primary"
+                  : "w-full px-3 py-2 bg-dark-tertiary border border-border rounded-lg text-sm text-text-muted cursor-default"
+              }
             >
               <option value="">Select qualification</option>
               <option value="GCSE">GCSE</option>
@@ -316,18 +435,30 @@ export default function ProfilePage() {
           </div>
         )}
 
-        <button
-          onClick={handleSaveProfile}
-          disabled={saving}
-          className="flex items-center justify-center gap-2 w-full py-2.5 bg-neon-blue/10 border border-neon-blue/30 text-neon-blue rounded-lg hover:bg-neon-blue/20 transition-colors font-medium text-sm disabled:opacity-50"
-        >
-          {saving ? (
-            <Loader2 size={16} className="animate-spin" />
-          ) : (
-            <Save size={16} />
-          )}
-          Save Changes
-        </button>
+        {editing && (
+          <div className="flex gap-3">
+            <button
+              onClick={handleCancelEdit}
+              disabled={saving}
+              className="flex items-center justify-center gap-2 flex-1 py-2.5 bg-white/[0.03] border border-border text-text-secondary rounded-lg hover:bg-white/[0.06] transition-colors font-medium text-sm disabled:opacity-50"
+            >
+              <X size={16} />
+              Cancel
+            </button>
+            <button
+              onClick={handleSaveProfile}
+              disabled={saving}
+              className="flex items-center justify-center gap-2 flex-1 py-2.5 bg-neon-blue/10 border border-neon-blue/30 text-neon-blue rounded-lg hover:bg-neon-blue/20 transition-colors font-medium text-sm disabled:opacity-50"
+            >
+              {saving ? (
+                <Loader2 size={16} className="animate-spin" />
+              ) : (
+                <Save size={16} />
+              )}
+              Save Changes
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Change Password */}

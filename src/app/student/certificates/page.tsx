@@ -1,6 +1,7 @@
-import { getTestSession } from "@/lib/test-session";
+import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { Award, Download, CheckCircle2, Clock, XCircle } from "lucide-react";
+import { redirect } from "next/navigation";
+import { Award, Download, CheckCircle2, Clock, XCircle, ExternalLink } from "lucide-react";
 
 const CERT_TYPE_LABELS: Record<string, string> = {
   CPD: "CPD Certificate",
@@ -17,7 +18,8 @@ const CERT_TYPE_COLORS: Record<string, { text: string; bg: string }> = {
 };
 
 export default async function CertificatesPage() {
-  const session = getTestSession("STUDENT");
+  const session = await auth();
+  if (!session?.user) redirect("/login");
 
   let certificates: Array<{
     id: string;
@@ -31,7 +33,7 @@ export default async function CertificatesPage() {
 
   try {
     const student = await prisma.student.findUnique({
-      where: { userId: session.user.id },
+      where: { userId: session?.user?.id },
     });
 
     if (student) {
@@ -128,23 +130,34 @@ export default async function CertificatesPage() {
                   </div>
                 </div>
 
-                {/* Download */}
-                {cert.pdfUrl ? (
+                {/* Download & Share */}
+                <div className="flex gap-2">
+                  {cert.pdfUrl ? (
+                    <a
+                      href={cert.pdfUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-neon-blue/10 border border-neon-blue/30 text-neon-blue rounded-lg hover:bg-neon-blue/20 transition-colors text-sm font-medium"
+                    >
+                      <Download size={16} />
+                      Download
+                    </a>
+                  ) : (
+                    <div className="flex-1 flex items-center justify-center gap-2 py-2.5 text-text-muted text-sm">
+                      <Clock size={14} />
+                      PDF being generated
+                    </div>
+                  )}
                   <a
-                    href={cert.pdfUrl}
+                    href={`https://www.linkedin.com/profile/add?startTask=CERTIFICATION_NAME&name=${encodeURIComponent(CERT_TYPE_LABELS[cert.type] || cert.type)}&organizationName=${encodeURIComponent("EDWartens UK")}&issueYear=${cert.issuedDate.getFullYear()}&issueMonth=${cert.issuedDate.getMonth() + 1}&certUrl=${encodeURIComponent(`https://edwartens.co.uk/verify/${cert.certificateNo}`)}&certId=${encodeURIComponent(cert.certificateNo)}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center justify-center gap-2 w-full py-2.5 bg-neon-blue/10 border border-neon-blue/30 text-neon-blue rounded-lg hover:bg-neon-blue/20 transition-colors text-sm font-medium"
+                    className="flex items-center justify-center gap-2 px-4 py-2.5 bg-[#0A66C2]/10 border border-[#0A66C2]/30 text-[#0A66C2] rounded-lg hover:bg-[#0A66C2]/20 transition-colors text-sm font-medium"
                   >
-                    <Download size={16} />
-                    Download Certificate
+                    <ExternalLink size={16} />
+                    LinkedIn
                   </a>
-                ) : (
-                  <div className="flex items-center justify-center gap-2 py-2.5 text-text-muted text-sm">
-                    <Clock size={14} />
-                    PDF being generated
-                  </div>
-                )}
+                </div>
               </div>
             );
           })}

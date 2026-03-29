@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
-import { Plus, Zap, X } from "lucide-react";
+import { Zap, X } from "lucide-react";
+import CreateBatchModal from "./CreateBatchModal";
 
 const COURSE_LABELS: Record<string, string> = {
   DATA_ENGINEERING: "Data Engineering",
@@ -105,13 +105,7 @@ export default function BatchesPage() {
             <Zap size={16} />
             {generating ? "Generating..." : "Generate Weekly Batches"}
           </button>
-          <Link
-            href="/admin/batches?action=create"
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-neon-blue/10 text-neon-blue border border-neon-blue/20 hover:bg-neon-blue/20 transition-colors text-sm font-medium w-fit"
-          >
-            <Plus size={16} />
-            Create Batch
-          </Link>
+          <CreateBatchModal onSuccess={fetchBatches} />
         </div>
       </div>
 

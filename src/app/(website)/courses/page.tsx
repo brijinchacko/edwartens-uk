@@ -84,6 +84,63 @@ const courses = [
   },
 ];
 
+const faqSchema = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: [
+    {
+      "@type": "Question",
+      name: "What is PLC SCADA training?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "PLC SCADA training teaches you to program Programmable Logic Controllers (PLCs) and Supervisory Control and Data Acquisition (SCADA) systems used in industrial automation. At EDWartens UK, our CPD Accredited courses cover Siemens TIA Portal, HMI design, and WinCC SCADA with hands-on practice on real industrial hardware.",
+      },
+    },
+    {
+      "@type": "Question",
+      name: "How long is the Professional Module course?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "The Professional Module is a 5-day intensive classroom course running from 9:00 AM to 5:00 PM (BST). It also includes 12+ hours of pre-recorded foundation sessions covering Basic Electrical, Electronics, Pneumatics, and PLC fundamentals that you complete before your classroom dates. Total learning time is approximately 52+ hours.",
+      },
+    },
+    {
+      "@type": "Question",
+      name: "Do I get a certificate after completing the course?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "Yes, upon successful completion you receive a CPD Accredited certificate from EDWartens UK. Our certifications are recognised by employers across the UK. EDWartens is registered with the UK Register of Learning Providers (UKRLP). Certificates can be verified through our online verification portal.",
+      },
+    },
+    {
+      "@type": "Question",
+      name: "Is the training available online?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "Yes, EDWartens offers live online training sessions with remote lab access via FactoryIO for the Professional Module. Online students work on the same projects and assessments as classroom students, with real-time instructor support. Both modules also include 12+ hours of pre-recorded foundation content accessible from anywhere.",
+      },
+    },
+    {
+      "@type": "Question",
+      name: "What career opportunities are available after PLC training?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "After completing PLC training, career opportunities include PLC Programmer, Automation Engineer, Controls Engineer, SCADA Engineer, Commissioning Engineer, and Maintenance Engineer. The UK has a critical shortage of automation engineers with over 2.1 million engineering roles to fill by 2030. Average salaries for automation engineers in the UK start at £45,000+.",
+      },
+    },
+    {
+      "@type": "Question",
+      name: "Does EDWartens provide job placement support?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "EDWartens provides career support including CV workshops, interview preparation, LinkedIn optimisation, and job search guidance. This is educational and advisory support. Wartens does not guarantee employment, job placement, or interview outcomes. Career outcomes depend entirely on individual effort, qualifications, and market conditions.",
+      },
+    },
+  ],
+};
+
+export const dynamic = "force-dynamic";
+
 export default async function CoursesPage() {
   const upcomingBatches = await prisma.batch.findMany({
     where: { status: "UPCOMING", startDate: { gte: new Date() } },
@@ -93,6 +150,10 @@ export default async function CoursesPage() {
 
   return (
     <div className="pt-20">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
+      />
       {/* Hero */}
       <section className="mesh-gradient-hero py-24 sm:py-32 relative">
         <div className="dot-grid absolute inset-0 opacity-20" />

@@ -36,6 +36,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
+export const dynamic = "force-dynamic";
+
 export default async function BatchDetailPage({ params }: Props) {
   const { courseSlug, batchId } = await params;
   const courseType = COURSE_SLUGS[courseSlug];

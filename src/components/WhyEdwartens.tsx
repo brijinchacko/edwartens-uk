@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Users, Wrench, Award, TrendingUp, Glasses, Briefcase } from "lucide-react";
 
 const reasons = [
@@ -66,6 +67,22 @@ export default function WhyEdwartens() {
               </div>
             );
           })}
+        </div>
+
+        {/* CTA */}
+        <div className="flex flex-wrap justify-center gap-4 mt-12">
+          <Link
+            href="/courses"
+            className="inline-flex items-center px-8 py-3.5 rounded-lg bg-gradient-to-r from-neon-blue to-neon-blue/80 text-white font-semibold text-sm hover:shadow-lg hover:shadow-neon-blue/25 active:scale-[0.98] transition-all"
+          >
+            View Our Courses
+          </Link>
+          <Link
+            href="/about"
+            className="inline-flex items-center px-8 py-3.5 rounded-lg border border-white/10 text-text-secondary font-semibold text-sm hover:border-white/20 hover:bg-white/[0.03] transition-colors"
+          >
+            Learn More About Us
+          </Link>
         </div>
       </div>
     </section>

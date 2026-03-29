@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { stripe } from "@/lib/stripe";
 import { prisma } from "@/lib/prisma";
 import { generateTempPassword } from "@/lib/utils";
+import { generateInvoice } from "@/lib/invoice";
 import bcrypt from "bcryptjs";
 
 export async function POST(req: NextRequest) {
@@ -42,7 +43,7 @@ export async function POST(req: NextRequest) {
     }
 
     try {
-      await prisma.$transaction(async (tx) => {
+      const student = await prisma.$transaction(async (tx) => {
         // 1. Update Payment record
         await tx.payment.update({
           where: { id: paymentId },
@@ -146,6 +147,8 @@ export async function POST(req: NextRequest) {
             console.log(
               `[WELCOME EMAIL] To: ${session.customer_email}, Temp Password: ${tempPassword}`
             );
+
+            return student;
           } else {
             // User already exists, check if student record exists
             const existingStudent = await tx.student.findUnique({
@@ -172,7 +175,11 @@ export async function POST(req: NextRequest) {
                   createdBy: "stripe-webhook",
                 },
               });
+
+              return existingStudent;
             }
+
+            return null;
           }
         } else {
           // Deposit: add note to lead
@@ -265,9 +272,22 @@ export async function POST(req: NextRequest) {
             });
 
             console.log(`[WELCOME EMAIL] To: ${session.customer_email}, Temp Password: ${tempPassword}`);
+
+            return student;
           }
+
+          return null;
         }
       });
+
+      // Generate invoice
+      if (student) {
+        try {
+          await generateInvoice(paymentId, student.id);
+        } catch (invoiceError) {
+          console.error("Invoice generation error:", invoiceError);
+        }
+      }
     } catch (error) {
       console.error("Webhook processing error:", error);
       return NextResponse.json({ error: "Processing failed" }, { status: 500 });

@@ -79,19 +79,31 @@ Career outcomes, salary expectations, and career support information referenced 
     content: `Your use of our services is also governed by our Privacy Policy, which explains how we collect, use, and protect your personal data. By using our services, you consent to the data practices described in our Privacy Policy.`,
   },
   {
-    title: "14. Third-Party Links",
+    title: "14. Photography & Marketing",
+    content: `By enrolling in EDWartens UK training programmes, you acknowledge and agree that:
+
+a) You are required to submit a recent photograph during the onboarding process for identification and certification purposes.
+
+b) EDWartens UK may use photographs, testimonials, and success stories of candidates who achieve career success following our training programmes for marketing and promotional purposes, including but not limited to our website, social media channels, brochures, and advertising materials.
+
+c) If you do not wish your photograph or success story to be used for marketing purposes, you must notify us in writing by emailing privacy@edwartens.co.uk within 30 days of your course completion.
+
+d) EDWartens UK will handle all personal data, including photographs, in accordance with the UK General Data Protection Regulation (UK GDPR) and the Data Protection Act 2018.`,
+  },
+  {
+    title: "15. Third-Party Links",
     content: `Our website may contain links to third-party websites, including those of our ecosystem partners (Wartens, Oscabe, and others). We are not responsible for the content, privacy practices, or terms of service of any third-party websites. Accessing third-party links is at your own risk.`,
   },
   {
-    title: "15. Governing Law and Jurisdiction",
+    title: "16. Governing Law and Jurisdiction",
     content: `These Terms are governed by and construed in accordance with the laws of England and Wales. Any disputes arising under or in connection with these Terms shall be subject to the exclusive jurisdiction of the courts of England and Wales.`,
   },
   {
-    title: "16. Changes to These Terms",
+    title: "17. Changes to These Terms",
     content: `We may update these Terms from time to time. Any changes will be posted on this page with a revised effective date. Your continued use of our services after such changes constitutes your acceptance of the revised Terms. We encourage you to review these Terms periodically.`,
   },
   {
-    title: "17. Contact",
+    title: "18. Contact",
     content: `If you have questions about these Terms of Service, please contact us:
 
 EDWartens UK (Wartens Ltd)

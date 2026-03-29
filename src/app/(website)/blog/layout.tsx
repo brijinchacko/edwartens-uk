@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Blog - PLC, SCADA & Automation Insights | EDWartens UK",
+  title: "Blog | EDWartens UK - PLC, SCADA & Automation Insights",
   description:
     "Expert articles on PLC programming, SCADA systems, industrial automation, and AI in manufacturing. Career advice and industry insights from EDWartens UK.",
   keywords: [

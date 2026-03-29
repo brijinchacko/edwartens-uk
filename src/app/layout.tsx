@@ -71,6 +71,12 @@ export const metadata: Metadata = {
   metadataBase: new URL("https://edwartens.co.uk"),
   alternates: {
     canonical: "https://edwartens.co.uk",
+    languages: {
+      "en-gb": "https://edwartens.co.uk",
+      "en-ae": "https://edwartens.com/uae",
+      "en-us": "https://edwartens.com/us",
+      "x-default": "https://edwartens.co.uk",
+    },
   },
   openGraph: {
     title: "EDWartens UK - Best PLC & SCADA Training in UK | CPD Accredited",
@@ -124,6 +130,12 @@ export default function RootLayout({
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
+      <head>
+        <link rel="alternate" hrefLang="en-gb" href="https://edwartens.co.uk" />
+        <link rel="alternate" hrefLang="en-ae" href="https://edwartens.com/uae" />
+        <link rel="alternate" hrefLang="en-us" href="https://edwartens.com/us" />
+        <link rel="alternate" hrefLang="x-default" href="https://edwartens.co.uk" />
+      </head>
       <body className="min-h-full flex flex-col">
         <script
           type="application/ld+json"
@@ -148,10 +160,10 @@ export default function RootLayout({
               telephone: "+443333398394",
               email: "info@wartens.com",
               sameAs: [
-                "https://linkedin.com/company/108279734",
-                "https://youtube.com/channel/UC50h3bbLfdXOz9AxjHtzgdQ",
-                "https://instagram.com/edwartensuk",
-                "https://facebook.com/wartensuk",
+                "https://www.linkedin.com/company/ed-wartens-uk/",
+                "https://www.youtube.com/channel/UC50h3bbLfdXOz9AxjHtzgdQ",
+                "https://www.instagram.com/edwartensuk/",
+                "https://www.facebook.com/edwartensuk/",
                 "https://x.com/WartensUK",
               ],
               parentOrganization: {
@@ -318,6 +330,55 @@ export default function RootLayout({
                   },
                 },
               ],
+            }),
+          }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "LocalBusiness",
+              "@id": "https://edwartens.co.uk/#localbusiness",
+              name: "EDWartens UK",
+              image: "https://edwartens.co.uk/images/EDWARTENS LOGO UK.png",
+              url: "https://edwartens.co.uk",
+              telephone: "+443333398394",
+              email: "info@wartens.com",
+              priceRange: "££",
+              address: {
+                "@type": "PostalAddress",
+                streetAddress: "8, Lyon Road",
+                addressLocality: "Milton Keynes",
+                addressRegion: "Buckinghamshire",
+                postalCode: "MK1 1EX",
+                addressCountry: "GB",
+              },
+              geo: {
+                "@type": "GeoCoordinates",
+                latitude: 52.0406,
+                longitude: -0.7594,
+              },
+              openingHoursSpecification: [
+                {
+                  "@type": "OpeningHoursSpecification",
+                  dayOfWeek: [
+                    "Monday",
+                    "Tuesday",
+                    "Wednesday",
+                    "Thursday",
+                    "Friday",
+                  ],
+                  opens: "09:00",
+                  closes: "17:30",
+                },
+              ],
+              aggregateRating: {
+                "@type": "AggregateRating",
+                ratingValue: "4.9",
+                reviewCount: "150",
+                bestRating: "5",
+              },
             }),
           }}
         />

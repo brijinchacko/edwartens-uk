@@ -1,5 +1,6 @@
-import { getTestSession } from "@/lib/test-session";
+import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { redirect } from "next/navigation";
 import {
   Briefcase,
   MapPin,
@@ -10,7 +11,8 @@ import {
 import { JobActionButtons } from "./JobActionButtons";
 
 export default async function JobsPage() {
-  const session = getTestSession("STUDENT");
+  const session = await auth();
+  if (!session?.user) redirect("/login");
 
   let jobs: Array<{
     id: string;
@@ -27,7 +29,7 @@ export default async function JobsPage() {
 
   try {
     const student = await prisma.student.findUnique({
-      where: { userId: session.user.id },
+      where: { userId: session?.user?.id },
       include: {
         batch: true,
         jobApplications: true,

@@ -76,7 +76,7 @@ export default function Employers() {
             >
               <Image
                 src={employer.logo}
-                alt={employer.name}
+                alt={`${employer.name} logo`}
                 width={100}
                 height={40}
                 className="max-h-8 w-auto opacity-50 group-hover:opacity-90 transition-opacity object-contain"
@@ -98,7 +98,7 @@ export default function Employers() {
             >
               <Image
                 src={employer.logo}
-                alt={employer.name}
+                alt={`${employer.name} logo`}
                 width={100}
                 height={40}
                 className="max-h-8 w-auto opacity-50 group-hover:opacity-90 transition-opacity object-contain"

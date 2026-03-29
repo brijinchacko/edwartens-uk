@@ -19,9 +19,9 @@ export default function Hero() {
 
           {/* H1 */}
           <h1 className="text-4xl sm:text-5xl lg:text-7xl font-bold tracking-tight leading-[1.05] mb-6">
-            <span className="text-white">Best PLC & SCADA</span>
+            <span className="text-white">Launch Your Career in</span>
             <br />
-            <span className="gradient-text">Training in UK</span>
+            <span className="gradient-text">Industrial Automation</span>
           </h1>
 
           {/* Subtitle */}

@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { getTestSession } from "@/lib/test-session";
 import { writeFile, mkdir } from "fs/promises";
 import path from "path";
 import { v4 as uuidv4 } from "uuid";
@@ -21,8 +20,11 @@ const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
 
 export async function GET() {
   try {
-    const session = getTestSession("STUDENT");
-    const userId = session.user.id;
+    const session = await auth();
+    if (!session?.user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+    const userId = session.user.id as string;
 
     const student = await prisma.student.findUnique({
       where: { userId },

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, Clock, Calendar, Tag, ArrowRight } from "lucide-react";
+import { ArrowLeft, Clock, Calendar, Tag, ArrowRight, Award } from "lucide-react";
 import type { Metadata } from "next";
 import {
   getAllPosts,
@@ -36,6 +36,24 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return {
     title: `${post.title} | EDWartens UK Blog`,
     description: post.excerpt,
+    keywords: post.seoKeywords || post.tags,
+    openGraph: {
+      title: post.title,
+      description: post.excerpt,
+      type: "article",
+      publishedTime: post.publishedAt,
+      authors: [post.author],
+      images: post.image ? [{ url: post.image, width: 1200, height: 630, alt: post.title }] : undefined,
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: post.title,
+      description: post.excerpt,
+      images: post.image ? [post.image] : undefined,
+    },
+    alternates: {
+      canonical: `https://edwartens.co.uk/blog/${slug}`,
+    },
   };
 }
 
@@ -84,14 +102,22 @@ function renderContent(content: string) {
   }
 
   function renderInline(text: string): React.ReactNode {
-    // Handle bold **text**
-    const parts = text.split(/(\*\*[^*]+\*\*)/g);
+    // Handle markdown links [text](url) and bold **text**
+    const parts = text.split(/(\*\*[^*]+\*\*|\[[^\]]+\]\([^)]+\))/g);
     return parts.map((part, i) => {
       if (part.startsWith("**") && part.endsWith("**")) {
         return (
           <strong key={i} className="text-white font-semibold">
             {part.slice(2, -2)}
           </strong>
+        );
+      }
+      const linkMatch = part.match(/^\[([^\]]+)\]\(([^)]+)\)$/);
+      if (linkMatch) {
+        return (
+          <a key={i} href={linkMatch[2]} target="_blank" rel="noopener noreferrer" className="text-neon-blue hover:underline">
+            {linkMatch[1]}
+          </a>
         );
       }
       return part;
@@ -188,8 +214,26 @@ export default async function BlogPostPage({ params }: Props) {
 
   const relatedPosts = [...related, ...backfill];
 
+  const articleJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    headline: post.title,
+    description: post.excerpt,
+    image: post.image || undefined,
+    datePublished: post.publishedAt,
+    author: { "@type": "Person", name: post.author },
+    publisher: {
+      "@type": "Organization",
+      name: "EDWartens UK",
+      url: "https://edwartens.co.uk",
+    },
+    mainEntityOfPage: `https://edwartens.co.uk/blog/${slug}`,
+    keywords: (post.seoKeywords || post.tags).join(", "),
+  };
+
   return (
     <div className="pt-20">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(articleJsonLd) }} />
       {/* Hero */}
       <section className="mesh-gradient-hero py-16 sm:py-24 relative">
         <div className="dot-grid absolute inset-0 opacity-20" />
@@ -242,6 +286,19 @@ export default async function BlogPostPage({ params }: Props) {
         </div>
       </section>
 
+      {/* Featured Image */}
+      {post.image && (
+        <section className="max-w-4xl mx-auto px-3 sm:px-5 lg:px-6 -mt-8 relative z-10">
+          <div className="rounded-2xl overflow-hidden border border-white/[0.06]">
+            <img
+              src={post.image}
+              alt={post.title}
+              className="w-full h-64 sm:h-80 object-cover"
+            />
+          </div>
+        </section>
+      )}
+
       {/* Content */}
       <section className="py-16 sm:py-20">
         <div className="max-w-4xl mx-auto px-3 sm:px-5 lg:px-6">
@@ -256,6 +313,71 @@ export default async function BlogPostPage({ params }: Props) {
         </div>
       </section>
 
+      {/* Related Courses */}
+      <section className="py-16 border-t border-white/[0.06]">
+        <div className="max-w-4xl mx-auto px-3 sm:px-5 lg:px-6">
+          <h2 className="text-2xl font-bold text-white mb-8">
+            Related <span className="gradient-text">Courses</span>
+          </h2>
+          <div className="grid sm:grid-cols-3 gap-4">
+            <Link
+              href="/courses/professional"
+              className="glass-card rounded-xl p-5 hover:border-neon-blue/20 transition-all group"
+            >
+              <div className="w-10 h-10 rounded-lg bg-purple/10 flex items-center justify-center mb-3">
+                <Award size={18} className="text-purple-400" />
+              </div>
+              <h3 className="text-sm font-bold text-white mb-1 group-hover:text-neon-blue transition-colors">
+                Professional Module
+              </h3>
+              <p className="text-xs text-text-secondary leading-relaxed">
+                Siemens PLC, HMI & WinCC SCADA. 5-day CPD Accredited programme
+                with career support.
+              </p>
+              <span className="inline-flex items-center gap-1 text-xs text-neon-blue font-medium mt-3">
+                View course <ArrowRight size={12} className="group-hover:translate-x-1 transition-transform" />
+              </span>
+            </Link>
+            <Link
+              href="/courses/ai-module"
+              className="glass-card rounded-xl p-5 hover:border-neon-blue/20 transition-all group"
+            >
+              <div className="w-10 h-10 rounded-lg bg-neon-blue/10 flex items-center justify-center mb-3">
+                <Tag size={18} className="text-neon-blue" />
+              </div>
+              <h3 className="text-sm font-bold text-white mb-1 group-hover:text-neon-blue transition-colors">
+                AI Module
+              </h3>
+              <p className="text-xs text-text-secondary leading-relaxed">
+                AI & ML for industrial automation. Predictive maintenance,
+                computer vision & digital twins.
+              </p>
+              <span className="inline-flex items-center gap-1 text-xs text-neon-blue font-medium mt-3">
+                View course <ArrowRight size={12} className="group-hover:translate-x-1 transition-transform" />
+              </span>
+            </Link>
+            <Link
+              href="/training"
+              className="glass-card rounded-xl p-5 hover:border-neon-blue/20 transition-all group"
+            >
+              <div className="w-10 h-10 rounded-lg bg-neon-green/10 flex items-center justify-center mb-3">
+                <Clock size={18} className="text-neon-green" />
+              </div>
+              <h3 className="text-sm font-bold text-white mb-1 group-hover:text-neon-blue transition-colors">
+                How Training Works
+              </h3>
+              <p className="text-xs text-text-secondary leading-relaxed">
+                Day-by-day syllabus, delivery modes, tools, and what to expect
+                from our programmes.
+              </p>
+              <span className="inline-flex items-center gap-1 text-xs text-neon-blue font-medium mt-3">
+                Learn more <ArrowRight size={12} className="group-hover:translate-x-1 transition-transform" />
+              </span>
+            </Link>
+          </div>
+        </div>
+      </section>
+
       {/* CTA */}
       <section className="py-16 mesh-gradient-alt">
         <div className="max-w-4xl mx-auto px-3 sm:px-5 lg:px-6">
@@ -265,15 +387,15 @@ export default async function BlogPostPage({ params }: Props) {
               <span className="gradient-text">Automation Career</span>?
             </h2>
             <p className="text-text-secondary mb-6 max-w-xl mx-auto">
-              Join thousands of engineers who have launched their careers with
-              EDWartens. Get hands-on training with real industrial hardware and
-              VR simulation.
+              Explore our CPD Accredited PLC, SCADA, and AI automation courses.
+              Hands-on training with real industrial hardware and dedicated
+              career support.
             </p>
             <Link
-              href="/contact"
-              className="inline-flex items-center gap-2 px-6 py-3 rounded-lg bg-neon-blue text-white font-medium hover:opacity-90 transition-opacity"
+              href="/courses"
+              className="inline-flex items-center gap-2 px-6 py-3 rounded-lg bg-gradient-to-r from-neon-blue to-neon-green text-dark-primary font-semibold text-sm hover:shadow-lg hover:shadow-neon-blue/25 active:scale-[0.98] transition-all"
             >
-              Get in Touch
+              Explore our courses
               <ArrowRight size={16} />
             </Link>
           </div>

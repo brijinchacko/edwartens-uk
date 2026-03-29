@@ -12,6 +12,7 @@ import {
   Layers,
   Video,
   ClipboardCheck,
+  BookOpen,
   Briefcase,
   Award,
   Bell,
@@ -22,6 +23,8 @@ import {
   UserCog,
   Target,
   Shield,
+  FileText,
+  Upload,
 } from "lucide-react";
 import { getInitials } from "@/lib/utils";
 import { getNavItemsForRole } from "@/lib/rbac";
@@ -40,8 +43,11 @@ const ALL_NAV_ITEMS = [
   { id: "batches", href: "/admin/batches", label: "Batches", icon: Layers },
   { id: "sessions", href: "/admin/sessions", label: "Sessions", icon: Video },
   { id: "assessments", href: "/admin/assessments", label: "Assessments", icon: ClipboardCheck },
+  { id: "question-bank", href: "/admin/question-bank", label: "Question Bank", icon: BookOpen },
+  { id: "import", href: "/admin/import", label: "Import Data", icon: Upload },
   { id: "career", href: "/admin/placements", label: "Career Support", icon: Briefcase },
   { id: "certificates", href: "/admin/certificates", label: "Certificates", icon: Award },
+  { id: "invoices", href: "/admin/invoices", label: "Invoices", icon: FileText },
   { id: "jobs", href: "/admin/jobs", label: "Jobs", icon: Briefcase },
   { id: "alumni", href: "/admin/alumni", label: "Alumni", icon: Users },
   { id: "employees", href: "/admin/employees", label: "Team", icon: UserCog },
@@ -76,7 +82,7 @@ export function AdminSidebar({
       <div className="flex items-center gap-3 px-4 py-6 border-b border-white/[0.06]">
         <Image
           src="/images/EDWARTENS ICON Transparent.png"
-          alt="EDWartens"
+          alt="EDWartens UK Logo"
           width={36}
           height={36}
           className="rounded-lg"

@@ -28,7 +28,7 @@ export default function CookieConsent() {
 
   return (
     <div className="fixed bottom-4 left-4 right-4 z-[60] max-w-lg mx-auto animate-fade-in-up">
-      <div className="glass-card rounded-xl p-4 sm:p-5">
+      <div className="rounded-xl p-4 sm:p-5 bg-[#1a1f2e] border border-white/10 shadow-2xl">
         <div className="flex items-start gap-3">
           <div className="w-10 h-10 rounded-lg bg-neon-blue/10 flex items-center justify-center flex-shrink-0">
             <Cookie size={20} className="text-neon-blue" />

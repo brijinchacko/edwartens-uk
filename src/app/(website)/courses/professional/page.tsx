@@ -225,6 +225,8 @@ const salaryData = [
   { role: "Senior Automation Engineer", range: "£55,000 - £85,000+" },
 ];
 
+export const dynamic = "force-dynamic";
+
 export default async function ProfessionalModulePage() {
   const profBatches = await prisma.batch.findMany({
     where: { course: "PROFESSIONAL_MODULE", status: "UPCOMING", startDate: { gte: new Date() } },
@@ -232,8 +234,86 @@ export default async function ProfessionalModulePage() {
     orderBy: { startDate: "asc" },
   });
 
+  const courseJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Course",
+    name: "Professional Module — PLC & SCADA Training",
+    description: "Comprehensive career-focused programme covering Siemens PLC programming, HMI design, and WinCC SCADA. CPD Accredited with dedicated career support.",
+    provider: { "@type": "EducationalOrganization", name: "EDWartens UK", url: "https://edwartens.co.uk" },
+    educationalCredentialAwarded: "CPD Certification",
+    courseMode: ["Classroom", "Online"],
+    url: "https://edwartens.co.uk/courses/professional",
+    offers: { "@type": "Offer", price: "2140", priceCurrency: "GBP", availability: "https://schema.org/InStock" },
+    hasCourseInstance: profBatches.slice(0, 5).map(b => ({
+      "@type": "CourseInstance",
+      courseMode: "Blended",
+      startDate: b.startDate.toISOString().split("T")[0],
+      location: { "@type": "Place", name: "Milton Keynes, UK" },
+    })),
+  };
+
   return (
     <div className="pt-20">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(courseJsonLd) }} />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "FAQPage",
+            mainEntity: [
+              {
+                "@type": "Question",
+                name: "How long is the Professional Module course?",
+                acceptedAnswer: {
+                  "@type": "Answer",
+                  text: "The Professional Module runs for 5 days of intensive classroom training plus 12 hours of recorded sessions. You get lifetime access to all course materials and recordings.",
+                },
+              },
+              {
+                "@type": "Question",
+                name: "Is the course CPD accredited?",
+                acceptedAnswer: {
+                  "@type": "Answer",
+                  text: "Yes, the Professional Module is fully CPD Accredited (Activity Number #1019624, Provider #785368). You receive a CPD certificate upon completion.",
+                },
+              },
+              {
+                "@type": "Question",
+                name: "Do I need prior experience in PLC programming?",
+                acceptedAnswer: {
+                  "@type": "Answer",
+                  text: "No prior PLC experience is required. The course starts from basic electrical and electronics fundamentals and progressively builds to advanced Siemens PLC programming, HMI development, and WinCC SCADA.",
+                },
+              },
+              {
+                "@type": "Question",
+                name: "What career support do you offer?",
+                acceptedAnswer: {
+                  "@type": "Answer",
+                  text: "We provide dedicated career support including CV preparation, interview coaching, job placement assistance, and connections with our network of over 50 hiring partners across the UK.",
+                },
+              },
+              {
+                "@type": "Question",
+                name: "Can I attend the course online?",
+                acceptedAnswer: {
+                  "@type": "Answer",
+                  text: "Yes, the Professional Module is available in both classroom (Milton Keynes) and online formats. Both options include the same comprehensive curriculum and CPD certification.",
+                },
+              },
+              {
+                "@type": "Question",
+                name: "What is the course fee and are payment plans available?",
+                acceptedAnswer: {
+                  "@type": "Answer",
+                  text: "The Professional Module costs £2,140 + VAT. We offer flexible payment plans including deposit-based enrollment. Contact our admissions team for details.",
+                },
+              },
+            ],
+          }),
+        }}
+      />
       {/* ===== HERO ===== */}
       <section className="mesh-gradient-hero py-24 sm:py-32 relative">
         <div className="dot-grid absolute inset-0 opacity-20" />
@@ -373,7 +453,7 @@ export default async function ProfessionalModulePage() {
                 </div>
               </div>
               <Link
-                href="/contact"
+                href="#upcoming-batches"
                 className="mt-6 w-full inline-flex items-center justify-center gap-2 px-6 py-3 rounded-lg bg-gradient-to-r from-neon-blue to-neon-green text-dark-primary font-semibold text-sm hover:shadow-lg hover:shadow-neon-blue/25 transition-all"
               >
                 Enrol Now <ArrowRight size={16} />
@@ -678,7 +758,7 @@ export default async function ProfessionalModulePage() {
       </section>
 
       {/* ===== UPCOMING BATCHES ===== */}
-      <section className="py-24 mesh-gradient-alt">
+      <section id="upcoming-batches" className="py-24 mesh-gradient-alt">
         <div className="max-w-7xl mx-auto px-3 sm:px-5 lg:px-6">
           <div className="text-center mb-12">
             <p className="text-[11px] uppercase tracking-widest text-neon-green mb-3">Upcoming Batches</p>
@@ -741,6 +821,94 @@ export default async function ProfessionalModulePage() {
             >
               View All Courses
             </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* ===== FAQ SCHEMA SECTION ===== */}
+      <section className="py-24">
+        <div className="max-w-7xl mx-auto px-3 sm:px-5 lg:px-6">
+          <div className="text-center mb-16">
+            <p className="text-[11px] uppercase tracking-widest text-neon-blue mb-3">
+              Common Questions
+            </p>
+            <h2 className="text-3xl sm:text-5xl font-bold tracking-tight text-white">
+              Professional Module{" "}
+              <span className="gradient-text">FAQs</span>
+            </h2>
+          </div>
+          <div className="max-w-3xl mx-auto space-y-4">
+            <details className="glass-card rounded-xl group">
+              <summary className="flex items-center justify-between gap-4 px-6 py-5 cursor-pointer list-none text-white font-semibold text-sm hover:text-neon-blue transition-colors">
+                How long is the Professional Module course?
+                <span className="text-neon-blue transition-transform group-open:rotate-45 text-xl leading-none flex-shrink-0">+</span>
+              </summary>
+              <div className="px-6 pb-5 text-sm text-text-secondary leading-relaxed border-t border-white/[0.06]">
+                <p className="pt-4">
+                  The Professional Module runs for 5 days of intensive classroom training plus 12 hours of recorded sessions. You get lifetime access to all course materials and recordings.
+                </p>
+              </div>
+            </details>
+
+            <details className="glass-card rounded-xl group">
+              <summary className="flex items-center justify-between gap-4 px-6 py-5 cursor-pointer list-none text-white font-semibold text-sm hover:text-neon-blue transition-colors">
+                Is the course CPD accredited?
+                <span className="text-neon-blue transition-transform group-open:rotate-45 text-xl leading-none flex-shrink-0">+</span>
+              </summary>
+              <div className="px-6 pb-5 text-sm text-text-secondary leading-relaxed border-t border-white/[0.06]">
+                <p className="pt-4">
+                  Yes, the Professional Module is fully CPD Accredited (Activity Number #1019624, Provider #785368). You receive a CPD certificate upon completion.
+                </p>
+              </div>
+            </details>
+
+            <details className="glass-card rounded-xl group">
+              <summary className="flex items-center justify-between gap-4 px-6 py-5 cursor-pointer list-none text-white font-semibold text-sm hover:text-neon-blue transition-colors">
+                Do I need prior experience in PLC programming?
+                <span className="text-neon-blue transition-transform group-open:rotate-45 text-xl leading-none flex-shrink-0">+</span>
+              </summary>
+              <div className="px-6 pb-5 text-sm text-text-secondary leading-relaxed border-t border-white/[0.06]">
+                <p className="pt-4">
+                  No prior PLC experience is required. The course starts from basic electrical and electronics fundamentals and progressively builds to advanced Siemens PLC programming, HMI development, and WinCC SCADA.
+                </p>
+              </div>
+            </details>
+
+            <details className="glass-card rounded-xl group">
+              <summary className="flex items-center justify-between gap-4 px-6 py-5 cursor-pointer list-none text-white font-semibold text-sm hover:text-neon-blue transition-colors">
+                What career support do you offer?
+                <span className="text-neon-blue transition-transform group-open:rotate-45 text-xl leading-none flex-shrink-0">+</span>
+              </summary>
+              <div className="px-6 pb-5 text-sm text-text-secondary leading-relaxed border-t border-white/[0.06]">
+                <p className="pt-4">
+                  We provide dedicated career support including CV preparation, interview coaching, job placement assistance, and connections with our network of over 50 hiring partners across the UK.
+                </p>
+              </div>
+            </details>
+
+            <details className="glass-card rounded-xl group">
+              <summary className="flex items-center justify-between gap-4 px-6 py-5 cursor-pointer list-none text-white font-semibold text-sm hover:text-neon-blue transition-colors">
+                Can I attend the course online?
+                <span className="text-neon-blue transition-transform group-open:rotate-45 text-xl leading-none flex-shrink-0">+</span>
+              </summary>
+              <div className="px-6 pb-5 text-sm text-text-secondary leading-relaxed border-t border-white/[0.06]">
+                <p className="pt-4">
+                  Yes, the Professional Module is available in both classroom (Milton Keynes) and online formats. Both options include the same comprehensive curriculum and CPD certification.
+                </p>
+              </div>
+            </details>
+
+            <details className="glass-card rounded-xl group">
+              <summary className="flex items-center justify-between gap-4 px-6 py-5 cursor-pointer list-none text-white font-semibold text-sm hover:text-neon-blue transition-colors">
+                What is the course fee and are payment plans available?
+                <span className="text-neon-blue transition-transform group-open:rotate-45 text-xl leading-none flex-shrink-0">+</span>
+              </summary>
+              <div className="px-6 pb-5 text-sm text-text-secondary leading-relaxed border-t border-white/[0.06]">
+                <p className="pt-4">
+                  The Professional Module costs £2,140 + VAT. We offer flexible payment plans including deposit-based enrollment. Contact our admissions team for details.
+                </p>
+              </div>
+            </details>
           </div>
         </div>
       </section>

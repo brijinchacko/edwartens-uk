@@ -1,6 +1,7 @@
-import { getTestSession } from "@/lib/test-session";
+import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import {
   PlayCircle,
   TrendingUp,
@@ -15,7 +16,8 @@ import {
 } from "lucide-react";
 
 export default async function StudentDashboardPage() {
-  const session = getTestSession("STUDENT");
+  const session = await auth();
+  if (!session?.user) redirect("/login");
 
   let student = null;
   let batch = null;
@@ -48,7 +50,7 @@ export default async function StudentDashboardPage() {
 
   try {
     student = await prisma.student.findUnique({
-      where: { userId: session.user.id },
+      where: { userId: session?.user?.id },
       include: {
         batch: true,
         sessionProgress: {
@@ -62,7 +64,7 @@ export default async function StudentDashboardPage() {
 
       // Fetch mandatory checklist data
       const user = await prisma.user.findUnique({
-        where: { id: session.user.id },
+        where: { id: session?.user?.id },
         select: { termsAccepted: true },
       });
       termsAccepted = user?.termsAccepted || false;
@@ -223,7 +225,7 @@ export default async function StudentDashboardPage() {
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <h1 className="text-2xl font-bold text-text-primary mb-1">
-              Hello, {session.user.name}!
+              Hello, {session?.user?.name}!
             </h1>
             <p className="text-text-secondary text-sm">
               {courseLabel} &bull; {batch?.name || "No batch assigned"} &bull;

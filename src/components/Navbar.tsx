@@ -31,8 +31,8 @@ const mobileLinks = [
 const regions = [
   { code: "IN", name: "India", domain: "edwartens.co.in", flag: "🇮🇳" },
   { code: "GB", name: "United Kingdom", domain: "edwartens.co.uk", flag: "🇬🇧" },
-  { code: "AE", name: "UAE", domain: "edwartens.biz", flag: "🇦🇪" },
-  { code: "US", name: "United States", domain: "edwartens.us", flag: "🇺🇸" },
+  { code: "AE", name: "UAE", domain: "edwartens.com/uae", flag: "🇦🇪" },
+  { code: "US", name: "United States", domain: "edwartens.com/us", flag: "🇺🇸" },
 ];
 
 export default function Navbar() {
@@ -71,7 +71,7 @@ export default function Navbar() {
           <Link href="/" className="flex-shrink-0">
             <Image
               src="/images/EDWARTENS LOGO UK.png"
-              alt="EDWartens"
+              alt="EDWartens UK Logo"
               width={scrolled ? 140 : 160}
               height={scrolled ? 40 : 48}
               className="transition-all duration-700 h-10 sm:h-12 w-auto"

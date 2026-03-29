@@ -19,6 +19,7 @@ export type Permission =
   | "jobs:manage"
   | "pipeline:read"
   | "notifications:read"
+  | "question-bank:manage"
   | "dashboard:read";
 
 const ROLE_PERMISSIONS: Record<string, Permission[]> = {
@@ -41,9 +42,11 @@ const ROLE_PERMISSIONS: Record<string, Permission[]> = {
     "jobs:manage",
     "pipeline:read",
     "notifications:read",
+    "question-bank:manage",
     "dashboard:read",
   ],
   ADMIN: [
+    "users:manage",
     "leads:read",
     "leads:write",
     "leads:assign",
@@ -60,6 +63,7 @@ const ROLE_PERMISSIONS: Record<string, Permission[]> = {
     "jobs:manage",
     "pipeline:read",
     "notifications:read",
+    "question-bank:manage",
     "dashboard:read",
   ],
   SALES_LEAD: [
@@ -86,6 +90,7 @@ const ROLE_PERMISSIONS: Record<string, Permission[]> = {
     "sessions:manage",
     "assessments:manage",
     "software:verify",
+    "question-bank:manage",
     "dashboard:read",
   ],
 };
@@ -134,14 +139,14 @@ export function getNavItemsForRole(role: string): string[] {
     case "SUPER_ADMIN":
       return [
         "dashboard", "leads", "pipeline", "students", "batches", "sessions",
-        "assessments", "career", "certificates", "jobs", "alumni", "employees",
-        "users", "notifications", "settings",
+        "assessments", "question-bank", "career", "certificates", "invoices", "jobs", "alumni", "employees",
+        "users", "notifications", "import", "settings",
       ];
     case "ADMIN":
       return [
         "dashboard", "leads", "pipeline", "students", "batches", "sessions",
-        "assessments", "career", "certificates", "jobs", "alumni", "employees",
-        "notifications", "settings",
+        "assessments", "question-bank", "career", "certificates", "invoices", "jobs", "alumni", "employees",
+        "notifications", "import", "settings",
       ];
     case "SALES_LEAD":
       return ["dashboard", "leads", "pipeline"];
@@ -150,7 +155,7 @@ export function getNavItemsForRole(role: string): string[] {
         "dashboard", "leads", "pipeline", "students", "career", "alumni",
       ];
     case "TRAINER":
-      return ["dashboard", "batches", "sessions", "assessments", "students"];
+      return ["dashboard", "batches", "sessions", "assessments", "question-bank", "students"];
     default:
       return ["dashboard"];
   }

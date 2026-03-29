@@ -222,6 +222,8 @@ const salaryData = [
   { role: "Senior AI Automation Engineer", range: "£60,000 - £95,000+" },
 ];
 
+export const dynamic = "force-dynamic";
+
 export default async function AIModulePage() {
   const aiBatches = await prisma.batch.findMany({
     where: { course: "AI_MODULE", status: "UPCOMING", startDate: { gte: new Date() } },
@@ -229,8 +231,77 @@ export default async function AIModulePage() {
     orderBy: { startDate: "asc" },
   });
 
+  const courseJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Course",
+    name: "AI & Industrial Automation Module",
+    description: "Advanced training in AI-powered industrial automation, machine learning for manufacturing, and smart factory systems. CPD Accredited.",
+    provider: { "@type": "EducationalOrganization", name: "EDWartens UK", url: "https://edwartens.co.uk" },
+    educationalCredentialAwarded: "CPD Certification",
+    courseMode: ["Classroom", "Online"],
+    url: "https://edwartens.co.uk/courses/ai-module",
+    hasCourseInstance: aiBatches.slice(0, 5).map(b => ({
+      "@type": "CourseInstance",
+      courseMode: "Blended",
+      startDate: b.startDate.toISOString().split("T")[0],
+      location: { "@type": "Place", name: "Milton Keynes, UK" },
+    })),
+  };
+
   return (
     <div className="pt-20">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(courseJsonLd) }} />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "FAQPage",
+            mainEntity: [
+              {
+                "@type": "Question",
+                name: "What is the AI & Industrial Automation Module?",
+                acceptedAnswer: {
+                  "@type": "Answer",
+                  text: "This advanced module covers AI-powered industrial automation, machine learning for manufacturing, computer vision for quality control, and smart factory systems using Industry 4.0 technologies.",
+                },
+              },
+              {
+                "@type": "Question",
+                name: "Do I need to complete the Professional Module first?",
+                acceptedAnswer: {
+                  "@type": "Answer",
+                  text: "While the Professional Module provides a strong foundation, the AI Module can be taken independently if you have existing PLC and automation experience.",
+                },
+              },
+              {
+                "@type": "Question",
+                name: "Is this course CPD accredited?",
+                acceptedAnswer: {
+                  "@type": "Answer",
+                  text: "Yes, the AI & Industrial Automation Module is CPD Accredited, and you receive a CPD certificate upon successful completion.",
+                },
+              },
+              {
+                "@type": "Question",
+                name: "What software and tools will I learn?",
+                acceptedAnswer: {
+                  "@type": "Answer",
+                  text: "You will work with TensorFlow, Python for industrial applications, Siemens TIA Portal AI functions, computer vision libraries, and IoT platforms for smart manufacturing.",
+                },
+              },
+              {
+                "@type": "Question",
+                name: "What career opportunities does this open up?",
+                acceptedAnswer: {
+                  "@type": "Answer",
+                  text: "Graduates pursue roles such as AI Automation Engineer, Smart Factory Specialist, Industrial IoT Developer, and Industry 4.0 Consultant, with salaries ranging from £45,000 to £85,000.",
+                },
+              },
+            ],
+          }),
+        }}
+      />
       {/* ===== HERO ===== */}
       <section className="mesh-gradient-hero py-24 sm:py-32 relative">
         <div className="dot-grid absolute inset-0 opacity-20" />
@@ -356,7 +427,7 @@ export default async function AIModulePage() {
                 </div>
               </div>
               <Link
-                href="/contact"
+                href="#upcoming-batches"
                 className="mt-6 w-full inline-flex items-center justify-center gap-2 px-6 py-3 rounded-lg bg-gradient-to-r from-neon-blue to-neon-green text-dark-primary font-semibold text-sm hover:shadow-lg hover:shadow-neon-blue/25 transition-all"
               >
                 Enrol Now <ArrowRight size={16} />
@@ -596,7 +667,7 @@ export default async function AIModulePage() {
       </section>
 
       {/* ===== UPCOMING BATCHES ===== */}
-      <section className="py-24 mesh-gradient-alt">
+      <section id="upcoming-batches" className="py-24 mesh-gradient-alt">
         <div className="max-w-7xl mx-auto px-3 sm:px-5 lg:px-6">
           <div className="text-center mb-12">
             <p className="text-[11px] uppercase tracking-widest text-neon-green mb-3">Upcoming Batches</p>
@@ -657,6 +728,82 @@ export default async function AIModulePage() {
             >
               View All Courses
             </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* ===== FAQ SCHEMA SECTION ===== */}
+      <section className="py-24">
+        <div className="max-w-7xl mx-auto px-3 sm:px-5 lg:px-6">
+          <div className="text-center mb-16">
+            <p className="text-[11px] uppercase tracking-widest text-neon-blue mb-3">
+              Common Questions
+            </p>
+            <h2 className="text-3xl sm:text-5xl font-bold tracking-tight text-white">
+              AI Module{" "}
+              <span className="gradient-text">FAQs</span>
+            </h2>
+          </div>
+          <div className="max-w-3xl mx-auto space-y-4">
+            <details className="glass-card rounded-xl group">
+              <summary className="flex items-center justify-between gap-4 px-6 py-5 cursor-pointer list-none text-white font-semibold text-sm hover:text-neon-blue transition-colors">
+                What is the AI &amp; Industrial Automation Module?
+                <span className="text-neon-blue transition-transform group-open:rotate-45 text-xl leading-none flex-shrink-0">+</span>
+              </summary>
+              <div className="px-6 pb-5 text-sm text-text-secondary leading-relaxed border-t border-white/[0.06]">
+                <p className="pt-4">
+                  This advanced module covers AI-powered industrial automation, machine learning for manufacturing, computer vision for quality control, and smart factory systems using Industry 4.0 technologies.
+                </p>
+              </div>
+            </details>
+
+            <details className="glass-card rounded-xl group">
+              <summary className="flex items-center justify-between gap-4 px-6 py-5 cursor-pointer list-none text-white font-semibold text-sm hover:text-neon-blue transition-colors">
+                Do I need to complete the Professional Module first?
+                <span className="text-neon-blue transition-transform group-open:rotate-45 text-xl leading-none flex-shrink-0">+</span>
+              </summary>
+              <div className="px-6 pb-5 text-sm text-text-secondary leading-relaxed border-t border-white/[0.06]">
+                <p className="pt-4">
+                  While the Professional Module provides a strong foundation, the AI Module can be taken independently if you have existing PLC and automation experience.
+                </p>
+              </div>
+            </details>
+
+            <details className="glass-card rounded-xl group">
+              <summary className="flex items-center justify-between gap-4 px-6 py-5 cursor-pointer list-none text-white font-semibold text-sm hover:text-neon-blue transition-colors">
+                Is this course CPD accredited?
+                <span className="text-neon-blue transition-transform group-open:rotate-45 text-xl leading-none flex-shrink-0">+</span>
+              </summary>
+              <div className="px-6 pb-5 text-sm text-text-secondary leading-relaxed border-t border-white/[0.06]">
+                <p className="pt-4">
+                  Yes, the AI &amp; Industrial Automation Module is CPD Accredited, and you receive a CPD certificate upon successful completion.
+                </p>
+              </div>
+            </details>
+
+            <details className="glass-card rounded-xl group">
+              <summary className="flex items-center justify-between gap-4 px-6 py-5 cursor-pointer list-none text-white font-semibold text-sm hover:text-neon-blue transition-colors">
+                What software and tools will I learn?
+                <span className="text-neon-blue transition-transform group-open:rotate-45 text-xl leading-none flex-shrink-0">+</span>
+              </summary>
+              <div className="px-6 pb-5 text-sm text-text-secondary leading-relaxed border-t border-white/[0.06]">
+                <p className="pt-4">
+                  You will work with TensorFlow, Python for industrial applications, Siemens TIA Portal AI functions, computer vision libraries, and IoT platforms for smart manufacturing.
+                </p>
+              </div>
+            </details>
+
+            <details className="glass-card rounded-xl group">
+              <summary className="flex items-center justify-between gap-4 px-6 py-5 cursor-pointer list-none text-white font-semibold text-sm hover:text-neon-blue transition-colors">
+                What career opportunities does this open up?
+                <span className="text-neon-blue transition-transform group-open:rotate-45 text-xl leading-none flex-shrink-0">+</span>
+              </summary>
+              <div className="px-6 pb-5 text-sm text-text-secondary leading-relaxed border-t border-white/[0.06]">
+                <p className="pt-4">
+                  Graduates pursue roles such as AI Automation Engineer, Smart Factory Specialist, Industrial IoT Developer, and Industry 4.0 Consultant, with salaries ranging from £45,000 to £85,000.
+                </p>
+              </div>
+            </details>
           </div>
         </div>
       </section>

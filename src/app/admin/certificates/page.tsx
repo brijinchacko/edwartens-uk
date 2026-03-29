@@ -1,7 +1,10 @@
 import type { Metadata } from "next";
 import { prisma } from "@/lib/prisma";
 import { formatDate } from "@/lib/utils";
-import { Award, Plus, ExternalLink } from "lucide-react";
+import { Award, ExternalLink } from "lucide-react";
+import GenerateCertificateModal from "./GenerateCertificateModal";
+import UploadCertificateModal from "./UploadCertificateModal";
+import CertificateActions from "./CertificateActions";
 
 export const metadata: Metadata = {
   title: "Certificates | EDWartens Admin",
@@ -45,10 +48,10 @@ export default async function CertificatesPage() {
             {certificates.length !== 1 ? "s" : ""} issued
           </p>
         </div>
-        <button className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-neon-green/10 text-neon-green border border-neon-green/20 hover:bg-neon-green/20 transition-colors text-sm font-medium w-fit">
-          <Plus size={16} />
-          Generate Certificate
-        </button>
+        <div className="flex flex-wrap gap-3">
+          <GenerateCertificateModal />
+          <UploadCertificateModal />
+        </div>
       </div>
 
       <div className="glass-card overflow-hidden">
@@ -77,13 +80,16 @@ export default async function CertificatesPage() {
                 <th className="text-left px-4 py-3 text-text-muted font-medium hidden lg:table-cell">
                   PDF
                 </th>
+                <th className="text-left px-4 py-3 text-text-muted font-medium">
+                  Actions
+                </th>
               </tr>
             </thead>
             <tbody>
               {certificates.length === 0 ? (
                 <tr>
                   <td
-                    colSpan={7}
+                    colSpan={8}
                     className="px-4 py-12 text-center text-text-muted"
                   >
                     No certificates found
@@ -138,6 +144,14 @@ export default async function CertificatesPage() {
                       ) : (
                         <span className="text-xs text-text-muted">-</span>
                       )}
+                    </td>
+                    <td className="px-4 py-3">
+                      <CertificateActions
+                        certId={cert.id}
+                        certNo={cert.certificateNo}
+                        studentName={cert.student.user.name}
+                        isValid={cert.isValid}
+                      />
                     </td>
                   </tr>
                 ))

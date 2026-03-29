@@ -70,7 +70,7 @@ export default function StudentSidebar({
         <Link href="/student/dashboard" className="flex items-center gap-3">
           <Image
             src="/images/EDWARTENS ICON Transparent.png"
-            alt="EDWartens"
+            alt="EDWartens UK Logo"
             width={32}
             height={32}
             className="rounded"

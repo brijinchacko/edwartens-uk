@@ -101,6 +101,17 @@ export default function CoursesSection() {
             );
           })}
         </div>
+
+        {/* View All Link */}
+        <div className="text-center mt-10">
+          <Link
+            href="/courses"
+            className="inline-flex items-center gap-2 text-sm text-neon-blue hover:text-neon-blue/80 transition-colors font-medium"
+          >
+            View All Courses & Upcoming Batches
+            <Zap size={16} />
+          </Link>
+        </div>
       </div>
     </section>
   );

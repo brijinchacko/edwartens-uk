@@ -41,7 +41,7 @@ export default function Ecosystem() {
               <div className="h-10 flex items-center justify-center mb-3">
                 <Image
                   src={c.logo}
-                  alt={c.name}
+                  alt={`${c.name} logo`}
                   width={100}
                   height={40}
                   className="h-8 w-auto object-contain opacity-60 group-hover:opacity-100 transition-opacity"

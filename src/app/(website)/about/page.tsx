@@ -38,8 +38,16 @@ const timeline = [
 ];
 
 const techPartners = [
-  "Siemens", "Rockwell Automation", "ABB", "Delta", "FANUC",
-  "Festo", "Mitsubishi Electric", "Omron", "Factory I/O", "Meta (VR)",
+  { name: "Siemens", url: "https://www.siemens.com" },
+  { name: "Rockwell Automation", url: "https://www.rockwellautomation.com" },
+  { name: "ABB", url: "https://global.abb" },
+  { name: "Delta Electronics", url: "https://www.delta-emea.com" },
+  { name: "FANUC", url: "https://www.fanuc.eu" },
+  { name: "Festo", url: "https://www.festo.com" },
+  { name: "Mitsubishi Electric", url: "https://www.mitsubishielectric.com" },
+  { name: "Omron", url: "https://www.omron.com" },
+  { name: "Factory I/O", url: "https://factoryio.com" },
+  { name: "Meta (VR)", url: "https://www.meta.com/quest/" },
 ];
 
 export default function AboutPage() {
@@ -68,7 +76,7 @@ export default function AboutPage() {
             <div className="w-40 h-40 sm:w-48 sm:h-48 rounded-2xl overflow-hidden flex-shrink-0 border border-white/[0.06]">
               <Image
                 src="/images/JBC.jpeg"
-                alt="Founder"
+                alt="Brijin Chacko, Founder and CEO of EDWartens"
                 width={192}
                 height={192}
                 className="w-full h-full object-cover"
@@ -174,19 +182,29 @@ export default function AboutPage() {
         </div>
       </section>
 
-      {/* Technology Partners */}
+      {/* Technologies We Use */}
       <section className="py-24">
         <div className="max-w-7xl mx-auto px-3 sm:px-5 lg:px-6">
-          <div className="text-center mb-12">
+          <div className="text-center mb-4">
             <h2 className="text-3xl sm:text-5xl font-bold tracking-tight text-white mb-4">
-              Technology <span className="gradient-text">Partners</span>
+              Technologies <span className="gradient-text">We Use</span>
             </h2>
+            <p className="text-text-muted text-sm max-w-2xl mx-auto">
+              Our training programmes utilise industry-leading platforms and technologies. We are not directly affiliated with or endorsed by these companies — we use their technologies to deliver world-class training.
+            </p>
           </div>
-          <div className="flex flex-wrap justify-center gap-3">
+          <div className="flex flex-wrap justify-center gap-3 mt-8">
             {techPartners.map((p) => (
-              <span key={p} className="px-5 py-2.5 rounded-full glass-card text-sm text-text-secondary">
-                {p}
-              </span>
+              <a
+                key={p.name}
+                href={p.url}
+                target="_blank"
+                rel="noopener noreferrer nofollow"
+                className="px-5 py-2.5 rounded-full glass-card text-sm text-text-secondary hover:text-neon-blue hover:border-neon-blue/30 transition-colors inline-flex items-center gap-1.5"
+              >
+                {p.name}
+                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="opacity-40"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+              </a>
             ))}
           </div>
         </div>

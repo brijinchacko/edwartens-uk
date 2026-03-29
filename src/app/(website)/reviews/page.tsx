@@ -90,9 +90,52 @@ function StarRating({ count }: { count: number }) {
   );
 }
 
+const reviewJsonLd = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "EducationalOrganization",
+      "@id": "https://edwartens.co.uk/#organization",
+      name: "EDWartens UK",
+      url: "https://edwartens.co.uk",
+      aggregateRating: {
+        "@type": "AggregateRating",
+        ratingValue: "4.9",
+        reviewCount: "150",
+        bestRating: "5",
+      },
+      review: testimonials.map((t) => ({
+        "@type": "Review",
+        author: {
+          "@type": "Person",
+          name: t.name,
+        },
+        reviewRating: {
+          "@type": "Rating",
+          ratingValue: String(t.rating),
+          bestRating: "5",
+        },
+        reviewBody: t.text,
+        itemReviewed: {
+          "@type": "Course",
+          name: t.course,
+          provider: {
+            "@type": "EducationalOrganization",
+            name: "EDWartens UK",
+          },
+        },
+      })),
+    },
+  ],
+};
+
 export default function ReviewsPage() {
   return (
     <div className="pt-20">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(reviewJsonLd) }}
+      />
       {/* Hero */}
       <section className="mesh-gradient-hero py-24 sm:py-32 relative">
         <div className="dot-grid absolute inset-0 opacity-20" />

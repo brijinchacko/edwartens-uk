@@ -1,5 +1,6 @@
-import { getTestSession } from "@/lib/test-session";
+import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { redirect } from "next/navigation";
 import {
   CheckCircle2,
   Clock,
@@ -10,7 +11,8 @@ import {
 } from "lucide-react";
 
 export default async function ProgressPage() {
-  const session = getTestSession("STUDENT");
+  const session = await auth();
+  if (!session?.user) redirect("/login");
 
   let phases: Array<{
     id: string;
@@ -35,7 +37,7 @@ export default async function ProgressPage() {
 
   try {
     const student = await prisma.student.findUnique({
-      where: { userId: session.user.id },
+      where: { userId: session?.user?.id },
       include: {
         batch: true,
         sessionProgress: true,
