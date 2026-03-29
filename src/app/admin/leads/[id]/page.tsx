@@ -20,6 +20,7 @@ import {
   Image,
 } from "lucide-react";
 import LeadActions from "./LeadActions";
+import LeadEmails from "./LeadEmails";
 
 export const metadata: Metadata = {
   title: "Lead Detail | EDWartens Admin",
@@ -223,6 +224,9 @@ export default async function LeadDetailPage({
               </div>
             );
           })()}
+          {/* Emails Section */}
+          <LeadEmails leadId={lead.id} leadEmail={lead.email} />
+
           <LeadActions
             leadId={lead.id}
             currentStatus={lead.status}

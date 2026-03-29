@@ -26,6 +26,7 @@ import {
   FileText,
   Upload,
   BarChart3,
+  Mail,
 } from "lucide-react";
 import { getInitials } from "@/lib/utils";
 import { getNavItemsForRole } from "@/lib/rbac";
@@ -55,6 +56,7 @@ const ALL_NAV_ITEMS = [
   { id: "employees", href: "/admin/employees", label: "Team", icon: UserCog },
   { id: "reports", href: "/admin/reports", label: "Reports", icon: BarChart3 },
   { id: "users", href: "/admin/users", label: "User Management", icon: Shield },
+  { id: "emails", href: "/admin/emails", label: "Emails", icon: Mail },
   { id: "notifications", href: "/admin/notifications", label: "Notifications", icon: Bell },
   { id: "settings", href: "/admin/settings", label: "Settings", icon: Settings },
 ];
