@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { Suspense } from "react";
 import { prisma } from "@/lib/prisma";
 import { COURSE_LABELS, LEAD_STATUS_LABELS, formatDate } from "@/lib/utils";
-import { Search, Filter, Calendar, X, Download, SlidersHorizontal } from "lucide-react";
+import { Search, X } from "lucide-react";
 import AddLeadModal from "./AddLeadModal";
+import LeadFilters from "./LeadFilters";
 
 export const metadata: Metadata = {
   title: "Lead Management | EDWartens Admin",
@@ -268,146 +270,23 @@ export default async function LeadsPage({
           {filters.converted && <input type="hidden" name="converted" value={filters.converted} />}
         </form>
 
-        {/* Filter Dropdowns */}
-        <div className="flex flex-wrap gap-2 items-center">
-          <SlidersHorizontal size={14} className="text-text-muted" />
+        {/* Filter Dropdowns (Client Component) */}
+        <Suspense fallback={<div className="h-8" />}>
+          <LeadFilters options={filterOptions} />
+        </Suspense>
 
-          {/* Source */}
-          <div className="relative group">
-            <select
-              defaultValue={filters.source || "ALL"}
-              onChange={(e) => {
-                const url = new URL(window.location.href);
-                if (e.target.value === "ALL") url.searchParams.delete("source");
-                else url.searchParams.set("source", e.target.value);
-                url.searchParams.delete("page");
-                window.location.href = url.toString();
-              }}
-              className="px-2.5 py-1.5 rounded-lg bg-white/[0.03] border border-white/[0.06] text-text-muted text-xs focus:border-neon-blue/40 appearance-none pr-6"
-            >
-              <option value="ALL">All Sources</option>
-              {filterOptions.sources.map((s) => (
-                <option key={s.value} value={s.value}>
-                  {s.value} ({s.count})
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* Course */}
-          <select
-            defaultValue={filters.course || "ALL"}
-            onChange={(e) => {
-              const url = new URL(window.location.href);
-              if (e.target.value === "ALL") url.searchParams.delete("course");
-              else url.searchParams.set("course", e.target.value);
-              url.searchParams.delete("page");
-              window.location.href = url.toString();
-            }}
-            className="px-2.5 py-1.5 rounded-lg bg-white/[0.03] border border-white/[0.06] text-text-muted text-xs focus:border-neon-blue/40"
-          >
-            <option value="ALL">All Courses</option>
-            <option value="PROFESSIONAL_MODULE">Professional Module</option>
-            <option value="AI_MODULE">AI Module</option>
-          </select>
-
-          {/* Assigned To */}
-          <select
-            defaultValue={filters.assignedTo || "ALL"}
-            onChange={(e) => {
-              const url = new URL(window.location.href);
-              if (e.target.value === "ALL") url.searchParams.delete("assignedTo");
-              else url.searchParams.set("assignedTo", e.target.value);
-              url.searchParams.delete("page");
-              window.location.href = url.toString();
-            }}
-            className="px-2.5 py-1.5 rounded-lg bg-white/[0.03] border border-white/[0.06] text-text-muted text-xs focus:border-neon-blue/40"
-          >
-            <option value="ALL">All Counsellors</option>
-            <option value="UNASSIGNED">Unassigned</option>
-            {filterOptions.employees.map((e) => (
-              <option key={e.id} value={e.id}>{e.name}</option>
-            ))}
-          </select>
-
-          {/* Follow-up */}
-          <select
-            defaultValue={filters.followUp || "ALL"}
-            onChange={(e) => {
-              const url = new URL(window.location.href);
-              if (e.target.value === "ALL") url.searchParams.delete("followUp");
-              else url.searchParams.set("followUp", e.target.value);
-              url.searchParams.delete("page");
-              window.location.href = url.toString();
-            }}
-            className="px-2.5 py-1.5 rounded-lg bg-white/[0.03] border border-white/[0.06] text-text-muted text-xs focus:border-neon-blue/40"
-          >
-            <option value="ALL">All Follow-ups</option>
-            <option value="overdue">Overdue</option>
-            <option value="today">Due Today</option>
-            <option value="this_week">This Week</option>
-            <option value="no_followup">No Follow-up Set</option>
-          </select>
-
-          {/* Converted */}
-          <select
-            defaultValue={filters.converted || "ALL"}
-            onChange={(e) => {
-              const url = new URL(window.location.href);
-              if (e.target.value === "ALL") url.searchParams.delete("converted");
-              else url.searchParams.set("converted", e.target.value);
-              url.searchParams.delete("page");
-              window.location.href = url.toString();
-            }}
-            className="px-2.5 py-1.5 rounded-lg bg-white/[0.03] border border-white/[0.06] text-text-muted text-xs focus:border-neon-blue/40"
-          >
-            <option value="ALL">All Leads</option>
-            <option value="false">Not Converted</option>
-            <option value="true">Converted to Student</option>
-          </select>
-
-          {/* Date Range */}
-          <div className="flex items-center gap-1">
-            <input
-              type="date"
-              defaultValue={filters.dateFrom}
-              onChange={(e) => {
-                const url = new URL(window.location.href);
-                if (e.target.value) url.searchParams.set("dateFrom", e.target.value);
-                else url.searchParams.delete("dateFrom");
-                url.searchParams.delete("page");
-                window.location.href = url.toString();
-              }}
-              className="px-2 py-1.5 rounded-lg bg-white/[0.03] border border-white/[0.06] text-text-muted text-xs [color-scheme:dark]"
-              title="From date"
-            />
-            <span className="text-text-muted text-xs">—</span>
-            <input
-              type="date"
-              defaultValue={filters.dateTo}
-              onChange={(e) => {
-                const url = new URL(window.location.href);
-                if (e.target.value) url.searchParams.set("dateTo", e.target.value);
-                else url.searchParams.delete("dateTo");
-                url.searchParams.delete("page");
-                window.location.href = url.toString();
-              }}
-              className="px-2 py-1.5 rounded-lg bg-white/[0.03] border border-white/[0.06] text-text-muted text-xs [color-scheme:dark]"
-              title="To date"
-            />
-          </div>
-
-          {/* Clear Filters */}
-          {activeFilterCount > 0 && (
+        {/* Clear Filters */}
+        {activeFilterCount > 0 && (
+          <div>
             <Link
               href="/admin/leads"
               className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-red-500/10 text-red-400 border border-red-500/20 text-xs hover:bg-red-500/20 transition-colors"
             >
               <X size={12} />
-              Clear ({activeFilterCount})
+              Clear All Filters ({activeFilterCount})
             </Link>
-          )}
-        </div>
+          </div>
+        )}
       </div>
 
       {/* Table */}
