@@ -38,7 +38,7 @@ export default async function AdminLayout({
         />
         <main className="flex-1 overflow-y-auto">
           <div className="p-6 lg:p-8">
-            <WorkTracker />
+            {userRole !== "SUPER_ADMIN" && <WorkTracker />}
             {children}
           </div>
         </main>
