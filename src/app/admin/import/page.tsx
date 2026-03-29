@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import ImportTool from "./ImportTool";
 import ZohoSync from "./ZohoSync";
+import FreshsalesSync from "./FreshsalesSync";
 
 export const metadata: Metadata = {
   title: "Data Import | EDWartens Admin",
@@ -22,6 +23,9 @@ export default async function ImportPage() {
 
       {/* Zoho CRM Sync Section */}
       <ZohoSync />
+
+      {/* Freshsales CRM Sync Section */}
+      <FreshsalesSync />
     </div>
   );
 }
