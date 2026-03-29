@@ -1,10 +1,10 @@
 // Microsoft Graph API Client — Client Credentials Flow
 // Uses application-level permissions with admin consent
 
-const TENANT_ID = "9969a7a8-372d-4251-aadb-938c65b27b87";
-const CLIENT_ID = "24ed71bc-2998-4fd3-a99c-cf4b98a30a9f";
+const TENANT_ID = process.env.AZURE_AD_TENANT_ID || "9969a7a8-372d-4251-aadb-938c65b27b87";
+const CLIENT_ID = process.env.AZURE_AD_CLIENT_ID || "24ed71bc-2998-4fd3-a99c-cf4b98a30a9f";
 const GRAPH_BASE = "https://graph.microsoft.com/v1.0";
-const TOKEN_URL = `https://login.microsoftonline.com/${TENANT_ID}/oauth2/v2/token`;
+const TOKEN_URL = `https://login.microsoftonline.com/${TENANT_ID}/oauth2/v2.0/token`;
 
 // In-memory token cache
 let cachedToken: { accessToken: string; expiresAt: number } | null = null;
