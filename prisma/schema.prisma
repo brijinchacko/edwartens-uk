@@ -181,6 +181,49 @@ model Employee {
   salesTargets     SalesTarget[]
   salesIncentives      SalesIncentive[]
   practicalSessions    PracticalSession[] @relation("PracticalTrainer")
+  workSessions         EmployeeWorkSession[]
+}
+
+model EmployeeWorkSession {
+  id              String   @id @default(cuid())
+  employeeId      String
+  employee        Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  date            DateTime @default(now())
+  checkInAt       DateTime
+  checkOutAt      DateTime?
+  workLocation    String   @default("HOME") // HOME, OFFICE, REMOTE
+  checkInNote     String?
+  checkOutSummary String?
+  totalMinutes    Int?
+  activeMinutes   Int?
+  idleMinutes     Int?
+  breakMinutes    Int?
+  status          String   @default("CHECKED_IN") // CHECKED_IN, ON_BREAK, IDLE, CHECKED_OUT
+
+  activities      EmployeeActivity[]
+  breaks          EmployeeBreak[]
+
+  @@index([employeeId, date])
+}
+
+model EmployeeActivity {
+  id            String   @id @default(cuid())
+  sessionId     String
+  session       EmployeeWorkSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  type          String   // ACTIVE, IDLE, BREAK, AWAY
+  startedAt     DateTime @default(now())
+  endedAt       DateTime?
+  durationMin   Int?
+  description   String?
+}
+
+model EmployeeBreak {
+  id          String   @id @default(cuid())
+  sessionId   String
+  session     EmployeeWorkSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  startedAt   DateTime @default(now())
+  endedAt     DateTime?
+  reason      String?
 }
 
 model Student {

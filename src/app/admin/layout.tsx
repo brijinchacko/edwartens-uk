@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { isCrmRole } from "@/lib/rbac";
 import { AdminSidebar } from "@/components/AdminSidebar";
+import { WorkTracker } from "@/components/WorkTracker";
 
 export default async function AdminLayout({
   children,
@@ -34,7 +35,10 @@ export default async function AdminLayout({
         userImage={user.image || undefined}
       />
       <main className="flex-1 overflow-y-auto">
-        <div className="p-6 lg:p-8">{children}</div>
+        <div className="p-6 lg:p-8">
+          <WorkTracker />
+          {children}
+        </div>
       </main>
     </div>
   );

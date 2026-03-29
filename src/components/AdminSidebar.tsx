@@ -51,6 +51,7 @@ const ALL_NAV_ITEMS = [
   { id: "invoices", href: "/admin/invoices", label: "Invoices", icon: FileText },
   { id: "jobs", href: "/admin/jobs", label: "Jobs", icon: Briefcase },
   { id: "alumni", href: "/admin/alumni", label: "Alumni", icon: Users },
+  { id: "team-activity", href: "/admin/team-activity", label: "Team Activity", icon: Users },
   { id: "employees", href: "/admin/employees", label: "Team", icon: UserCog },
   { id: "reports", href: "/admin/reports", label: "Reports", icon: BarChart3 },
   { id: "users", href: "/admin/users", label: "User Management", icon: Shield },
