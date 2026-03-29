@@ -227,12 +227,13 @@ export function WorkTracker() {
       });
       if (res.ok) {
         const data = await res.json();
+        const s = data.session || data;
         setSession({
-          id: data.id,
-          checkInTime: data.checkInAt,
-          location: data.workLocation,
+          id: s.id,
+          checkInTime: s.checkInAt,
+          location: s.workLocation,
           status: "ACTIVE",
-          note: data.checkInNote || undefined,
+          note: s.checkInNote || undefined,
           breaks: [],
           totalActiveSeconds: 0,
           totalBreakSeconds: 0,
