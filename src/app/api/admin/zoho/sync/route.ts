@@ -136,6 +136,40 @@ export async function POST(req: NextRequest) {
           ]);
 
           if (existingLead || existingUser) {
+            // Even if skipped, import notes for existing leads
+            if (existingLead) {
+              try {
+                const existingNoteCheck = await prisma.leadNote.findFirst({
+                  where: { leadId: existingLead.id, content: { contains: `Zoho Lead ID: ${zohoLead.id}` } },
+                });
+                if (!existingNoteCheck) {
+                  const zohoNotes = await zohoCRM.getLeadNotes(zohoLead.id);
+                  for (const note of zohoNotes) {
+                    if (note.Note_Content) {
+                      await prisma.leadNote.create({
+                        data: {
+                          leadId: existingLead.id,
+                          content: `[Zoho Note] ${note.Note_Content}`,
+                          createdBy: note.Created_By?.name || "Zoho",
+                          createdAt: new Date(note.Created_Time),
+                        },
+                      });
+                    }
+                  }
+                  if (zohoNotes.length > 0) {
+                    await prisma.leadNote.create({
+                      data: {
+                        leadId: existingLead.id,
+                        content: `Zoho Lead ID: ${zohoLead.id} — ${zohoNotes.length} notes synced`,
+                        createdBy: "Zoho CRM Sync",
+                      },
+                    });
+                  }
+                }
+              } catch {
+                // Non-critical
+              }
+            }
             results.skipped++;
             continue;
           }
@@ -178,6 +212,25 @@ export async function POST(req: NextRequest) {
               createdBy: "Zoho CRM Import",
             },
           });
+
+          // Fetch and import Zoho notes for this lead
+          try {
+            const zohoNotes = await zohoCRM.getLeadNotes(zohoLead.id);
+            for (const note of zohoNotes) {
+              if (note.Note_Content) {
+                await prisma.leadNote.create({
+                  data: {
+                    leadId: lead.id,
+                    content: `[Zoho Note] ${note.Note_Content}`,
+                    createdBy: note.Created_By?.name || "Zoho",
+                    createdAt: new Date(note.Created_Time),
+                  },
+                });
+              }
+            }
+          } catch {
+            // Notes fetch failed — non-critical
+          }
 
           results.imported++;
         } catch (error) {

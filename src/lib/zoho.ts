@@ -246,6 +246,46 @@ class ZohoCRM {
     return allDeals;
   }
 
+  async getLeadNotes(leadId: string): Promise<{ Note_Content: string; Created_Time: string; Created_By: { name: string } }[]> {
+    try {
+      const data = await this.apiRequest<any>(`/Leads/${leadId}/Notes`);
+      return data.data || [];
+    } catch {
+      return [];
+    }
+  }
+
+  async getContactNotes(contactId: string): Promise<{ Note_Content: string; Created_Time: string; Created_By: { name: string } }[]> {
+    try {
+      const data = await this.apiRequest<any>(`/Contacts/${contactId}/Notes`);
+      return data.data || [];
+    } catch {
+      return [];
+    }
+  }
+
+  async getLeadAttachments(leadId: string): Promise<any[]> {
+    try {
+      const data = await this.apiRequest<any>(`/Leads/${leadId}/Attachments`);
+      return data.data || [];
+    } catch {
+      return [];
+    }
+  }
+
+  async downloadAttachment(module: string, recordId: string, attachmentId: string): Promise<Buffer | null> {
+    try {
+      const token = await this.getAccessToken();
+      const res = await fetch(`${this.apiDomain}/crm/v2/${module}/${recordId}/Attachments/${attachmentId}`, {
+        headers: { Authorization: `Zoho-oauthtoken ${token}` },
+      });
+      if (!res.ok) return null;
+      return Buffer.from(await res.arrayBuffer());
+    } catch {
+      return null;
+    }
+  }
+
   async getRecordCount(module: string): Promise<number> {
     try {
       const data = await this.apiRequest<ZohoListResponse<unknown>>(

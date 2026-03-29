@@ -9,6 +9,7 @@ import {
   Users,
   DollarSign,
   GitMerge,
+  FileDown,
 } from "lucide-react";
 
 interface SyncResult {
@@ -34,6 +35,17 @@ export default function FreshsalesSync() {
   const [syncType, setSyncType] = useState<string>("");
   const [result, setResult] = useState<SyncResult | null>(null);
   const [error, setError] = useState("");
+  const [fileSyncing, setFileSyncing] = useState(false);
+  const [fileProgress, setFileProgress] = useState<{
+    running: boolean;
+    processed: number;
+    total: number;
+    filesDownloaded: number;
+    filesSkipped: number;
+    errors: number;
+    lastContact: string;
+    completedAt: string;
+  } | null>(null);
 
   useEffect(() => {
     fetch("/api/admin/freshsales/status")
@@ -191,6 +203,67 @@ export default function FreshsalesSync() {
               )}
               Sync All
             </button>
+          </div>
+
+          {/* File Sync */}
+          <div className="pt-2 border-t border-white/[0.06]">
+            <button
+              onClick={async () => {
+                setFileSyncing(true);
+                try {
+                  const res = await fetch("/api/admin/freshsales/sync-files", { method: "POST" });
+                  const data = await res.json();
+                  if (!res.ok) throw new Error(data.error);
+                  // Poll progress
+                  const poll = setInterval(async () => {
+                    const pr = await fetch("/api/admin/freshsales/sync-files").then(r => r.json());
+                    setFileProgress(pr);
+                    if (!pr.running) {
+                      clearInterval(poll);
+                      setFileSyncing(false);
+                    }
+                  }, 3000);
+                } catch (err: any) {
+                  setError(err.message);
+                  setFileSyncing(false);
+                }
+              }}
+              disabled={syncing || fileSyncing}
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-yellow-500/10 text-yellow-400 border border-yellow-500/20 hover:bg-yellow-500/20 transition-colors text-sm font-medium disabled:opacity-50"
+            >
+              {fileSyncing ? (
+                <Loader2 size={14} className="animate-spin" />
+              ) : (
+                <FileDown size={14} />
+              )}
+              Sync Files & Attachments (Background)
+            </button>
+            {fileProgress && (
+              <div className="mt-3 p-3 rounded-lg bg-white/[0.02] border border-white/[0.06] space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-text-muted">
+                    {fileProgress.running ? "Syncing files..." : "File sync complete"}
+                  </span>
+                  <span className="text-xs text-text-muted">
+                    {fileProgress.processed}/{fileProgress.total} contacts
+                  </span>
+                </div>
+                <div className="h-1.5 bg-dark-primary rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-yellow-400 rounded-full transition-all"
+                    style={{ width: `${fileProgress.total > 0 ? (fileProgress.processed / fileProgress.total) * 100 : 0}%` }}
+                  />
+                </div>
+                <div className="flex gap-4 text-xs text-text-muted">
+                  <span>{fileProgress.filesDownloaded} downloaded</span>
+                  <span>{fileProgress.filesSkipped} skipped</span>
+                  <span>{fileProgress.errors} errors</span>
+                </div>
+                {fileProgress.lastContact && fileProgress.running && (
+                  <p className="text-xs text-text-muted">Processing: {fileProgress.lastContact}</p>
+                )}
+              </div>
+            )}
           </div>
 
           {syncing && (

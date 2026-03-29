@@ -161,6 +161,57 @@ export async function fetchContactNotes(contactId: number): Promise<any[]> {
 }
 
 /**
+ * Fetch document associations (files) for a contact
+ */
+export interface FreshsalesDocument {
+  id: number;
+  name: string;
+  content_file_size: number;
+  content_content_type: string;
+  content_file_size_readable: string;
+  created_at: string;
+  url: string;
+}
+
+export async function fetchContactDocuments(contactId: number): Promise<FreshsalesDocument[]> {
+  try {
+    const data = await freshsalesRequest(`/contacts/${contactId}/document_associations?per_page=100`);
+    return data.documents || [];
+  } catch {
+    return [];
+  }
+}
+
+/**
+ * Download a document file from Freshsales
+ * Returns the file buffer and content type
+ */
+export async function downloadDocument(docId: number): Promise<{ buffer: Buffer; contentType: string; fileName: string } | null> {
+  try {
+    // Freshsales redirects to S3 signed URL
+    const downloadUrl = `https://${FRESHSALES_DOMAIN}/crm/sales/documents/${docId}`;
+    const res = await fetch(downloadUrl, {
+      headers: {
+        Authorization: `Token token=${FRESHSALES_API_KEY}`,
+      },
+      redirect: "follow",
+    });
+    if (!res.ok) return null;
+
+    const buffer = Buffer.from(await res.arrayBuffer());
+    const contentType = res.headers.get("content-type") || "application/octet-stream";
+    // Extract filename from content-disposition or URL
+    const disposition = res.headers.get("content-disposition") || "";
+    const match = disposition.match(/filename="?([^"]+)"?/);
+    const fileName = match ? match[1] : `doc-${docId}`;
+
+    return { buffer, contentType, fileName };
+  } catch {
+    return null;
+  }
+}
+
+/**
  * Fetch deal stages
  */
 export async function fetchDealStages(): Promise<Record<number, string>> {
