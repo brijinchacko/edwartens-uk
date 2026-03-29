@@ -6,6 +6,9 @@ import {
   BarChart3,
   Bell,
   Plug,
+  Palette,
+  Sun,
+  Moon,
   Mail,
   Phone,
   MapPin,
@@ -35,12 +38,13 @@ import {
   Upload,
   ClipboardCheck,
 } from "lucide-react";
+import { useTheme } from "@/components/ThemeProvider";
 
 // ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------
 
-type TabKey = "general" | "crm" | "notifications" | "integrations";
+type TabKey = "appearance" | "general" | "crm" | "notifications" | "integrations";
 
 interface TabDef {
   key: TabKey;
@@ -49,6 +53,7 @@ interface TabDef {
 }
 
 const tabs: TabDef[] = [
+  { key: "appearance", label: "Appearance", icon: Palette },
   { key: "general", label: "General", icon: Building2 },
   { key: "crm", label: "CRM", icon: BarChart3 },
   { key: "notifications", label: "Notifications", icon: Bell },
@@ -332,8 +337,289 @@ function IntegrationCard({
 }
 
 // ---------------------------------------------------------------------------
+// Accent presets
+// ---------------------------------------------------------------------------
+
+const ACCENT_PRESETS = [
+  { label: "Blue", hex: "#2891FF" },
+  { label: "Green", hex: "#22C55E" },
+  { label: "Purple", hex: "#7C3AED" },
+  { label: "Orange", hex: "#F97316" },
+  { label: "Red", hex: "#EF4444" },
+  { label: "Teal", hex: "#14B8A6" },
+  { label: "Pink", hex: "#EC4899" },
+  { label: "Amber", hex: "#F59E0B" },
+];
+
+// ---------------------------------------------------------------------------
 // Tab Panels
 // ---------------------------------------------------------------------------
+
+function AppearanceTab() {
+  const { theme, setTheme, accent, setAccent } = useTheme();
+  const [customHex, setCustomHex] = useState(accent);
+  const isPreset = ACCENT_PRESETS.some((p) => p.hex === accent);
+
+  const handleCustomHex = (val: string) => {
+    setCustomHex(val);
+    if (/^#[0-9A-Fa-f]{6}$/.test(val)) {
+      setAccent(val);
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Theme Mode */}
+      <div className="glass-card p-6">
+        <SectionHeading description="Choose between dark and light interface modes">
+          Theme Mode
+        </SectionHeading>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
+          {/* Dark mode card */}
+          <button
+            onClick={() => setTheme("dark")}
+            className={`relative rounded-xl border-2 p-4 transition-all text-left ${
+              theme === "dark"
+                ? "border-neon-blue bg-neon-blue/5"
+                : "border-white/[0.08] hover:border-white/20"
+            }`}
+          >
+            {theme === "dark" && (
+              <div className="absolute top-3 right-3 w-5 h-5 rounded-full bg-neon-blue flex items-center justify-center">
+                <Check size={12} className="text-white" />
+              </div>
+            )}
+            <div className="flex items-center gap-3 mb-3">
+              <div className="p-2 rounded-lg bg-white/[0.06]">
+                <Moon size={18} className="text-neon-blue" />
+              </div>
+              <span className="font-semibold text-text-primary">Dark Mode</span>
+            </div>
+            {/* Mini preview */}
+            <div className="rounded-lg overflow-hidden border border-white/[0.08]">
+              <div className="bg-[#0A0F14] p-3 space-y-2">
+                <div className="h-2 w-16 rounded bg-white/20" />
+                <div className="flex gap-2">
+                  <div className="h-8 flex-1 rounded bg-white/[0.06] border border-white/[0.08]" />
+                  <div className="h-8 flex-1 rounded bg-white/[0.06] border border-white/[0.08]" />
+                </div>
+                <div className="h-2 w-24 rounded bg-white/10" />
+              </div>
+            </div>
+          </button>
+
+          {/* Light mode card */}
+          <button
+            onClick={() => setTheme("light")}
+            className={`relative rounded-xl border-2 p-4 transition-all text-left ${
+              theme === "light"
+                ? "border-neon-blue bg-neon-blue/5"
+                : "border-white/[0.08] hover:border-white/20"
+            }`}
+          >
+            {theme === "light" && (
+              <div className="absolute top-3 right-3 w-5 h-5 rounded-full bg-neon-blue flex items-center justify-center">
+                <Check size={12} className="text-white" />
+              </div>
+            )}
+            <div className="flex items-center gap-3 mb-3">
+              <div className="p-2 rounded-lg bg-white/[0.06]">
+                <Sun size={18} className="text-amber-400" />
+              </div>
+              <span className="font-semibold text-text-primary">Light Mode</span>
+            </div>
+            {/* Mini preview */}
+            <div className="rounded-lg overflow-hidden border border-gray-200">
+              <div className="bg-[#f5f7fa] p-3 space-y-2">
+                <div className="h-2 w-16 rounded bg-gray-300" />
+                <div className="flex gap-2">
+                  <div className="h-8 flex-1 rounded bg-white border border-gray-200 shadow-sm" />
+                  <div className="h-8 flex-1 rounded bg-white border border-gray-200 shadow-sm" />
+                </div>
+                <div className="h-2 w-24 rounded bg-gray-200" />
+              </div>
+            </div>
+          </button>
+        </div>
+      </div>
+
+      {/* Accent Color */}
+      <div className="glass-card p-6">
+        <SectionHeading description="Personalise the admin portal with your preferred accent colour">
+          Accent Colour
+        </SectionHeading>
+
+        <div className="space-y-5">
+          {/* Preset grid */}
+          <div className="flex flex-wrap gap-3">
+            {ACCENT_PRESETS.map((preset) => {
+              const active = accent === preset.hex;
+              return (
+                <button
+                  key={preset.hex}
+                  onClick={() => {
+                    setAccent(preset.hex);
+                    setCustomHex(preset.hex);
+                  }}
+                  className={`flex items-center gap-2 px-3 py-2 rounded-lg border transition-all ${
+                    active
+                      ? "border-current bg-white/[0.06]"
+                      : "border-white/[0.08] hover:border-white/20"
+                  }`}
+                  style={{ color: active ? preset.hex : undefined }}
+                >
+                  <div
+                    className="w-4 h-4 rounded-full shrink-0 ring-2 ring-offset-1 ring-offset-transparent"
+                    style={{
+                      backgroundColor: preset.hex,
+                      boxShadow: active
+                        ? `0 0 0 2px ${preset.hex}`
+                        : "none",
+                    }}
+                  />
+                  <span className="text-sm text-text-primary">{preset.label}</span>
+                  {active && <Check size={14} />}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Custom hex input */}
+          <div className="flex items-center gap-3">
+            <label className="text-sm text-text-muted whitespace-nowrap">
+              Custom:
+            </label>
+            <div className="flex items-center gap-2">
+              <input
+                type="color"
+                value={accent}
+                onChange={(e) => {
+                  setAccent(e.target.value);
+                  setCustomHex(e.target.value);
+                }}
+                className="w-8 h-8 rounded cursor-pointer border border-white/[0.08] bg-transparent"
+              />
+              <input
+                type="text"
+                value={customHex}
+                onChange={(e) => handleCustomHex(e.target.value)}
+                placeholder="#2891FF"
+                maxLength={7}
+                className="bg-white/[0.04] border border-white/[0.08] text-text-primary text-sm rounded-lg px-3 py-2 w-28 focus:outline-none focus:border-neon-blue/50 focus:ring-1 focus:ring-neon-blue/30 transition-colors font-mono"
+              />
+            </div>
+            {!isPreset && /^#[0-9A-Fa-f]{6}$/.test(accent) && (
+              <span className="text-xs text-text-muted">(custom)</span>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Live Preview */}
+      <div className="glass-card p-6">
+        <SectionHeading description="See how your current settings will look">
+          Preview
+        </SectionHeading>
+
+        <div
+          className={`rounded-xl p-5 border space-y-4 transition-colors ${
+            theme === "dark"
+              ? "bg-[#0A0F14] border-white/[0.08]"
+              : "bg-[#f5f7fa] border-gray-200"
+          }`}
+        >
+          {/* Top bar */}
+          <div className="flex items-center justify-between">
+            <div
+              className="text-sm font-semibold"
+              style={{ color: accent }}
+            >
+              EDWartens Admin
+            </div>
+            <div className="flex gap-1.5">
+              <div
+                className="h-2 w-2 rounded-full"
+                style={{ backgroundColor: accent }}
+              />
+              <div
+                className="h-2 w-2 rounded-full opacity-50"
+                style={{ backgroundColor: accent }}
+              />
+              <div
+                className="h-2 w-2 rounded-full opacity-25"
+                style={{ backgroundColor: accent }}
+              />
+            </div>
+          </div>
+
+          {/* Cards row */}
+          <div className="grid grid-cols-3 gap-2">
+            {[1, 2, 3].map((i) => (
+              <div
+                key={i}
+                className={`rounded-lg p-3 ${
+                  theme === "dark"
+                    ? "bg-white/[0.04] border border-white/[0.06]"
+                    : "bg-white border border-gray-200 shadow-sm"
+                }`}
+              >
+                <div
+                  className="h-1.5 w-8 rounded mb-2"
+                  style={{ backgroundColor: accent, opacity: 0.7 + i * 0.1 }}
+                />
+                <div
+                  className={`h-1.5 w-12 rounded ${
+                    theme === "dark" ? "bg-white/10" : "bg-gray-200"
+                  }`}
+                />
+              </div>
+            ))}
+          </div>
+
+          {/* Button preview */}
+          <div className="flex gap-2">
+            <div
+              className="px-3 py-1.5 rounded-lg text-white text-xs font-medium"
+              style={{ backgroundColor: accent }}
+            >
+              Primary Action
+            </div>
+            <div
+              className="px-3 py-1.5 rounded-lg text-xs font-medium border"
+              style={{
+                borderColor: accent,
+                color: accent,
+                backgroundColor:
+                  theme === "dark"
+                    ? `${accent}15`
+                    : `${accent}10`,
+              }}
+            >
+              Secondary
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Info */}
+      <div className="glass-card p-4 border-neon-blue/20 bg-neon-blue/[0.03]">
+        <div className="flex items-start gap-3">
+          <Palette size={16} className="text-neon-blue mt-0.5 shrink-0" />
+          <div>
+            <p className="text-sm text-text-primary font-medium">
+              Preferences saved automatically
+            </p>
+            <p className="text-xs text-text-muted mt-0.5">
+              Theme and accent colour settings are stored locally in your browser
+              and applied instantly. They do not affect other users.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 function GeneralTab() {
   return (
@@ -844,7 +1130,7 @@ function IntegrationsTab() {
 // ---------------------------------------------------------------------------
 
 export default function SettingsClient() {
-  const [activeTab, setActiveTab] = useState<TabKey>("general");
+  const [activeTab, setActiveTab] = useState<TabKey>("appearance");
 
   return (
     <div className="space-y-6">
@@ -871,6 +1157,7 @@ export default function SettingsClient() {
       </div>
 
       {/* Tab content */}
+      {activeTab === "appearance" && <AppearanceTab />}
       {activeTab === "general" && <GeneralTab />}
       {activeTab === "crm" && <CrmTab />}
       {activeTab === "notifications" && <NotificationsTab />}

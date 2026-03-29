@@ -98,6 +98,107 @@ body {
   background-clip: text;
 }
 
+/* ---------------------------------------------------------------------------
+   Accent color variable (default = neon-blue)
+   --------------------------------------------------------------------------- */
+:root {
+  --accent-color: #2891FF;
+}
+
+/* ---------------------------------------------------------------------------
+   Light-mode overrides  (applied via ThemeProvider adding .theme-light to body)
+   --------------------------------------------------------------------------- */
+body.theme-light {
+  background: #f5f7fa;
+  color: #1e293b;
+}
+
+body.theme-light ::selection {
+  background: rgba(40, 145, 255, 0.2);
+  color: #0f172a;
+}
+
+/* Scrollbar */
+body.theme-light ::-webkit-scrollbar-track {
+  background: #f5f7fa;
+}
+body.theme-light ::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.15);
+}
+body.theme-light ::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.25);
+}
+
+/* Glass card -> solid card in light mode */
+body.theme-light .glass-card {
+  background: #ffffff;
+  border-color: #e2e8f0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+body.theme-light .glass-card:hover {
+  background: #ffffff;
+  border-color: #cbd5e1;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.06), 0 2px 4px rgba(0, 0, 0, 0.04);
+}
+
+/* Admin layout shell */
+body.theme-light .theme-bg {
+  background: #f5f7fa;
+}
+
+/* Tailwind color overrides via utility classes won't auto-switch,
+   so we override the custom theme palette for elements that use
+   Tailwind's bg-dark-*, text-text-*, border-* utilities.            */
+body.theme-light .bg-dark-primary   { background-color: #f5f7fa !important; }
+body.theme-light .bg-dark-secondary { background-color: #ffffff !important; }
+body.theme-light .bg-dark-tertiary  { background-color: #f1f5f9 !important; }
+body.theme-light .bg-surface        { background-color: #ffffff !important; }
+body.theme-light .bg-surface-hover  { background-color: #f8fafc !important; }
+
+body.theme-light .text-text-primary   { color: #0f172a !important; }
+body.theme-light .text-text-secondary { color: #334155 !important; }
+body.theme-light .text-text-muted     { color: #64748b !important; }
+
+body.theme-light .border-border       { border-color: #e2e8f0 !important; }
+body.theme-light .border-border-hover { border-color: #cbd5e1 !important; }
+
+/* White-alpha borders & backgrounds used inline in the admin UI */
+body.theme-light [class*="border-white/"]  { border-color: #e2e8f0 !important; }
+body.theme-light [class*="bg-white/[0.0"]  { background-color: #f1f5f9 !important; }
+body.theme-light [class*="bg-white/10"]    { background-color: #e2e8f0 !important; }
+
+/* Input fields */
+body.theme-light select,
+body.theme-light input[type="number"],
+body.theme-light input[type="text"] {
+  background-color: #f8fafc !important;
+  border-color: #e2e8f0 !important;
+  color: #0f172a !important;
+}
+body.theme-light select option {
+  background-color: #ffffff;
+  color: #0f172a;
+}
+
+/* Sidebar adjustments */
+body.theme-light .bg-dark-secondary\/95 { background-color: rgba(255,255,255,0.97) !important; }
+
+/* Table rows */
+body.theme-light tr { border-color: #e2e8f0 !important; }
+
+/* Code blocks */
+body.theme-light code {
+  background-color: #f1f5f9 !important;
+  color: #334155 !important;
+}
+
+/* Dot grid */
+body.theme-light .dot-grid {
+  background-image: radial-gradient(rgba(0, 0, 0, 0.06) 1px, transparent 1px);
+}
+
 /* Mesh Gradient Backgrounds */
 .mesh-gradient-hero {
   background:

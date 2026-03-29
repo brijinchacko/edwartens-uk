@@ -335,6 +335,231 @@ async function getAttendanceReports() {
   };
 }
 
+// ─── Employee Reports ───
+async function getEmployeeReports(range: string) {
+  const createdFilter = dateFilter(range);
+  const sessionWhere = createdFilter.gte ? { date: createdFilter } : {};
+
+  // Current month boundaries for "this month" stats
+  const now = new Date();
+  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+  const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
+
+  const [
+    totalEmployees,
+    allSessions,
+    thisMonthSessions,
+    breakData,
+  ] = await Promise.all([
+    prisma.employee.count(),
+    // All sessions in the selected range with employee info
+    prisma.employeeWorkSession.findMany({
+      where: sessionWhere,
+      select: {
+        id: true,
+        employeeId: true,
+        date: true,
+        checkInAt: true,
+        checkOutAt: true,
+        workLocation: true,
+        totalMinutes: true,
+        activeMinutes: true,
+        idleMinutes: true,
+        breakMinutes: true,
+        status: true,
+        employee: {
+          select: {
+            id: true,
+            user: { select: { name: true } },
+          },
+        },
+      },
+      orderBy: { date: "desc" },
+    }),
+    // This month check-ins
+    prisma.employeeWorkSession.count({
+      where: { date: { gte: monthStart, lte: monthEnd } },
+    }),
+    // Break data for sessions in range
+    prisma.employeeBreak.findMany({
+      where: {
+        session: sessionWhere,
+      },
+      select: {
+        sessionId: true,
+        startedAt: true,
+        endedAt: true,
+      },
+    }),
+  ]);
+
+  // ── Compute average daily work hours ──
+  const sessionsWithMinutes = allSessions.filter((s) => s.totalMinutes != null && s.totalMinutes > 0);
+  const totalMinutesAll = sessionsWithMinutes.reduce((sum, s) => sum + (s.totalMinutes || 0), 0);
+  const avgDailyHours = sessionsWithMinutes.length > 0
+    ? (totalMinutesAll / sessionsWithMinutes.length / 60).toFixed(1)
+    : "0";
+
+  // ── Most active employees (ranked by total hours) ──
+  const employeeHoursMap: Record<string, { name: string; totalMinutes: number; sessions: number }> = {};
+  allSessions.forEach((s) => {
+    const empId = s.employeeId;
+    const name = s.employee?.user?.name || "Unknown";
+    if (!employeeHoursMap[empId]) {
+      employeeHoursMap[empId] = { name, totalMinutes: 0, sessions: 0 };
+    }
+    employeeHoursMap[empId].totalMinutes += s.totalMinutes || 0;
+    employeeHoursMap[empId].sessions += 1;
+  });
+
+  const mostActiveEmployees = Object.values(employeeHoursMap)
+    .map((e) => ({
+      name: e.name,
+      totalHours: parseFloat((e.totalMinutes / 60).toFixed(1)),
+      sessions: e.sessions,
+    }))
+    .sort((a, b) => b.totalHours - a.totalHours)
+    .slice(0, 10);
+
+  // ── Employee attendance table ──
+  const breaksBySession: Record<string, { count: number; totalMinutes: number }> = {};
+  breakData.forEach((b) => {
+    if (!breaksBySession[b.sessionId]) {
+      breaksBySession[b.sessionId] = { count: 0, totalMinutes: 0 };
+    }
+    breaksBySession[b.sessionId].count += 1;
+    if (b.startedAt && b.endedAt) {
+      const mins = (new Date(b.endedAt).getTime() - new Date(b.startedAt).getTime()) / 60000;
+      breaksBySession[b.sessionId].totalMinutes += mins;
+    }
+  });
+
+  // Aggregate per employee
+  const empStatsMap: Record<string, {
+    name: string;
+    daysWorked: number;
+    totalMinutes: number;
+    totalBreaks: number;
+    totalBreakMinutes: number;
+    totalIdleMinutes: number;
+    onTimeCount: number;
+  }> = {};
+
+  allSessions.forEach((s) => {
+    const empId = s.employeeId;
+    const name = s.employee?.user?.name || "Unknown";
+    if (!empStatsMap[empId]) {
+      empStatsMap[empId] = { name, daysWorked: 0, totalMinutes: 0, totalBreaks: 0, totalBreakMinutes: 0, totalIdleMinutes: 0, onTimeCount: 0 };
+    }
+    empStatsMap[empId].daysWorked += 1;
+    empStatsMap[empId].totalMinutes += s.totalMinutes || 0;
+    empStatsMap[empId].totalIdleMinutes += s.idleMinutes || 0;
+
+    const sessionBreaks = breaksBySession[s.id];
+    if (sessionBreaks) {
+      empStatsMap[empId].totalBreaks += sessionBreaks.count;
+      empStatsMap[empId].totalBreakMinutes += sessionBreaks.totalMinutes;
+    }
+
+    // On-time: checked in before 9:30 AM
+    const checkInHour = new Date(s.checkInAt).getHours();
+    const checkInMin = new Date(s.checkInAt).getMinutes();
+    if (checkInHour < 9 || (checkInHour === 9 && checkInMin <= 30)) {
+      empStatsMap[empId].onTimeCount += 1;
+    }
+  });
+
+  const employeeAttendance = Object.values(empStatsMap)
+    .map((e) => ({
+      name: e.name,
+      daysWorked: e.daysWorked,
+      avgHoursPerDay: e.daysWorked > 0 ? parseFloat((e.totalMinutes / e.daysWorked / 60).toFixed(1)) : 0,
+      totalBreaks: e.totalBreaks,
+      avgBreakMinutes: e.totalBreaks > 0 ? parseFloat((e.totalBreakMinutes / e.totalBreaks).toFixed(0)) : 0,
+      idleMinutes: e.totalIdleMinutes,
+      onTimeRate: e.daysWorked > 0 ? parseFloat(((e.onTimeCount / e.daysWorked) * 100).toFixed(0)) : 0,
+    }))
+    .sort((a, b) => b.daysWorked - a.daysWorked);
+
+  // ── Work location breakdown ──
+  const locationMap: Record<string, number> = {};
+  allSessions.forEach((s) => {
+    const loc = s.workLocation || "HOME";
+    locationMap[loc] = (locationMap[loc] || 0) + 1;
+  });
+  const workLocationBreakdown = Object.entries(locationMap)
+    .map(([location, count]) => ({ location, count }))
+    .sort((a, b) => b.count - a.count);
+
+  // ── Daily activity summary (last 30 days) ──
+  const thirtyDaysAgo = new Date();
+  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+  thirtyDaysAgo.setHours(0, 0, 0, 0);
+
+  const recentSessions = allSessions.filter(
+    (s) => new Date(s.date) >= thirtyDaysAgo
+  );
+
+  const dailyMap: Record<string, {
+    employees: Set<string>;
+    startTimes: number[];
+    endTimes: number[];
+    totalMinutes: number;
+  }> = {};
+
+  recentSessions.forEach((s) => {
+    const dateKey = new Date(s.date).toISOString().split("T")[0];
+    if (!dailyMap[dateKey]) {
+      dailyMap[dateKey] = { employees: new Set(), startTimes: [], endTimes: [], totalMinutes: 0 };
+    }
+    dailyMap[dateKey].employees.add(s.employeeId);
+    dailyMap[dateKey].totalMinutes += s.totalMinutes || 0;
+
+    const checkIn = new Date(s.checkInAt);
+    dailyMap[dateKey].startTimes.push(checkIn.getHours() * 60 + checkIn.getMinutes());
+
+    if (s.checkOutAt) {
+      const checkOut = new Date(s.checkOutAt);
+      dailyMap[dateKey].endTimes.push(checkOut.getHours() * 60 + checkOut.getMinutes());
+    }
+  });
+
+  const formatTimeFromMinutes = (mins: number) => {
+    const h = Math.floor(mins / 60);
+    const m = Math.round(mins % 60);
+    return `${h.toString().padStart(2, "0")}:${m.toString().padStart(2, "0")}`;
+  };
+
+  const dailyActivity = Object.entries(dailyMap)
+    .map(([date, d]) => {
+      const avgStart = d.startTimes.length > 0
+        ? d.startTimes.reduce((a, b) => a + b, 0) / d.startTimes.length
+        : 0;
+      const avgEnd = d.endTimes.length > 0
+        ? d.endTimes.reduce((a, b) => a + b, 0) / d.endTimes.length
+        : 0;
+
+      return {
+        date,
+        employeesActive: d.employees.size,
+        avgStartTime: formatTimeFromMinutes(avgStart),
+        avgEndTime: d.endTimes.length > 0 ? formatTimeFromMinutes(avgEnd) : "--:--",
+        totalHours: parseFloat((d.totalMinutes / 60).toFixed(1)),
+      };
+    })
+    .sort((a, b) => b.date.localeCompare(a.date));
+
+  return {
+    totalEmployees,
+    avgDailyHours: parseFloat(avgDailyHours),
+    checkInsThisMonth: thisMonthSessions,
+    mostActiveEmployees,
+    employeeAttendance,
+    workLocationBreakdown,
+    dailyActivity,
+  };
+}
+
 // ─── GET handler ───
 export async function GET(request: NextRequest) {
   try {
@@ -363,6 +588,8 @@ export async function GET(request: NextRequest) {
         return Response.json(await getBatchReports(range));
       case "attendance":
         return Response.json(await getAttendanceReports());
+      case "employee":
+        return Response.json(await getEmployeeReports(range));
       default:
         return Response.json({ error: "Invalid report type" }, { status: 400 });
     }

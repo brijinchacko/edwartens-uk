@@ -3,6 +3,7 @@ import { auth } from "@/lib/auth";
 import { isCrmRole } from "@/lib/rbac";
 import { AdminSidebar } from "@/components/AdminSidebar";
 import { WorkTracker } from "@/components/WorkTracker";
+import { ThemeProvider } from "@/components/ThemeProvider";
 
 export default async function AdminLayout({
   children,
@@ -28,18 +29,20 @@ export default async function AdminLayout({
   const userRole = user.role;
 
   return (
-    <div className="flex h-screen overflow-hidden bg-dark-primary">
-      <AdminSidebar
-        userName={userName}
-        userRole={userRole}
-        userImage={user.image || undefined}
-      />
-      <main className="flex-1 overflow-y-auto">
-        <div className="p-6 lg:p-8">
-          <WorkTracker />
-          {children}
-        </div>
-      </main>
-    </div>
+    <ThemeProvider>
+      <div className="flex h-screen overflow-hidden bg-dark-primary theme-bg transition-colors duration-300">
+        <AdminSidebar
+          userName={userName}
+          userRole={userRole}
+          userImage={user.image || undefined}
+        />
+        <main className="flex-1 overflow-y-auto">
+          <div className="p-6 lg:p-8">
+            <WorkTracker />
+            {children}
+          </div>
+        </main>
+      </div>
+    </ThemeProvider>
   );
 }

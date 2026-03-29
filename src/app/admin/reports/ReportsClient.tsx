@@ -16,10 +16,13 @@ import {
   AlertTriangle,
   CheckCircle,
   Loader2,
+  Briefcase,
+  Clock,
+  MapPin,
 } from "lucide-react";
 
 // ─── Types ───
-type TabType = "leads" | "students" | "sales" | "batches" | "attendance";
+type TabType = "leads" | "students" | "sales" | "batches" | "attendance" | "employee";
 type DateRange = "this_month" | "last_3_months" | "this_year" | "all";
 
 interface StatCardProps {
@@ -558,6 +561,204 @@ function AttendanceReports({ data }: { data: Record<string, unknown> | null }) {
 }
 
 // ═══════════════════════════════════════
+// TAB: Employee Reports
+// ═══════════════════════════════════════
+function EmployeeReports({ data }: { data: Record<string, unknown> | null }) {
+  if (!data) return null;
+  const d = data as {
+    totalEmployees: number;
+    avgDailyHours: number;
+    checkInsThisMonth: number;
+    mostActiveEmployees: { name: string; totalHours: number; sessions: number }[];
+    employeeAttendance: {
+      name: string;
+      daysWorked: number;
+      avgHoursPerDay: number;
+      totalBreaks: number;
+      avgBreakMinutes: number;
+      idleMinutes: number;
+      onTimeRate: number;
+    }[];
+    workLocationBreakdown: { location: string; count: number }[];
+    dailyActivity: {
+      date: string;
+      employeesActive: number;
+      avgStartTime: string;
+      avgEndTime: string;
+      totalHours: number;
+    }[];
+  };
+
+  const locationColors: Record<string, string> = {
+    HOME: "#8b5cf6",
+    OFFICE: "#10b981",
+    REMOTE: "#f59e0b",
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Stat Cards */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <StatCard
+          label="Total Employees"
+          value={d.totalEmployees}
+          icon={<Briefcase size={20} />}
+          color="neon-blue"
+        />
+        <StatCard
+          label="Avg Daily Hours"
+          value={`${d.avgDailyHours}h`}
+          icon={<Clock size={20} />}
+          color="neon-green"
+          subtext="Per work session"
+        />
+        <StatCard
+          label="Check-ins This Month"
+          value={d.checkInsThisMonth}
+          icon={<CheckCircle size={20} />}
+          color="neon-purple"
+        />
+        <StatCard
+          label="Most Active"
+          value={d.mostActiveEmployees[0]?.name || "N/A"}
+          icon={<Award size={20} />}
+          color="neon-orange"
+          subtext={d.mostActiveEmployees[0] ? `${d.mostActiveEmployees[0].totalHours}h total` : undefined}
+        />
+      </div>
+
+      <div className="grid md:grid-cols-2 gap-6">
+        {/* Most Active Employees */}
+        <Section title="Most Active Employees (by Total Hours)">
+          <BarChart
+            data={d.mostActiveEmployees}
+            labelKey="name"
+            valueKey="totalHours"
+            color="#10b981"
+            formatValue={(v) => `${v}h`}
+          />
+        </Section>
+
+        {/* Work Location Breakdown */}
+        <Section title="Work Location Breakdown">
+          {d.workLocationBreakdown.length > 0 ? (
+            <div className="space-y-3">
+              {d.workLocationBreakdown.map((loc) => {
+                const total = d.workLocationBreakdown.reduce((s, l) => s + l.count, 0);
+                const pct = total > 0 ? ((loc.count / total) * 100).toFixed(1) : "0";
+                const barColor = locationColors[loc.location] || "#6b7280";
+                return (
+                  <div key={loc.location} className="group">
+                    <div className="flex items-center justify-between mb-1">
+                      <div className="flex items-center gap-2">
+                        <MapPin size={14} style={{ color: barColor }} />
+                        <span className="text-sm text-text-secondary">{loc.location}</span>
+                      </div>
+                      <span className="text-sm font-semibold text-text-primary">
+                        {loc.count} ({pct}%)
+                      </span>
+                    </div>
+                    <div className="w-full h-6 bg-white/[0.04] rounded-md overflow-hidden">
+                      <div
+                        className="h-full rounded-md transition-all duration-500 ease-out"
+                        style={{
+                          width: `${Math.max(parseFloat(pct), 2)}%`,
+                          backgroundColor: barColor,
+                        }}
+                      />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <p className="text-text-muted text-sm py-4">No location data available</p>
+          )}
+        </Section>
+      </div>
+
+      {/* Employee Attendance Table */}
+      <Section title="Employee Attendance Summary">
+        {d.employeeAttendance.length > 0 ? (
+          <DataTable
+            headers={["Employee", "Days Worked", "Avg Hrs/Day", "Total Breaks", "Avg Break (min)", "Idle (min)", "On-Time Rate"]}
+            rows={d.employeeAttendance.map((e) => [
+              e.name,
+              e.daysWorked,
+              `${e.avgHoursPerDay}h`,
+              e.totalBreaks,
+              `${e.avgBreakMinutes}m`,
+              `${e.idleMinutes}m`,
+              `${e.onTimeRate}%`,
+            ])}
+          />
+        ) : (
+          <p className="text-text-muted text-sm py-4">No employee attendance data</p>
+        )}
+      </Section>
+
+      {/* Daily Activity Summary */}
+      <Section title="Daily Activity Summary (Last 30 Days)">
+        {d.dailyActivity.length > 0 ? (
+          <DataTable
+            headers={["Date", "Employees Active", "Avg Start Time", "Avg End Time", "Total Hours"]}
+            rows={d.dailyActivity.map((day) => [
+              day.date,
+              day.employeesActive,
+              day.avgStartTime,
+              day.avgEndTime,
+              `${day.totalHours}h`,
+            ])}
+          />
+        ) : (
+          <p className="text-text-muted text-sm py-4">No daily activity data</p>
+        )}
+      </Section>
+
+      {/* Export Buttons */}
+      <div className="flex flex-wrap justify-end gap-3">
+        <button
+          onClick={() => {
+            const headers = ["Employee", "Days Worked", "Avg Hrs/Day", "Total Breaks", "Avg Break (min)", "Idle (min)", "On-Time Rate"];
+            const rows = d.employeeAttendance.map((e) => [
+              e.name,
+              e.daysWorked,
+              e.avgHoursPerDay,
+              e.totalBreaks,
+              e.avgBreakMinutes,
+              e.idleMinutes,
+              `${e.onTimeRate}%`,
+            ] as (string | number)[]);
+            exportCSV("employee-attendance-report", headers, rows);
+          }}
+          className="flex items-center gap-2 px-4 py-2 rounded-lg bg-neon-blue/10 text-neon-blue hover:bg-neon-blue/20 border border-neon-blue/20 transition-colors text-sm font-medium"
+        >
+          <Download size={16} />
+          Export Attendance CSV
+        </button>
+        <button
+          onClick={() => {
+            const headers = ["Date", "Employees Active", "Avg Start Time", "Avg End Time", "Total Hours"];
+            const rows = d.dailyActivity.map((day) => [
+              day.date,
+              day.employeesActive,
+              day.avgStartTime,
+              day.avgEndTime,
+              day.totalHours,
+            ] as (string | number)[]);
+            exportCSV("employee-daily-activity", headers, rows);
+          }}
+          className="flex items-center gap-2 px-4 py-2 rounded-lg bg-neon-blue/10 text-neon-blue hover:bg-neon-blue/20 border border-neon-blue/20 transition-colors text-sm font-medium"
+        >
+          <Download size={16} />
+          Export Daily Activity CSV
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════
 // MAIN: Reports Client
 // ═══════════════════════════════════════
 const TABS: { id: TabType; label: string; icon: React.ReactNode }[] = [
@@ -566,6 +767,7 @@ const TABS: { id: TabType; label: string; icon: React.ReactNode }[] = [
   { id: "sales", label: "Sales Reports", icon: <DollarSign size={16} /> },
   { id: "batches", label: "Batch Reports", icon: <Layers size={16} /> },
   { id: "attendance", label: "Attendance Reports", icon: <ClipboardCheck size={16} /> },
+  { id: "employee", label: "Employee Reports", icon: <Briefcase size={16} /> },
 ];
 
 const DATE_RANGES: { value: DateRange; label: string }[] = [
@@ -676,6 +878,7 @@ export function ReportsClient() {
           {activeTab === "sales" && <SalesReports data={data} />}
           {activeTab === "batches" && <BatchReports data={data} />}
           {activeTab === "attendance" && <AttendanceReports data={data} />}
+          {activeTab === "employee" && <EmployeeReports data={data} />}
         </>
       )}
     </div>
