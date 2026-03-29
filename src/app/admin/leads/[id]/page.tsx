@@ -15,6 +15,9 @@ import {
   Tag,
   User,
   Clock,
+  FileText,
+  Download,
+  Image,
 } from "lucide-react";
 import LeadActions from "./LeadActions";
 
@@ -178,8 +181,48 @@ export default async function LeadDetailPage({
           )}
         </div>
 
-        {/* Actions + Notes Timeline */}
+        {/* Documents/Files + Actions + Notes Timeline */}
         <div className="lg:col-span-2 space-y-6">
+          {/* Imported Files Section */}
+          {(() => {
+            const fileNotes = lead.notes.filter((n: any) => n.content?.includes("[File Imported]"));
+            if (fileNotes.length === 0) return null;
+            return (
+              <div className="glass-card p-5">
+                <h2 className="text-sm font-semibold text-text-primary mb-3 flex items-center gap-2">
+                  <FileText size={16} className="text-neon-blue" />
+                  Documents & Files ({fileNotes.length})
+                </h2>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  {fileNotes.map((note: any) => {
+                    const match = note.content?.match(/\[File Imported\]\s*(.+?)\s*\((.+?)\)\s*—\s*(\S+)/);
+                    if (!match) return null;
+                    const [, fileName, fileSize, fileUrl] = match;
+                    const isPdf = fileName?.toLowerCase().endsWith(".pdf");
+                    const isImage = /\.(jpg|jpeg|png|webp|gif)$/i.test(fileName || "");
+                    return (
+                      <a
+                        key={note.id}
+                        href={fileUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-3 p-3 rounded-lg bg-white/[0.02] border border-white/[0.04] hover:bg-white/[0.04] transition-colors group"
+                      >
+                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${isPdf ? "bg-red-500/10" : isImage ? "bg-blue-500/10" : "bg-white/[0.05]"}`}>
+                          {isImage ? <Image size={14} className="text-blue-400" /> : <FileText size={14} className={isPdf ? "text-red-400" : "text-text-muted"} />}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-xs text-text-primary truncate group-hover:text-neon-blue transition-colors">{fileName}</p>
+                          <p className="text-[10px] text-text-muted">{fileSize}</p>
+                        </div>
+                        <Download size={12} className="text-text-muted group-hover:text-neon-blue shrink-0" />
+                      </a>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          })()}
           <LeadActions
             leadId={lead.id}
             currentStatus={lead.status}

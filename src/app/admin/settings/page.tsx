@@ -1,71 +1,84 @@
 import type { Metadata } from "next";
-import { Settings, Globe, Bell, Shield, Database, Palette } from "lucide-react";
+import { Settings, Building2, BarChart3, Bell, Plug, Users } from "lucide-react";
+import SettingsClient from "./SettingsClient";
 
 export const metadata: Metadata = {
   title: "Settings | EDWartens Admin",
   description: "System settings and configuration",
 };
 
-const settingsSections = [
+const quickLinks = [
   {
-    title: "General",
-    description: "Company name, logo, contact details",
-    icon: Globe,
+    title: "Company Settings",
+    description: "Company name, contact details, VAT and registration",
+    icon: Building2,
     color: "text-neon-blue bg-neon-blue/10",
+    tab: "general",
   },
   {
-    title: "Notifications",
-    description: "Email templates, SMS settings, notification preferences",
+    title: "CRM Settings",
+    description: "Lead defaults, course fees, batch configuration",
+    icon: BarChart3,
+    color: "text-neon-green bg-neon-green/10",
+    tab: "crm",
+  },
+  {
+    title: "Notification Settings",
+    description: "Email and alert preferences for events",
     icon: Bell,
     color: "text-yellow-400 bg-yellow-400/10",
+    tab: "notifications",
   },
   {
-    title: "Security",
-    description: "Password policies, 2FA settings, session management",
-    icon: Shield,
-    color: "text-red-400 bg-red-400/10",
-  },
-  {
-    title: "Database",
-    description: "Backup settings, data export, maintenance",
-    icon: Database,
-    color: "text-green-400 bg-green-400/10",
-  },
-  {
-    title: "Appearance",
-    description: "Theme, branding, portal customization",
-    icon: Palette,
+    title: "Integration Settings",
+    description: "Zoho, Freshsales, Stripe, Resend connections",
+    icon: Plug,
     color: "text-purple bg-purple/10",
+    tab: "integrations",
+  },
+  {
+    title: "User Management",
+    description: "Manage admin users, roles and permissions",
+    icon: Users,
+    color: "text-cyan-400 bg-cyan-400/10",
+    tab: "general",
+    href: "/admin/users",
   },
 ];
 
 export default function SettingsPage() {
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-text-primary">Settings</h1>
-        <p className="text-text-muted mt-1">
-          System configuration and preferences
-        </p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-text-primary flex items-center gap-2">
+            <Settings size={24} className="text-neon-blue" />
+            Settings
+          </h1>
+          <p className="text-text-muted mt-1">
+            System configuration and preferences
+          </p>
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {settingsSections.map((section) => {
-          const Icon = section.icon;
+      {/* Quick-link cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+        {quickLinks.map((link) => {
+          const Icon = link.icon;
           return (
             <div
-              key={section.title}
-              className="glass-card p-5 flex items-start gap-4 cursor-pointer hover:bg-white/[0.04] transition-colors"
+              key={link.title}
+              className="glass-card p-4 flex items-start gap-3"
             >
-              <div className={`p-3 rounded-lg shrink-0 ${section.color}`}>
-                <Icon size={20} />
+              <div className={`p-2.5 rounded-lg shrink-0 ${link.color}`}>
+                <Icon size={18} />
               </div>
               <div>
-                <h3 className="text-text-primary font-semibold">
-                  {section.title}
+                <h3 className="text-text-primary font-semibold text-sm">
+                  {link.title}
                 </h3>
-                <p className="text-sm text-text-muted mt-0.5">
-                  {section.description}
+                <p className="text-xs text-text-muted mt-0.5">
+                  {link.description}
                 </p>
               </div>
             </div>
@@ -73,21 +86,8 @@ export default function SettingsPage() {
         })}
       </div>
 
-      {/* Placeholder content */}
-      <div className="glass-card p-8 text-center">
-        <Settings
-          size={40}
-          className="text-text-muted mx-auto mb-3 animate-spin"
-          style={{ animationDuration: "8s" }}
-        />
-        <h2 className="text-lg font-semibold text-text-primary">
-          Settings Coming Soon
-        </h2>
-        <p className="text-text-muted mt-2 max-w-md mx-auto">
-          The settings panel is under development. Configuration options will be
-          available in an upcoming release.
-        </p>
-      </div>
+      {/* Main settings client component */}
+      <SettingsClient />
     </div>
   );
 }
