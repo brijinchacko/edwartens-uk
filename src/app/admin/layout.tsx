@@ -4,6 +4,7 @@ import { isCrmRole } from "@/lib/rbac";
 import { AdminSidebar } from "@/components/AdminSidebar";
 import { WorkTracker } from "@/components/WorkTracker";
 import { TeamTargetWidget } from "@/components/TeamTargetWidget";
+import { WhatsAppTaskPopup } from "@/components/WhatsAppTaskPopup";
 import { ThemeProvider } from "@/components/ThemeProvider";
 
 export default async function AdminLayout({
@@ -40,6 +41,7 @@ export default async function AdminLayout({
         <main className="flex-1 overflow-y-auto">
           <div className="p-6 lg:p-8">
             {userRole !== "SUPER_ADMIN" && <WorkTracker />}
+            <WhatsAppTaskPopup />
             <TeamTargetWidget />
             {children}
           </div>

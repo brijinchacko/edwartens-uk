@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { usePathname } from "next/navigation";
 import { Target, TrendingUp, TrendingDown, AlertTriangle, CheckCircle2, Clock, Users, Loader2 } from "lucide-react";
 
 interface TargetSummary {
@@ -22,6 +23,8 @@ interface TargetSummary {
 }
 
 export function TeamTargetWidget() {
+  const pathname = usePathname();
+  const isDashboard = pathname === "/admin/dashboard" || pathname === "/admin";
   const [data, setData] = useState<TargetSummary | null>(null);
   const [loading, setLoading] = useState(true);
   const [expanded, setExpanded] = useState(false);
@@ -49,6 +52,36 @@ export function TeamTargetWidget() {
 
   const isOnTrack = data.projectedTotal >= data.hardTarget;
   const isCritical = data.hardTargetPercent < 50 && data.daysRemaining < 15;
+
+  // Compact mode for non-dashboard pages
+  if (!isDashboard) {
+    return (
+      <div className={`flex items-center justify-between px-4 py-2 mb-4 rounded-lg border text-xs ${
+        data.fullTargetMet ? "border-neon-green/20 bg-neon-green/[0.02]"
+        : isCritical ? "border-red-500/20 bg-red-500/[0.02]"
+        : "border-white/[0.06] bg-white/[0.01]"
+      }`}>
+        <div className="flex items-center gap-3">
+          <Target size={14} className={data.fullTargetMet ? "text-neon-green" : isCritical ? "text-red-400" : "text-neon-blue"} />
+          <span className="text-text-muted">
+            Target: <span className={`font-semibold ${data.fullTargetMet ? "text-neon-green" : isCritical ? "text-red-400" : "text-text-primary"}`}>{data.totalAchieved}/{data.totalTarget}</span>
+            {" · "}Hard: {data.totalAchieved}/{data.hardTarget}
+            {!data.hardTargetMet && ` (${data.hardTargetShortfall} needed)`}
+          </span>
+        </div>
+        <div className="flex items-center gap-4">
+          <span className="text-text-muted">{data.daysRemaining}d left</span>
+          <div className="w-20 h-1.5 bg-dark-primary rounded-full overflow-hidden">
+            <div className="h-full rounded-full" style={{
+              width: `${Math.min(data.hardTargetPercent, 100)}%`,
+              background: data.hardTargetMet ? "#92E02C" : data.hardTargetPercent >= 75 ? "#F59E0B" : "#EF4444",
+            }} />
+          </div>
+          {isCritical && <AlertTriangle size={12} className="text-red-400" />}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={`glass-card p-4 mb-6 border ${

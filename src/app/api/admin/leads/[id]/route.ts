@@ -94,6 +94,20 @@ export async function PATCH(
       },
     });
 
+    // Auto-create WhatsApp task when lead is assigned to a new counsellor
+    if (
+      body.assignedToId &&
+      body.assignedToId !== existing.assignedToId &&
+      lead.assignedTo
+    ) {
+      try {
+        const { createWhatsAppTaskForLead } = await import("@/lib/whatsapp-tasks");
+        await createWhatsAppTaskForLead(lead.id, body.assignedToId);
+      } catch (e) {
+        console.error("Failed to create WhatsApp task:", e);
+      }
+    }
+
     return NextResponse.json(lead);
   } catch (error) {
     console.error("Admin lead update error:", error);

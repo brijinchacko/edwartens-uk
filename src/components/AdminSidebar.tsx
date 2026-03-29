@@ -29,6 +29,8 @@ import {
   Mail,
   MessageSquare,
   Droplets,
+  Calendar,
+  Gift,
 } from "lucide-react";
 import { getInitials } from "@/lib/utils";
 import { getNavItemsForRole } from "@/lib/rbac";
@@ -54,6 +56,8 @@ const ALL_NAV_ITEMS = [
   { id: "invoices", href: "/admin/invoices", label: "Invoices", icon: FileText },
   { id: "jobs", href: "/admin/jobs", label: "Jobs", icon: Briefcase },
   { id: "alumni", href: "/admin/alumni", label: "Alumni", icon: Users },
+  { id: "alumni-network", href: "/admin/alumni-network", label: "Alumni Network", icon: Users },
+  { id: "referrals", href: "/admin/referrals", label: "Referrals", icon: Gift },
   { id: "team-activity", href: "/admin/team-activity", label: "Team Activity", icon: Users },
   { id: "employees", href: "/admin/employees", label: "Team", icon: UserCog },
   { id: "reports", href: "/admin/reports", label: "Reports", icon: BarChart3 },
@@ -61,6 +65,7 @@ const ALL_NAV_ITEMS = [
   { id: "feedback", href: "/admin/feedback", label: "Feedback", icon: MessageSquare },
   { id: "emails", href: "/admin/emails", label: "Emails", icon: Mail },
   { id: "drip-campaigns", href: "/admin/drip-campaigns", label: "Drip Campaigns", icon: Droplets },
+  { id: "calendar", href: "/admin/calendar", label: "Calendar", icon: Calendar },
   { id: "notifications", href: "/admin/notifications", label: "Notifications", icon: Bell },
   { id: "settings", href: "/admin/settings", label: "Settings", icon: Settings },
 ];

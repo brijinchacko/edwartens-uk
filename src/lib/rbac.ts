@@ -139,20 +139,20 @@ export function getNavItemsForRole(role: string): string[] {
     case "SUPER_ADMIN":
       return [
         "dashboard", "leads", "pipeline", "students", "batches", "sessions",
-        "assessments", "question-bank", "career", "certificates", "invoices", "jobs", "alumni", "team-activity", "employees",
-        "reports", "feedback", "users", "emails", "drip-campaigns", "notifications", "import", "settings",
+        "assessments", "question-bank", "career", "certificates", "invoices", "jobs", "alumni", "alumni-network", "referrals", "team-activity", "employees",
+        "reports", "feedback", "users", "emails", "drip-campaigns", "calendar", "notifications", "import", "settings",
       ];
     case "ADMIN":
       return [
         "dashboard", "leads", "pipeline", "students", "batches", "sessions",
-        "assessments", "question-bank", "career", "certificates", "invoices", "jobs", "alumni", "team-activity", "employees",
-        "reports", "feedback", "emails", "drip-campaigns", "notifications", "import", "settings",
+        "assessments", "question-bank", "career", "certificates", "invoices", "jobs", "alumni", "alumni-network", "referrals", "team-activity", "employees",
+        "reports", "feedback", "emails", "drip-campaigns", "calendar", "notifications", "import", "settings",
       ];
     case "SALES_LEAD":
-      return ["dashboard", "leads", "pipeline", "team-activity", "emails"];
+      return ["dashboard", "leads", "pipeline", "team-activity", "emails", "calendar"];
     case "ADMISSION_COUNSELLOR":
       return [
-        "dashboard", "leads", "pipeline", "students", "career", "alumni", "team-activity", "emails",
+        "dashboard", "leads", "pipeline", "students", "career", "alumni", "team-activity", "emails", "calendar",
       ];
     case "TRAINER":
       return ["dashboard", "batches", "sessions", "assessments", "question-bank", "students", "team-activity"];

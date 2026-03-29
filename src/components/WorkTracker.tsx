@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
+import { usePathname } from "next/navigation";
 import {
   Clock,
   MapPin,
@@ -75,6 +76,8 @@ function formatDuration(totalSeconds: number): string {
 
 /* ────────────────────────────────────────────── Component */
 export function WorkTracker() {
+  const pathname = usePathname();
+  const isDashboard = pathname === "/admin/dashboard" || pathname === "/admin";
   const [session, setSession] = useState<WorkSession | null>(null);
   const [loading, setLoading] = useState(true);
   const [elapsed, setElapsed] = useState(0);
@@ -360,6 +363,49 @@ export function WorkTracker() {
   const activeSec = elapsed - totalBreakSec;
 
   if (loading) return null;
+
+  // Compact mode for non-dashboard pages (when checked in)
+  if (!isDashboard && session) {
+    const statusColor = session.status === "ACTIVE" ? "text-green-400" : session.status === "BREAK" ? "text-yellow-400" : "text-red-400";
+    const statusEmoji = session.status === "ACTIVE" ? "🟢" : session.status === "BREAK" ? "🟡" : "🔴";
+    return (
+      <div className="flex items-center justify-between px-4 py-2 mb-4 rounded-lg border border-white/[0.06] bg-white/[0.01]">
+        <div className="flex items-center gap-3 text-xs">
+          <span>{statusEmoji}</span>
+          <span className="font-mono font-semibold text-text-primary">{formatDuration(elapsed)}</span>
+          <span className={`${statusColor} font-medium`}>{session.status === "ACTIVE" ? "Active" : session.status === "BREAK" ? "On Break" : "Idle"}</span>
+          <span className="text-text-muted">· {LOCATION_META[session.location]?.label || session.location}</span>
+        </div>
+        <div className="flex items-center gap-2">
+          {session.status === "ACTIVE" && (
+            <button onClick={() => setShowBreak(true)} className="px-2 py-1 rounded text-[10px] bg-yellow-500/10 text-yellow-400 hover:bg-yellow-500/20 transition-colors">
+              Break
+            </button>
+          )}
+          {session.status === "BREAK" && (
+            <button onClick={handleEndBreak} className="px-2 py-1 rounded text-[10px] bg-neon-green/10 text-neon-green hover:bg-neon-green/20 transition-colors">
+              End Break
+            </button>
+          )}
+          <button onClick={() => setShowCheckOut(true)} className="px-2 py-1 rounded text-[10px] bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-colors">
+            Check Out
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Compact "not checked in" for non-dashboard
+  if (!isDashboard && !session) {
+    return (
+      <div className="flex items-center justify-between px-4 py-2 mb-4 rounded-lg border border-yellow-500/20 bg-yellow-500/[0.02]">
+        <span className="text-xs text-yellow-400">⚠ Not checked in</span>
+        <button onClick={() => setShowCheckIn(true)} className="px-3 py-1 rounded text-[10px] bg-neon-blue/10 text-neon-blue hover:bg-neon-blue/20 transition-colors font-medium">
+          Check In
+        </button>
+      </div>
+    );
+  }
 
   /* ═══════════════════════════════════════════ RENDER ═══ */
   return (

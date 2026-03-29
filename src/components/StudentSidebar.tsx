@@ -24,6 +24,10 @@ import {
   X,
   File,
   MessageSquare,
+  PenTool,
+  Users,
+  Newspaper,
+  Gift,
 } from "lucide-react";
 
 interface StudentSidebarProps {
@@ -45,8 +49,12 @@ const navItems = [
   { href: "/student/job-tracker", label: "Job Tracker", icon: BarChart },
   { href: "/student/certificates", label: "Certificates", icon: Award },
   { href: "/student/documents", label: "Documents", icon: FileText },
+  { href: "/student/sign", label: "Sign Documents", icon: PenTool },
   { href: "/student/payments", label: "Payments", icon: CreditCard },
   { href: "/student/jobs", label: "Jobs", icon: Briefcase },
+  { href: "/student/alumni", label: "Alumni Network", icon: Users },
+  { href: "/student/job-board", label: "Job Board", icon: Newspaper },
+  { href: "/student/referrals", label: "Referrals", icon: Gift },
   { href: "/student/feedback", label: "Feedback", icon: MessageSquare },
   { href: "/student/profile", label: "Profile", icon: User },
   { href: "/student/support", label: "Support", icon: HelpCircle },

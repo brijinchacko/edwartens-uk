@@ -278,3 +278,77 @@ export async function getEmailById(
   const token = await getEmployeeToken(employeeId);
   return graphFetch(token, `${GRAPH_BASE}/me/messages/${messageId}?$select=id,subject,from,toRecipients,receivedDateTime,bodyPreview,body,isRead,conversationId,hasAttachments`);
 }
+
+// ─── Calendar Functions ────────────────────────────────────────────
+
+export interface GraphCalendarEvent {
+  id: string;
+  subject: string;
+  start: { dateTime: string; timeZone: string };
+  end: { dateTime: string; timeZone: string };
+  location?: { displayName: string };
+  body?: { contentType: string; content: string };
+  attendees?: { emailAddress: { name: string; address: string }; type: string }[];
+  isAllDay?: boolean;
+  organizer?: { emailAddress: { name: string; address: string } };
+  webLink?: string;
+}
+
+/**
+ * Create a calendar event in the employee's Outlook calendar
+ */
+export async function createCalendarEvent(
+  employeeId: string,
+  event: {
+    subject: string;
+    start: string; // ISO datetime
+    end: string;
+    location?: string;
+    body?: string;
+    attendees?: string[]; // email addresses
+  }
+): Promise<GraphCalendarEvent> {
+  const token = await getEmployeeToken(employeeId);
+
+  const payload: Record<string, unknown> = {
+    subject: event.subject,
+    start: { dateTime: event.start, timeZone: "UTC" },
+    end: { dateTime: event.end, timeZone: "UTC" },
+  };
+
+  if (event.location) {
+    payload.location = { displayName: event.location };
+  }
+
+  if (event.body) {
+    payload.body = { contentType: "HTML", content: event.body };
+  }
+
+  if (event.attendees && event.attendees.length > 0) {
+    payload.attendees = event.attendees.map((email) => ({
+      emailAddress: { address: email },
+      type: "required",
+    }));
+  }
+
+  return graphFetch(token, `${GRAPH_BASE}/me/events`, {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+/**
+ * Get calendar events for a date range from the employee's Outlook calendar
+ */
+export async function getCalendarEvents(
+  employeeId: string,
+  startDate: string,
+  endDate: string
+): Promise<GraphCalendarEvent[]> {
+  const token = await getEmployeeToken(employeeId);
+  const url = `${GRAPH_BASE}/me/calendarView?startDateTime=${encodeURIComponent(startDate)}&endDateTime=${encodeURIComponent(endDate)}&$orderby=start/dateTime&$top=100&$select=id,subject,start,end,location,body,attendees,isAllDay,organizer,webLink`;
+  const data = await graphFetch(token, url, {
+    headers: { Prefer: 'outlook.timezone="UTC"' },
+  });
+  return data.value || [];
+}

@@ -162,6 +162,16 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    // Auto-create WhatsApp task for the assigned counsellor
+    if (assignedToId && phone) {
+      try {
+        const { createWhatsAppTaskForLead } = await import("@/lib/whatsapp-tasks");
+        await createWhatsAppTaskForLead(lead.id, assignedToId);
+      } catch (e) {
+        console.error("Failed to create WhatsApp task:", e);
+      }
+    }
+
     return NextResponse.json(lead, { status: 201 });
   } catch (error) {
     console.error("Admin lead create error:", error);
