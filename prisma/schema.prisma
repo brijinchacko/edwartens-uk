@@ -789,10 +789,13 @@ model SalesTarget {
   employee       Employee @relation(fields: [employeeId], references: [id])
   month          Int
   year           Int
-  salesTarget    Int      @default(15)
+  salesTarget    Int      @default(20)    // Team monthly target: 20 (5 per batch)
+  hardTarget     Int      @default(12)    // Hard target: 12 (3 per batch) - must achieve
   leadTarget     Int      @default(50)
   salesAchieved  Int      @default(0)
   leadsGenerated Int      @default(0)
+  rolloverFromPrev Int    @default(0)     // Unmet hard target rolled from previous month
+  rolloverApplied Boolean @default(false) // Whether rollover has been calculated
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
   @@unique([employeeId, month, year])
