@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { TrendingUp, TrendingDown, Minus, ArrowDown } from "lucide-react";
 
 interface FunnelData {
@@ -29,14 +30,28 @@ interface FunnelData {
   }[];
 }
 
+function getMonthDateRange(offset: number) {
+  const now = new Date();
+  const start = new Date(now.getFullYear(), now.getMonth() + offset, 1);
+  const end = new Date(now.getFullYear(), now.getMonth() + offset + 1, 0);
+  return {
+    dateFrom: start.toISOString().split("T")[0],
+    dateTo: end.toISOString().split("T")[0],
+  };
+}
+
 function MonthComparison({
   label,
   thisMonth,
   lastMonth,
+  thisMonthHref,
+  lastMonthHref,
 }: {
   label: string;
   thisMonth: number;
   lastMonth: number;
+  thisMonthHref: string;
+  lastMonthHref: string;
 }) {
   const diff = thisMonth - lastMonth;
   const pct = lastMonth > 0 ? Math.round((diff / lastMonth) * 100) : thisMonth > 0 ? 100 : 0;
@@ -45,8 +60,12 @@ function MonthComparison({
     <div className="flex items-center justify-between py-2 border-b border-white/[0.04] last:border-0">
       <span className="text-sm text-text-secondary">{label}</span>
       <div className="flex items-center gap-3">
-        <span className="text-sm font-medium text-text-primary">{thisMonth}</span>
-        <span className="text-xs text-text-muted">vs {lastMonth}</span>
+        <Link href={thisMonthHref} className="text-sm font-medium text-text-primary hover:text-neon-blue hover:underline cursor-pointer transition-colors">
+          {thisMonth}
+        </Link>
+        <Link href={lastMonthHref} className="text-xs text-text-muted hover:text-neon-blue hover:underline cursor-pointer transition-colors">
+          vs {lastMonth}
+        </Link>
         {diff > 0 ? (
           <span className="flex items-center gap-0.5 text-xs text-green-400">
             <TrendingUp size={12} />+{pct}%
@@ -103,6 +122,7 @@ export default function ConversionFunnel() {
       color: "bg-blue-500",
       bgColor: "bg-blue-500/10",
       textColor: "text-blue-400",
+      href: "/admin/leads",
     },
     {
       label: "Contacted",
@@ -114,6 +134,7 @@ export default function ConversionFunnel() {
       bgColor: "bg-cyan-500/10",
       textColor: "text-cyan-400",
       rate: funnel.rates.leadToContacted,
+      href: "/admin/leads?status=CONTACTED",
     },
     {
       label: "Qualified",
@@ -125,6 +146,7 @@ export default function ConversionFunnel() {
       bgColor: "bg-yellow-500/10",
       textColor: "text-yellow-400",
       rate: funnel.rates.contactedToQualified,
+      href: "/admin/leads?status=QUALIFIED",
     },
     {
       label: "Enrolled",
@@ -136,6 +158,7 @@ export default function ConversionFunnel() {
       bgColor: "bg-green-500/10",
       textColor: "text-green-400",
       rate: funnel.rates.qualifiedToEnrolled,
+      href: "/admin/leads?status=ENROLLED",
     },
   ];
 
@@ -165,13 +188,13 @@ export default function ConversionFunnel() {
                   </span>
                 </div>
               )}
-              <div className="flex items-center gap-4">
+              <Link href={stage.href} className="flex items-center gap-4 cursor-pointer group">
                 <div className="w-24 shrink-0 text-right">
-                  <p className={`text-sm font-medium ${stage.textColor}`}>{stage.label}</p>
+                  <p className={`text-sm font-medium ${stage.textColor} group-hover:underline`}>{stage.label}</p>
                 </div>
                 <div className="flex-1 flex items-center justify-center">
                   <div
-                    className={`${stage.color} h-10 rounded-lg flex items-center justify-center transition-all duration-500 relative`}
+                    className={`${stage.color} h-10 rounded-lg flex items-center justify-center transition-all duration-500 relative group-hover:scale-[1.02]`}
                     style={{ width: `${stage.width}%` }}
                   >
                     <span className="text-sm font-bold text-white drop-shadow-sm">
@@ -179,7 +202,7 @@ export default function ConversionFunnel() {
                     </span>
                   </div>
                 </div>
-              </div>
+              </Link>
             </div>
           ))}
         </div>
@@ -188,9 +211,9 @@ export default function ConversionFunnel() {
         {funnel.lost > 0 && (
           <div className="mt-4 pt-3 border-t border-white/[0.04] flex items-center gap-2">
             <span className="text-xs text-text-muted">Lost leads:</span>
-            <span className="inline-flex px-2 py-0.5 rounded-full text-xs font-medium bg-red-500/10 text-red-400">
+            <Link href="/admin/leads?status=LOST" className="inline-flex px-2 py-0.5 rounded-full text-xs font-medium bg-red-500/10 text-red-400 hover:underline hover:scale-105 cursor-pointer transition-all">
               {funnel.lost}
-            </span>
+            </Link>
           </div>
         )}
       </div>
@@ -200,10 +223,10 @@ export default function ConversionFunnel() {
         <div className="glass-card p-5">
           <h3 className="text-base font-semibold text-text-primary mb-4">This Month vs Last Month</h3>
           <div className="space-y-0">
-            <MonthComparison label="Total Leads" thisMonth={thisMonth.totalLeads} lastMonth={lastMonth.totalLeads} />
-            <MonthComparison label="Contacted" thisMonth={thisMonth.contacted} lastMonth={lastMonth.contacted} />
-            <MonthComparison label="Qualified" thisMonth={thisMonth.qualified} lastMonth={lastMonth.qualified} />
-            <MonthComparison label="Enrolled" thisMonth={thisMonth.enrolled} lastMonth={lastMonth.enrolled} />
+            <MonthComparison label="Total Leads" thisMonth={thisMonth.totalLeads} lastMonth={lastMonth.totalLeads} thisMonthHref={`/admin/leads?dateFrom=${getMonthDateRange(0).dateFrom}&dateTo=${getMonthDateRange(0).dateTo}`} lastMonthHref={`/admin/leads?dateFrom=${getMonthDateRange(-1).dateFrom}&dateTo=${getMonthDateRange(-1).dateTo}`} />
+            <MonthComparison label="Contacted" thisMonth={thisMonth.contacted} lastMonth={lastMonth.contacted} thisMonthHref={`/admin/leads?status=CONTACTED&dateFrom=${getMonthDateRange(0).dateFrom}&dateTo=${getMonthDateRange(0).dateTo}`} lastMonthHref={`/admin/leads?status=CONTACTED&dateFrom=${getMonthDateRange(-1).dateFrom}&dateTo=${getMonthDateRange(-1).dateTo}`} />
+            <MonthComparison label="Qualified" thisMonth={thisMonth.qualified} lastMonth={lastMonth.qualified} thisMonthHref={`/admin/leads?status=QUALIFIED&dateFrom=${getMonthDateRange(0).dateFrom}&dateTo=${getMonthDateRange(0).dateTo}`} lastMonthHref={`/admin/leads?status=QUALIFIED&dateFrom=${getMonthDateRange(-1).dateFrom}&dateTo=${getMonthDateRange(-1).dateTo}`} />
+            <MonthComparison label="Enrolled" thisMonth={thisMonth.enrolled} lastMonth={lastMonth.enrolled} thisMonthHref={`/admin/leads?status=ENROLLED&dateFrom=${getMonthDateRange(0).dateFrom}&dateTo=${getMonthDateRange(0).dateTo}`} lastMonthHref={`/admin/leads?status=ENROLLED&dateFrom=${getMonthDateRange(-1).dateFrom}&dateTo=${getMonthDateRange(-1).dateTo}`} />
           </div>
         </div>
 
@@ -215,10 +238,10 @@ export default function ConversionFunnel() {
           ) : (
             <div className="space-y-3">
               {sourceBreakdown.slice(0, 8).map((src) => (
-                <div key={src.source} className="flex items-center justify-between">
+                <Link key={src.source} href={`/admin/leads?source=${encodeURIComponent(src.source)}`} className="flex items-center justify-between cursor-pointer group hover:scale-[1.01] transition-all">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between mb-1">
-                      <span className="text-sm text-text-secondary capitalize truncate">
+                      <span className="text-sm text-text-secondary capitalize truncate group-hover:text-neon-blue group-hover:underline transition-colors">
                         {src.source.replace(/_/g, " ")}
                       </span>
                       <span className="text-xs text-text-muted shrink-0 ml-2">
@@ -235,7 +258,7 @@ export default function ConversionFunnel() {
                   <span className="text-xs font-medium text-neon-blue ml-3 shrink-0 w-10 text-right">
                     {src.conversionRate}%
                   </span>
-                </div>
+                </Link>
               ))}
             </div>
           )}

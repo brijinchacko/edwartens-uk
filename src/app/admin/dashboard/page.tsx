@@ -548,7 +548,7 @@ export default async function AdminDashboard() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Sales Target */}
-          <div className="glass-card p-5">
+          <Link href="/admin/reports" className="glass-card p-5 hover:border-neon-blue/20 hover:scale-[1.02] transition-all cursor-pointer">
             <div className="flex items-start justify-between mb-3">
               <div>
                 <p className="text-text-muted text-sm">My Sales Target</p>
@@ -567,10 +567,10 @@ export default async function AdminDashboard() {
               />
             </div>
             <p className="text-xs text-text-muted mt-1">{salesPct}% achieved</p>
-          </div>
+          </Link>
 
           {/* Lead Target */}
-          <div className="glass-card p-5">
+          <Link href="/admin/leads" className="glass-card p-5 hover:border-neon-blue/20 hover:scale-[1.02] transition-all cursor-pointer">
             <div className="flex items-start justify-between mb-3">
               <div>
                 <p className="text-text-muted text-sm">My Lead Target</p>
@@ -589,7 +589,7 @@ export default async function AdminDashboard() {
               />
             </div>
             <p className="text-xs text-text-muted mt-1">{leadPct}% achieved</p>
-          </div>
+          </Link>
         </div>
 
         {/* Incentive */}
@@ -626,10 +626,10 @@ export default async function AdminDashboard() {
               { label: "CONTACTED", count: data.leadPipeline["CONTACTED"] || 0, color: "text-neon-blue" },
               { label: "QUALIFIED", count: data.leadPipeline["QUALIFIED"] || 0, color: "text-neon-green" },
             ].map((item) => (
-              <div key={item.label} className="text-center">
+              <Link key={item.label} href={`/admin/leads?status=${item.label}`} className="text-center p-3 rounded-lg hover:bg-white/[0.03] hover:scale-[1.02] transition-all cursor-pointer">
                 <p className={`text-2xl font-bold ${item.color}`}>{item.count}</p>
                 <p className="text-xs text-text-muted mt-1">{item.label}</p>
-              </div>
+              </Link>
             ))}
           </div>
         </div>
@@ -1184,6 +1184,12 @@ export default async function AdminDashboard() {
   // ═══════════════════════════════════════════════════
   const data = await getAdminDashboardData();
 
+  const now = new Date();
+  const weekStart = new Date(now);
+  weekStart.setDate(now.getDate() - now.getDay());
+  weekStart.setHours(0, 0, 0, 0);
+  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+
   const kpis = [
     {
       label: "Active Students",
@@ -1192,6 +1198,7 @@ export default async function AdminDashboard() {
       icon: Users,
       color: "text-neon-blue",
       bgColor: "bg-neon-blue/10",
+      href: "/admin/students",
     },
     {
       label: "Leads This Week",
@@ -1199,6 +1206,7 @@ export default async function AdminDashboard() {
       icon: Target,
       color: "text-neon-green",
       bgColor: "bg-neon-green/10",
+      href: `/admin/leads?dateFrom=${weekStart.toISOString().split("T")[0]}`,
     },
     {
       label: "Leads This Month",
@@ -1206,6 +1214,7 @@ export default async function AdminDashboard() {
       icon: Target,
       color: "text-cyan",
       bgColor: "bg-cyan/10",
+      href: `/admin/leads?dateFrom=${monthStart.toISOString().split("T")[0]}`,
     },
     {
       label: "Career Transitions",
@@ -1213,6 +1222,7 @@ export default async function AdminDashboard() {
       icon: TrendingUp,
       color: "text-neon-green",
       bgColor: "bg-neon-green/10",
+      href: "/admin/students",
     },
     {
       label: "Upcoming Batches",
@@ -1220,6 +1230,7 @@ export default async function AdminDashboard() {
       icon: Layers,
       color: "text-purple",
       bgColor: "bg-purple/10",
+      href: "/admin/batches",
     },
     {
       label: "Follow-ups Due",
@@ -1229,6 +1240,7 @@ export default async function AdminDashboard() {
       color: data.followUpsDueTodayCount > 0 ? "text-red-400" : "text-text-muted",
       bgColor:
         data.followUpsDueTodayCount > 0 ? "bg-red-400/10" : "bg-white/[0.03]",
+      href: "/admin/leads?followUp=overdue",
     },
   ];
 
@@ -1257,7 +1269,7 @@ export default async function AdminDashboard() {
         {kpis.map((kpi) => {
           const Icon = kpi.icon;
           return (
-            <div key={kpi.label} className="glass-card p-5">
+            <Link key={kpi.label} href={kpi.href} className="glass-card p-5 hover:border-neon-blue/20 hover:scale-[1.02] transition-all cursor-pointer">
               <div className="flex items-start justify-between">
                 <div>
                   <p className="text-text-muted text-sm">{kpi.label}</p>
@@ -1274,7 +1286,7 @@ export default async function AdminDashboard() {
                   <Icon size={20} className={kpi.color} />
                 </div>
               </div>
-            </div>
+            </Link>
           );
         })}
       </div>
@@ -1286,22 +1298,22 @@ export default async function AdminDashboard() {
       <div className="glass-card p-5">
         <h2 className="text-lg font-semibold text-text-primary mb-4">Pending Actions</h2>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-          <Link href="/admin/students?status=ONBOARDING" className="flex flex-col items-center p-4 rounded-lg bg-white/[0.02] hover:bg-white/[0.05] transition-colors border border-white/[0.04]">
+          <Link href="/admin/students?status=ONBOARDING" className="flex flex-col items-center p-4 rounded-lg bg-white/[0.02] hover:bg-white/[0.05] transition-colors border border-white/[0.04] hover:border-neon-blue/20 hover:scale-[1.02]">
             <ClipboardCheck size={24} className="text-yellow-400 mb-2" />
             <p className="text-2xl font-bold text-text-primary">{data.onboardingStudents}</p>
             <p className="text-xs text-text-muted text-center mt-1">Students Onboarding</p>
           </Link>
-          <Link href="/admin/students" className="flex flex-col items-center p-4 rounded-lg bg-white/[0.02] hover:bg-white/[0.05] transition-colors border border-white/[0.04]">
+          <Link href="/admin/students" className="flex flex-col items-center p-4 rounded-lg bg-white/[0.02] hover:bg-white/[0.05] transition-colors border border-white/[0.04] hover:border-neon-blue/20 hover:scale-[1.02]">
             <FileCheck size={24} className="text-cyan mb-2" />
             <p className="text-2xl font-bold text-text-primary">{data.pendingDocs}</p>
             <p className="text-xs text-text-muted text-center mt-1">Docs Pending Review</p>
           </Link>
-          <Link href="/admin/students" className="flex flex-col items-center p-4 rounded-lg bg-white/[0.02] hover:bg-white/[0.05] transition-colors border border-white/[0.04]">
+          <Link href="/admin/assessments" className="flex flex-col items-center p-4 rounded-lg bg-white/[0.02] hover:bg-white/[0.05] transition-colors border border-white/[0.04] hover:border-neon-blue/20 hover:scale-[1.02]">
             <Code size={24} className="text-neon-green mb-2" />
             <p className="text-2xl font-bold text-text-primary">{data.pendingProjects}</p>
             <p className="text-xs text-text-muted text-center mt-1">Ungraded Projects</p>
           </Link>
-          <Link href="/admin/students" className="flex flex-col items-center p-4 rounded-lg bg-white/[0.02] hover:bg-white/[0.05] transition-colors border border-white/[0.04]">
+          <Link href="/admin/assessments" className="flex flex-col items-center p-4 rounded-lg bg-white/[0.02] hover:bg-white/[0.05] transition-colors border border-white/[0.04] hover:border-neon-blue/20 hover:scale-[1.02]">
             <BookOpen size={24} className="text-purple mb-2" />
             <p className="text-2xl font-bold text-text-primary">{data.ungradedAssessments}</p>
             <p className="text-xs text-text-muted text-center mt-1">Assessment Attempts</p>

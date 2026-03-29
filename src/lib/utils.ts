@@ -65,8 +65,11 @@ export const LEAD_STATUS_LABELS: Record<string, string> = {
 
 export const STUDENT_STATUS_LABELS: Record<string, string> = {
   ONBOARDING: "Onboarding",
-  ACTIVE: "Active",
+  ACTIVE: "In Training",
   ON_HOLD: "On Hold",
+  POST_TRAINING: "Post-Training",
+  CAREER_SUPPORT: "Career Support",
   COMPLETED: "Completed",
+  ALUMNI: "Alumni",
   DROPPED: "Dropped",
 };
