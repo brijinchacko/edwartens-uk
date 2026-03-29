@@ -11,12 +11,11 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const userEmail = session.user.email;
-    if (!userEmail) {
-      return NextResponse.json(
-        { error: "No email found for user" },
-        { status: 400 }
-      );
+    const employee = await prisma.employee.findUnique({
+      where: { userId: session.user.id as string },
+    });
+    if (!employee) {
+      return NextResponse.json({ error: "Employee not found" }, { status: 404 });
     }
 
     const body = await req.json();
@@ -29,16 +28,16 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Send email via Microsoft Graph
-    await sendEmail(userEmail, to, subject, emailBody);
+    // Send email via Microsoft Graph using employee's own account
+    await sendEmail(employee.id, to, subject, emailBody);
 
     // If linked to a lead, create a LeadNote
     if (leadId) {
       await prisma.leadNote.create({
         data: {
           leadId,
-          content: `[Email Sent] Subject: ${subject} To: ${to}`,
-          createdBy: session.user.name || session.user.email,
+          content: `[Email Sent] Subject: ${subject}\nTo: ${to}\nSent by: ${session.user.name || session.user.email}`,
+          createdBy: session.user.name || session.user.email || "CRM",
         },
       });
     }
@@ -46,8 +45,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ success: true });
   } catch (error: unknown) {
     console.error("Error sending email:", error);
-    const message =
-      error instanceof Error ? error.message : "Failed to send email";
+    const message = error instanceof Error ? error.message : "Failed to send email";
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }

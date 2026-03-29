@@ -1,30 +1,58 @@
-// Microsoft Graph API Client — Client Credentials Flow
-// Uses application-level permissions with admin consent
+/**
+ * Microsoft Graph API Client — Per-User Delegated OAuth Flow
+ * Each employee connects their own Outlook account via OAuth authorization code flow.
+ * Tokens are stored per-employee in the database.
+ */
 
-const TENANT_ID = process.env.AZURE_AD_TENANT_ID || "9969a7a8-372d-4251-aadb-938c65b27b87";
-const CLIENT_ID = process.env.AZURE_AD_CLIENT_ID || "24ed71bc-2998-4fd3-a99c-cf4b98a30a9f";
+import { prisma } from "./prisma";
+
+const TENANT_ID = process.env.AZURE_AD_TENANT_ID || "";
+const CLIENT_ID = process.env.AZURE_AD_CLIENT_ID || "";
+const CLIENT_SECRET = process.env.AZURE_AD_CLIENT_SECRET || "";
 const GRAPH_BASE = "https://graph.microsoft.com/v1.0";
 const TOKEN_URL = `https://login.microsoftonline.com/${TENANT_ID}/oauth2/v2.0/token`;
+const AUTH_URL = `https://login.microsoftonline.com/${TENANT_ID}/oauth2/v2.0/authorize`;
+const REDIRECT_URI = process.env.NEXTAUTH_URL
+  ? `${process.env.NEXTAUTH_URL}/api/admin/emails/callback`
+  : "https://edwartens.co.uk/api/admin/emails/callback";
+const SCOPES = "openid offline_access Mail.Read Mail.Send User.Read";
 
-// In-memory token cache
-let cachedToken: { accessToken: string; expiresAt: number } | null = null;
+export function isOutlookConfigured(): boolean {
+  return !!(TENANT_ID && CLIENT_ID && CLIENT_SECRET);
+}
 
-export async function getAccessToken(): Promise<string> {
-  // Return cached token if still valid (with 5 min buffer)
-  if (cachedToken && cachedToken.expiresAt > Date.now() + 5 * 60 * 1000) {
-    return cachedToken.accessToken;
-  }
+/**
+ * Generate the OAuth authorization URL for a user to connect their Outlook
+ */
+export function getAuthUrl(state: string): string {
+  const params = new URLSearchParams({
+    client_id: CLIENT_ID,
+    response_type: "code",
+    redirect_uri: REDIRECT_URI,
+    scope: SCOPES,
+    response_mode: "query",
+    state,
+    prompt: "consent",
+  });
+  return `${AUTH_URL}?${params.toString()}`;
+}
 
-  const clientSecret = process.env.AZURE_AD_CLIENT_SECRET;
-  if (!clientSecret) {
-    throw new Error("AZURE_AD_CLIENT_SECRET environment variable is not set");
-  }
-
+/**
+ * Exchange authorization code for access + refresh tokens
+ */
+export async function exchangeCodeForTokens(code: string): Promise<{
+  accessToken: string;
+  refreshToken: string;
+  expiresIn: number;
+  email: string;
+}> {
   const body = new URLSearchParams({
     client_id: CLIENT_ID,
-    client_secret: clientSecret,
-    scope: "https://graph.microsoft.com/.default",
-    grant_type: "client_credentials",
+    client_secret: CLIENT_SECRET,
+    code,
+    redirect_uri: REDIRECT_URI,
+    grant_type: "authorization_code",
+    scope: SCOPES,
   });
 
   const res = await fetch(TOKEN_URL, {
@@ -34,23 +62,111 @@ export async function getAccessToken(): Promise<string> {
   });
 
   if (!res.ok) {
-    const error = await res.text();
-    throw new Error(`Failed to get access token: ${res.status} — ${error}`);
+    const err = await res.text();
+    throw new Error(`Token exchange failed: ${res.status} — ${err}`);
   }
 
   const data = await res.json();
 
-  cachedToken = {
-    accessToken: data.access_token,
-    expiresAt: Date.now() + data.expires_in * 1000,
-  };
+  // Get user's email from Graph API
+  const meRes = await fetch(`${GRAPH_BASE}/me`, {
+    headers: { Authorization: `Bearer ${data.access_token}` },
+  });
+  const meData = await meRes.json();
 
-  return cachedToken.accessToken;
+  return {
+    accessToken: data.access_token,
+    refreshToken: data.refresh_token,
+    expiresIn: data.expires_in,
+    email: meData.mail || meData.userPrincipalName || "",
+  };
 }
 
-// Helper for Graph API calls
-async function graphFetch(url: string, options: RequestInit = {}) {
-  const token = await getAccessToken();
+/**
+ * Refresh an expired access token using the stored refresh token
+ */
+async function refreshAccessToken(refreshToken: string): Promise<{
+  accessToken: string;
+  refreshToken: string;
+  expiresIn: number;
+}> {
+  const body = new URLSearchParams({
+    client_id: CLIENT_ID,
+    client_secret: CLIENT_SECRET,
+    refresh_token: refreshToken,
+    grant_type: "refresh_token",
+    scope: SCOPES,
+  });
+
+  const res = await fetch(TOKEN_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: body.toString(),
+  });
+
+  if (!res.ok) {
+    const err = await res.text();
+    throw new Error(`Token refresh failed: ${res.status} — ${err}`);
+  }
+
+  const data = await res.json();
+  return {
+    accessToken: data.access_token,
+    refreshToken: data.refresh_token || refreshToken,
+    expiresIn: data.expires_in,
+  };
+}
+
+/**
+ * Get a valid access token for an employee (auto-refreshes if expired)
+ */
+export async function getEmployeeToken(employeeId: string): Promise<string> {
+  const employee = await prisma.employee.findUnique({
+    where: { id: employeeId },
+    select: { msAccessToken: true, msRefreshToken: true, msTokenExpiry: true, msEmail: true },
+  });
+
+  if (!employee?.msRefreshToken) {
+    throw new Error("Outlook not connected. Please connect your Outlook account in Settings.");
+  }
+
+  // Check if token is still valid (with 5 min buffer)
+  if (employee.msAccessToken && employee.msTokenExpiry && employee.msTokenExpiry > new Date(Date.now() + 5 * 60 * 1000)) {
+    return employee.msAccessToken;
+  }
+
+  // Refresh the token
+  const tokens = await refreshAccessToken(employee.msRefreshToken);
+
+  // Save new tokens
+  await prisma.employee.update({
+    where: { id: employeeId },
+    data: {
+      msAccessToken: tokens.accessToken,
+      msRefreshToken: tokens.refreshToken,
+      msTokenExpiry: new Date(Date.now() + tokens.expiresIn * 1000),
+    },
+  });
+
+  return tokens.accessToken;
+}
+
+/**
+ * Check if an employee has connected their Outlook
+ */
+export async function isOutlookConnected(employeeId: string): Promise<{ connected: boolean; email: string | null }> {
+  const employee = await prisma.employee.findUnique({
+    where: { id: employeeId },
+    select: { msRefreshToken: true, msEmail: true },
+  });
+  return {
+    connected: !!employee?.msRefreshToken,
+    email: employee?.msEmail || null,
+  };
+}
+
+// Helper for Graph API calls with employee token
+async function graphFetch(token: string, url: string, options: RequestInit = {}) {
   const res = await fetch(url, {
     ...options,
     headers: {
@@ -65,7 +181,6 @@ async function graphFetch(url: string, options: RequestInit = {}) {
     throw new Error(`Graph API error: ${res.status} — ${error}`);
   }
 
-  // Handle 204 No Content (sendMail)
   if (res.status === 202 || res.status === 204) {
     return { success: true };
   }
@@ -87,53 +202,52 @@ export interface GraphEmail {
 }
 
 /**
- * Fetch recent emails for a user's mailbox
+ * Fetch recent emails for the authenticated employee
  */
 export async function getUserEmails(
-  userEmail: string,
+  employeeId: string,
   count: number = 20
 ): Promise<GraphEmail[]> {
-  const url = `${GRAPH_BASE}/users/${encodeURIComponent(userEmail)}/messages?$top=${count}&$orderby=receivedDateTime desc&$select=id,subject,from,toRecipients,receivedDateTime,bodyPreview,body,isRead,conversationId,hasAttachments`;
-  const data = await graphFetch(url);
+  const token = await getEmployeeToken(employeeId);
+  const url = `${GRAPH_BASE}/me/messages?$top=${count}&$orderby=receivedDateTime desc&$select=id,subject,from,toRecipients,receivedDateTime,bodyPreview,body,isRead,conversationId,hasAttachments`;
+  const data = await graphFetch(token, url);
   return data.value || [];
 }
 
 /**
- * Search emails in a user's mailbox
+ * Search emails in the authenticated employee's mailbox
  */
 export async function searchEmails(
-  userEmail: string,
+  employeeId: string,
   query: string,
   count: number = 20
 ): Promise<GraphEmail[]> {
-  const url = `${GRAPH_BASE}/users/${encodeURIComponent(userEmail)}/messages?$search="${encodeURIComponent(query)}"&$top=${count}&$select=id,subject,from,toRecipients,receivedDateTime,bodyPreview,body,isRead,conversationId,hasAttachments`;
-  const data = await graphFetch(url);
+  const token = await getEmployeeToken(employeeId);
+  const url = `${GRAPH_BASE}/me/messages?$search="${encodeURIComponent(query)}"&$top=${count}&$select=id,subject,from,toRecipients,receivedDateTime,bodyPreview,body,isRead,conversationId,hasAttachments`;
+  const data = await graphFetch(token, url);
   return data.value || [];
 }
 
 /**
- * Send an email from a user's mailbox
+ * Send an email from the authenticated employee's mailbox
  */
 export async function sendEmail(
-  fromEmail: string,
+  employeeId: string,
   to: string | string[],
   subject: string,
   body: string
 ): Promise<{ success: boolean }> {
+  const token = await getEmployeeToken(employeeId);
   const recipients = (Array.isArray(to) ? to : [to]).map((email) => ({
     emailAddress: { address: email },
   }));
 
-  const url = `${GRAPH_BASE}/users/${encodeURIComponent(fromEmail)}/sendMail`;
-  return graphFetch(url, {
+  return graphFetch(token, `${GRAPH_BASE}/me/sendMail`, {
     method: "POST",
     body: JSON.stringify({
       message: {
         subject,
-        body: {
-          contentType: "HTML",
-          content: body,
-        },
+        body: { contentType: "HTML", content: body },
         toRecipients: recipients,
       },
       saveToSentItems: true,
@@ -142,33 +256,25 @@ export async function sendEmail(
 }
 
 /**
- * Get an email thread by message ID (fetches the message and all messages in the same conversation)
+ * Get email thread by message ID
  */
 export async function getEmailThread(
-  userEmail: string,
+  employeeId: string,
   messageId: string
 ): Promise<{ message: GraphEmail; thread: GraphEmail[] }> {
-  // Fetch the specific message first
-  const messageUrl = `${GRAPH_BASE}/users/${encodeURIComponent(userEmail)}/messages/${messageId}?$select=id,subject,from,toRecipients,receivedDateTime,bodyPreview,body,isRead,conversationId,hasAttachments`;
-  const message = await graphFetch(messageUrl);
-
-  // Fetch conversation thread
-  const threadUrl = `${GRAPH_BASE}/users/${encodeURIComponent(userEmail)}/messages?$filter=conversationId eq '${message.conversationId}'&$orderby=receivedDateTime asc&$select=id,subject,from,toRecipients,receivedDateTime,bodyPreview,body,isRead,conversationId,hasAttachments`;
-  const threadData = await graphFetch(threadUrl);
-
-  return {
-    message,
-    thread: threadData.value || [],
-  };
+  const token = await getEmployeeToken(employeeId);
+  const message = await graphFetch(token, `${GRAPH_BASE}/me/messages/${messageId}?$select=id,subject,from,toRecipients,receivedDateTime,bodyPreview,body,isRead,conversationId,hasAttachments`);
+  const threadData = await graphFetch(token, `${GRAPH_BASE}/me/messages?$filter=conversationId eq '${message.conversationId}'&$orderby=receivedDateTime asc&$select=id,subject,from,toRecipients,receivedDateTime,bodyPreview,body,isRead,conversationId,hasAttachments`);
+  return { message, thread: threadData.value || [] };
 }
 
 /**
  * Get a single email by ID
  */
 export async function getEmailById(
-  userEmail: string,
+  employeeId: string,
   messageId: string
 ): Promise<GraphEmail> {
-  const url = `${GRAPH_BASE}/users/${encodeURIComponent(userEmail)}/messages/${messageId}?$select=id,subject,from,toRecipients,receivedDateTime,bodyPreview,body,isRead,conversationId,hasAttachments`;
-  return graphFetch(url);
+  const token = await getEmployeeToken(employeeId);
+  return graphFetch(token, `${GRAPH_BASE}/me/messages/${messageId}?$select=id,subject,from,toRecipients,receivedDateTime,bodyPreview,body,isRead,conversationId,hasAttachments`);
 }

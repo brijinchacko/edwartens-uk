@@ -182,6 +182,12 @@ model Employee {
   salesIncentives      SalesIncentive[]
   practicalSessions    PracticalSession[] @relation("PracticalTrainer")
   workSessions         EmployeeWorkSession[]
+
+  // Microsoft Outlook integration (per-user OAuth)
+  msAccessToken    String?
+  msRefreshToken   String?
+  msTokenExpiry    DateTime?
+  msEmail          String?  // Their connected Outlook email
 }
 
 model EmployeeWorkSession {

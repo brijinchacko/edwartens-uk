@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
-import { getUserEmails, searchEmails } from "@/lib/microsoft-graph";
+import { prisma } from "@/lib/prisma";
+import { getUserEmails, searchEmails, isOutlookConnected } from "@/lib/microsoft-graph";
 import { isCrmRole } from "@/lib/rbac";
 
 export async function GET(req: NextRequest) {
@@ -10,12 +11,21 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const userEmail = session.user.email;
-    if (!userEmail) {
-      return NextResponse.json(
-        { error: "No email found for user" },
-        { status: 400 }
-      );
+    // Get employee record
+    const employee = await prisma.employee.findUnique({
+      where: { userId: session.user.id as string },
+    });
+    if (!employee) {
+      return NextResponse.json({ error: "Employee record not found" }, { status: 404 });
+    }
+
+    // Check if Outlook is connected
+    const connection = await isOutlookConnected(employee.id);
+    if (!connection.connected) {
+      return NextResponse.json({
+        error: "Outlook not connected",
+        needsConnection: true,
+      }, { status: 400 });
     }
 
     const { searchParams } = req.nextUrl;
@@ -24,9 +34,9 @@ export async function GET(req: NextRequest) {
 
     let emails;
     if (search) {
-      emails = await searchEmails(userEmail, search, count);
+      emails = await searchEmails(employee.id, search, count);
     } else {
-      emails = await getUserEmails(userEmail, count);
+      emails = await getUserEmails(employee.id, count);
     }
 
     const formatted = emails.map((email) => ({
@@ -49,11 +59,10 @@ export async function GET(req: NextRequest) {
       hasAttachments: email.hasAttachments,
     }));
 
-    return NextResponse.json({ emails: formatted });
+    return NextResponse.json({ emails: formatted, connectedEmail: connection.email });
   } catch (error: unknown) {
     console.error("Error fetching emails:", error);
-    const message =
-      error instanceof Error ? error.message : "Failed to fetch emails";
+    const message = error instanceof Error ? error.message : "Failed to fetch emails";
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }

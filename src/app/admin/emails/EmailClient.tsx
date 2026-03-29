@@ -47,6 +47,8 @@ export default function EmailClient() {
   const [leads, setLeads] = useState<Lead[]>([]);
   const [sending, setSending] = useState(false);
   const [error, setError] = useState("");
+  const [needsConnection, setNeedsConnection] = useState(false);
+  const [connectedEmail, setConnectedEmail] = useState<string | null>(null);
 
   // Compose form state
   const [composeTo, setComposeTo] = useState("");
@@ -64,8 +66,14 @@ export default function EmailClient() {
 
       const res = await fetch(`/api/admin/emails?${params.toString()}`);
       const data = await res.json();
+      if (data.needsConnection) {
+        setNeedsConnection(true);
+        setLoading(false);
+        return;
+      }
       if (!res.ok) throw new Error(data.error || "Failed to fetch emails");
       setEmails(data.emails || []);
+      if (data.connectedEmail) setConnectedEmail(data.connectedEmail);
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "Failed to load emails";
       setError(message);
@@ -175,6 +183,41 @@ export default function EmailClient() {
         email.to.some((t) => t.email === l.email)
     );
   };
+
+  // Connect Outlook flow
+  const handleConnect = async () => {
+    try {
+      const res = await fetch("/api/admin/emails/connect");
+      const data = await res.json();
+      if (data.authUrl) {
+        window.location.href = data.authUrl;
+      }
+    } catch {
+      setError("Failed to start Outlook connection");
+    }
+  };
+
+  if (needsConnection) {
+    return (
+      <div className="space-y-4">
+        <div className="glass-card p-12 text-center space-y-4">
+          <Mail size={48} className="mx-auto text-text-muted" />
+          <h2 className="text-xl font-bold text-text-primary">Connect Your Outlook</h2>
+          <p className="text-sm text-text-muted max-w-md mx-auto">
+            Connect your Microsoft Outlook account to read and send emails directly from the CRM. Each team member connects their own account.
+          </p>
+          <button
+            onClick={handleConnect}
+            className="inline-flex items-center gap-2 px-6 py-3 rounded-lg bg-neon-blue/10 text-neon-blue border border-neon-blue/20 hover:bg-neon-blue/20 transition-colors text-sm font-medium"
+          >
+            <Mail size={16} />
+            Connect Outlook Account
+          </button>
+          {error && <p className="text-sm text-red-400">{error}</p>}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4">

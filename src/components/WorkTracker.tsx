@@ -105,7 +105,45 @@ export function WorkTracker() {
         const res = await fetch("/api/admin/work-session");
         if (res.ok) {
           const data = await res.json();
-          if (data.session) setSession(data.session);
+          const s = data.activeSession || data.session;
+          if (s) {
+            // Map API shape to component shape
+            const breaks = (s.breaks || []).map((b: any) => ({
+              id: b.id,
+              reason: b.reason || "Break",
+              startTime: b.startedAt,
+              endTime: b.endedAt || undefined,
+            }));
+            const activeSeconds = (s.activities || [])
+              .filter((a: any) => a.type === "ACTIVE")
+              .reduce((sum: number, a: any) => {
+                const start = new Date(a.startedAt).getTime();
+                const end = a.endedAt ? new Date(a.endedAt).getTime() : Date.now();
+                return sum + Math.floor((end - start) / 1000);
+              }, 0);
+            const breakSeconds = breaks.reduce((sum: number, b: any) => {
+              const start = new Date(b.startTime).getTime();
+              const end = b.endTime ? new Date(b.endTime).getTime() : Date.now();
+              return sum + Math.floor((end - start) / 1000);
+            }, 0);
+
+            const statusMap: Record<string, string> = {
+              CHECKED_IN: "ACTIVE",
+              ON_BREAK: "BREAK",
+              IDLE: "IDLE",
+            };
+
+            setSession({
+              id: s.id,
+              checkInTime: s.checkInAt,
+              location: s.workLocation,
+              status: (statusMap[s.status] || "ACTIVE") as "ACTIVE" | "BREAK" | "IDLE",
+              note: s.checkInNote || undefined,
+              breaks,
+              totalActiveSeconds: activeSeconds,
+              totalBreakSeconds: breakSeconds,
+            });
+          }
         }
       } catch {
         // silently fail
@@ -183,14 +221,22 @@ export function WorkTracker() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          action: "check-in",
-          location: selectedLocation,
+          workLocation: selectedLocation,
           note: checkInNote || undefined,
         }),
       });
       if (res.ok) {
         const data = await res.json();
-        setSession(data.session);
+        setSession({
+          id: data.id,
+          checkInTime: data.checkInAt,
+          location: data.workLocation,
+          status: "ACTIVE",
+          note: data.checkInNote || undefined,
+          breaks: [],
+          totalActiveSeconds: 0,
+          totalBreakSeconds: 0,
+        });
         setShowCheckIn(false);
         setCheckInNote("");
       }
@@ -205,17 +251,28 @@ export function WorkTracker() {
   const handleTakeBreak = useCallback(async () => {
     setSubmitting(true);
     try {
-      const res = await fetch("/api/admin/work-session", {
+      const res = await fetch("/api/admin/work-session/break", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          action: "take-break",
-          reason: breakReason,
-        }),
+        body: JSON.stringify({ action: "start", reason: breakReason }),
       });
       if (res.ok) {
-        const data = await res.json();
-        setSession(data.session);
+        setSession((prev) =>
+          prev
+            ? {
+                ...prev,
+                status: "BREAK",
+                breaks: [
+                  ...prev.breaks,
+                  {
+                    id: Date.now().toString(),
+                    reason: breakReason,
+                    startTime: new Date().toISOString(),
+                  },
+                ],
+              }
+            : prev
+        );
         setShowBreak(false);
       }
     } catch {
@@ -228,14 +285,25 @@ export function WorkTracker() {
   /* ── End Break ── */
   const handleEndBreak = useCallback(async () => {
     try {
-      const res = await fetch("/api/admin/work-session", {
+      const res = await fetch("/api/admin/work-session/break", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "end-break" }),
+        body: JSON.stringify({ action: "end" }),
       });
       if (res.ok) {
-        const data = await res.json();
-        setSession(data.session);
+        setSession((prev) =>
+          prev
+            ? {
+                ...prev,
+                status: "ACTIVE",
+                breaks: prev.breaks.map((b, i) =>
+                  i === prev.breaks.length - 1 && !b.endTime
+                    ? { ...b, endTime: new Date().toISOString() }
+                    : b
+                ),
+              }
+            : prev
+        );
       }
     } catch {
       // handle error
@@ -247,13 +315,10 @@ export function WorkTracker() {
     if (!checkOutSummary.trim()) return;
     setSubmitting(true);
     try {
-      const res = await fetch("/api/admin/work-session", {
+      const res = await fetch("/api/admin/work-session/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          action: "check-out",
-          summary: checkOutSummary,
-        }),
+        body: JSON.stringify({ summary: checkOutSummary }),
       });
       if (res.ok) {
         setSession(null);
