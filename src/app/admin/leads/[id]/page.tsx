@@ -19,7 +19,7 @@ import {
   Download,
   Image,
 } from "lucide-react";
-import LeadActions from "./LeadActions";
+import LeadActionsWithCallLog from "./LeadActionsWithCallLog";
 import LeadEmails from "./LeadEmails";
 
 export const metadata: Metadata = {
@@ -88,6 +88,45 @@ export default async function LeadDetailPage({
           </div>
         </div>
       </div>
+
+      {/* Follow-up Alert */}
+      {lead.followUpDate && (() => {
+        const now = new Date();
+        const followUp = new Date(lead.followUpDate);
+        const diffMs = followUp.getTime() - now.getTime();
+        const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+        const isOverdue = diffDays < 0;
+        const isToday = diffDays === 0;
+        const isSoon = diffDays > 0 && diffDays <= 2;
+
+        let message = "";
+        let colorClass = "";
+        if (isOverdue) {
+          message = `Follow up overdue by ${Math.abs(diffDays)} day${Math.abs(diffDays) !== 1 ? "s" : ""}!`;
+          colorClass = "bg-red-500/10 border-red-500/20 text-red-400";
+        } else if (isToday) {
+          message = "Follow up is today!";
+          colorClass = "bg-yellow-500/10 border-yellow-500/20 text-yellow-400";
+        } else if (isSoon) {
+          message = `Follow up in ${diffDays} day${diffDays !== 1 ? "s" : ""}`;
+          colorClass = "bg-yellow-500/10 border-yellow-500/20 text-yellow-400";
+        } else {
+          message = `Follow up in ${diffDays} days`;
+          colorClass = "bg-neon-blue/10 border-neon-blue/20 text-neon-blue";
+        }
+
+        return (
+          <div className={`flex items-center gap-3 px-4 py-3 rounded-xl border ${colorClass}`}>
+            <Calendar size={16} />
+            <div>
+              <span className="text-sm font-medium">{message}</span>
+              <span className="text-xs opacity-70 ml-2">
+                {formatDate(lead.followUpDate)}
+              </span>
+            </div>
+          </div>
+        );
+      })()}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Contact Info */}
@@ -227,13 +266,15 @@ export default async function LeadDetailPage({
           {/* Emails Section */}
           <LeadEmails leadId={lead.id} leadEmail={lead.email} />
 
-          <LeadActions
+          <LeadActionsWithCallLog
             leadId={lead.id}
+            leadName={lead.name}
             currentStatus={lead.status}
             isConverted={!!lead.convertedToStudentId}
             courseInterest={lead.courseInterest}
             phone={lead.phone}
             email={lead.email}
+            followUpDate={lead.followUpDate ? lead.followUpDate.toISOString() : null}
           />
 
           {/* Notes List (server-rendered) */}

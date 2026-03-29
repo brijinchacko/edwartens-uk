@@ -8,13 +8,16 @@ import {
   X,
   Loader2,
   Phone,
+  PhoneOff,
   MessageCircle,
   Video,
   Mail,
   Calendar,
   ChevronDown,
+  XCircle,
+  AlertTriangle,
 } from "lucide-react";
-import { LEAD_STATUS_LABELS, COURSE_LABELS } from "@/lib/utils";
+import { LEAD_STATUS_LABELS, COURSE_LABELS, formatDate } from "@/lib/utils";
 
 const STATUS_COLORS: Record<string, string> = {
   NEW: "bg-blue-500/10 text-blue-400 border-blue-500/20",
@@ -34,6 +37,15 @@ const NOTE_TYPES = [
   { value: "INTERNAL", label: "Internal", emoji: "🔒" },
 ];
 
+const DROP_REASONS = [
+  { value: "Not Interested", label: "Not Interested" },
+  { value: "Budget Issue", label: "Budget Issue" },
+  { value: "Wrong Contact", label: "Wrong Contact" },
+  { value: "Duplicate", label: "Duplicate" },
+  { value: "No Response", label: "No Response" },
+  { value: "Other", label: "Other" },
+];
+
 interface LeadActionsProps {
   leadId: string;
   currentStatus: string;
@@ -41,6 +53,8 @@ interface LeadActionsProps {
   courseInterest: string | null;
   phone: string | null;
   email: string;
+  followUpDate: string | null;
+  onLogCall?: () => void;
 }
 
 export default function LeadActions({
@@ -50,11 +64,24 @@ export default function LeadActions({
   courseInterest,
   phone,
   email,
+  followUpDate: followUpDateProp,
+  onLogCall,
 }: LeadActionsProps) {
   const router = useRouter();
 
   // Status change state
   const [statusLoading, setStatusLoading] = useState<string | null>(null);
+
+  // Drop lead state
+  const [showDropForm, setShowDropForm] = useState(false);
+  const [dropReason, setDropReason] = useState("Not Interested");
+  const [dropLoading, setDropLoading] = useState(false);
+
+  // Reschedule follow-up state
+  const [showReschedule, setShowReschedule] = useState(false);
+  const [rescheduleDate, setRescheduleDate] = useState("");
+  const [rescheduleTime, setRescheduleTime] = useState("");
+  const [rescheduleLoading, setRescheduleLoading] = useState(false);
 
   // Note form state
   const [noteContent, setNoteContent] = useState("");
@@ -154,6 +181,86 @@ export default function LeadActions({
     }
   };
 
+  const handleDropLead = async () => {
+    setDropLoading(true);
+    try {
+      // Add note about dropping
+      const noteRes = await fetch(`/api/admin/leads/${leadId}/notes`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          content: `\u{274C} Lead dropped \u2014 Reason: ${dropReason}`,
+        }),
+      });
+      if (!noteRes.ok) throw new Error("Failed to add drop note");
+
+      // Update status to LOST
+      const patchRes = await fetch(`/api/admin/leads/${leadId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: "LOST" }),
+      });
+      if (!patchRes.ok) throw new Error("Failed to update lead status");
+
+      setShowDropForm(false);
+      setDropReason("Not Interested");
+      router.refresh();
+    } catch (err) {
+      console.error("Drop lead failed:", err);
+    } finally {
+      setDropLoading(false);
+    }
+  };
+
+  const handleReschedule = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!rescheduleDate) return;
+    setRescheduleLoading(true);
+    try {
+      const timeStr = rescheduleTime || "09:00";
+      const followUpISO = new Date(
+        `${rescheduleDate}T${timeStr}`
+      ).toISOString();
+
+      const patchRes = await fetch(`/api/admin/leads/${leadId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ followUpDate: followUpISO }),
+      });
+      if (!patchRes.ok) throw new Error("Failed to reschedule");
+
+      // Add note
+      await fetch(`/api/admin/leads/${leadId}/notes`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          content: `\u{1F4C5} Follow-up rescheduled to ${rescheduleDate}${rescheduleTime ? " at " + rescheduleTime : ""}`,
+        }),
+      });
+
+      setShowReschedule(false);
+      setRescheduleDate("");
+      setRescheduleTime("");
+      router.refresh();
+    } catch (err) {
+      console.error("Reschedule failed:", err);
+    } finally {
+      setRescheduleLoading(false);
+    }
+  };
+
+  // Follow-up date display helpers
+  const followUpInfo = (() => {
+    if (!followUpDateProp) return null;
+    const now = new Date();
+    const followUp = new Date(followUpDateProp);
+    const diffMs = followUp.getTime() - now.getTime();
+    const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+    const isOverdue = diffDays < 0;
+    const isToday = diffDays === 0;
+    return { followUp, diffDays, isOverdue, isToday };
+  })();
+
   const formatPhoneForWhatsApp = (rawPhone: string) => {
     let cleaned = rawPhone.replace(/[\s\-()]/g, "");
     if (!cleaned.startsWith("+")) {
@@ -247,6 +354,17 @@ export default function LeadActions({
             <Mail size={14} />
             Email
           </button>
+
+          {/* Log Call */}
+          {onLogCall && (
+            <button
+              onClick={onLogCall}
+              className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-neon-blue/10 text-neon-blue border border-neon-blue/20 hover:bg-neon-blue/20 transition-colors text-xs font-medium"
+            >
+              <Phone size={14} />
+              Log Call
+            </button>
+          )}
         </div>
 
         {/* Schedule Call Inline Form */}
@@ -322,6 +440,99 @@ export default function LeadActions({
         )}
       </div>
 
+      {/* Follow-up Display */}
+      {followUpInfo && (
+        <div className="glass-card p-5">
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-base font-semibold text-text-primary flex items-center gap-2">
+              <Calendar size={16} className="text-neon-blue" />
+              Follow-up
+            </h2>
+            <button
+              onClick={() => setShowReschedule(!showReschedule)}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-neon-blue/10 text-neon-blue border border-neon-blue/20 hover:bg-neon-blue/20 transition-colors text-xs font-medium"
+            >
+              <Calendar size={12} />
+              Reschedule
+            </button>
+          </div>
+          <div
+            className={`flex items-center gap-2 px-3 py-2 rounded-lg border text-sm font-medium ${
+              followUpInfo.isOverdue
+                ? "bg-red-500/10 border-red-500/20 text-red-400"
+                : followUpInfo.isToday
+                  ? "bg-yellow-500/10 border-yellow-500/20 text-yellow-400"
+                  : "bg-neon-blue/10 border-neon-blue/20 text-neon-blue"
+            }`}
+          >
+            <Calendar size={14} />
+            <span>
+              {formatDate(followUpDateProp!)}
+              {followUpInfo.isOverdue &&
+                ` (overdue by ${Math.abs(followUpInfo.diffDays)} day${Math.abs(followUpInfo.diffDays) !== 1 ? "s" : ""})`}
+              {followUpInfo.isToday && " (today)"}
+            </span>
+          </div>
+
+          {/* Reschedule inline form */}
+          {showReschedule && (
+            <form
+              onSubmit={handleReschedule}
+              className="mt-3 p-3 rounded-lg bg-white/[0.02] border border-white/[0.06] space-y-3"
+            >
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs text-text-muted mb-1">
+                    New Date
+                  </label>
+                  <input
+                    type="date"
+                    value={rescheduleDate}
+                    onChange={(e) => setRescheduleDate(e.target.value)}
+                    required
+                    className="w-full rounded-lg bg-white/[0.03] border border-white/[0.06] px-3 py-2 text-sm text-text-secondary focus:outline-none focus:ring-1 focus:ring-neon-blue/50 focus:border-neon-blue/50 [color-scheme:dark]"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs text-text-muted mb-1">
+                    Time
+                  </label>
+                  <input
+                    type="time"
+                    value={rescheduleTime}
+                    onChange={(e) => setRescheduleTime(e.target.value)}
+                    className="w-full rounded-lg bg-white/[0.03] border border-white/[0.06] px-3 py-2 text-sm text-text-secondary focus:outline-none focus:ring-1 focus:ring-neon-blue/50 focus:border-neon-blue/50 [color-scheme:dark]"
+                  />
+                </div>
+              </div>
+              <div className="flex justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowReschedule(false);
+                    setRescheduleDate("");
+                    setRescheduleTime("");
+                  }}
+                  className="px-3 py-1.5 rounded-lg text-xs font-medium text-text-muted hover:text-text-secondary transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={rescheduleLoading || !rescheduleDate}
+                  className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-neon-blue/10 text-neon-blue border border-neon-blue/20 hover:bg-neon-blue/20 transition-colors text-xs font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {rescheduleLoading && (
+                    <Loader2 size={12} className="animate-spin" />
+                  )}
+                  Update
+                </button>
+              </div>
+            </form>
+          )}
+        </div>
+      )}
+
       {/* Status Change Section */}
       <div className="glass-card p-5">
         <h2 className="text-base font-semibold text-text-primary mb-4">
@@ -363,6 +574,78 @@ export default function LeadActions({
             <UserPlus size={16} />
             Convert to Student
           </button>
+        </div>
+      )}
+
+      {/* Drop Lead */}
+      {currentStatus !== "LOST" && currentStatus !== "ENROLLED" && (
+        <div className="glass-card p-5">
+          {!showDropForm ? (
+            <button
+              onClick={() => setShowDropForm(true)}
+              className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-red-500/10 text-red-400 border border-red-500/20 hover:bg-red-500/20 transition-colors text-sm font-medium"
+            >
+              <XCircle size={16} />
+              Drop Lead
+            </button>
+          ) : (
+            <div className="space-y-4">
+              <div className="flex items-center gap-2 text-red-400 text-sm font-medium">
+                <AlertTriangle size={16} />
+                Are you sure you want to drop this lead?
+              </div>
+              <div>
+                <label className="block text-xs text-text-muted mb-1">
+                  Reason
+                </label>
+                <div className="relative">
+                  <select
+                    value={dropReason}
+                    onChange={(e) => setDropReason(e.target.value)}
+                    className="w-full appearance-none rounded-lg bg-white/[0.03] border border-white/[0.06] px-3 py-2 pr-8 text-sm text-text-secondary focus:outline-none focus:ring-1 focus:ring-red-500/50 focus:border-red-500/50"
+                  >
+                    {DROP_REASONS.map((r) => (
+                      <option
+                        key={r.value}
+                        value={r.value}
+                        className="bg-gray-900"
+                      >
+                        {r.label}
+                      </option>
+                    ))}
+                  </select>
+                  <ChevronDown
+                    size={14}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none"
+                  />
+                </div>
+              </div>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowDropForm(false);
+                    setDropReason("Not Interested");
+                  }}
+                  className="flex-1 px-3 py-2 rounded-lg text-xs font-medium text-text-muted hover:text-text-secondary border border-white/[0.06] hover:bg-white/[0.03] transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleDropLead}
+                  disabled={dropLoading}
+                  className="flex-1 inline-flex items-center justify-center gap-2 px-3 py-2 rounded-lg bg-red-500/20 text-red-400 border border-red-500/30 hover:bg-red-500/30 transition-colors text-xs font-medium disabled:opacity-50"
+                >
+                  {dropLoading && (
+                    <Loader2 size={12} className="animate-spin" />
+                  )}
+                  <PhoneOff size={12} />
+                  Confirm Drop
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       )}
 
