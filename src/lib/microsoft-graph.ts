@@ -15,7 +15,7 @@ const AUTH_URL = `https://login.microsoftonline.com/${TENANT_ID}/oauth2/v2.0/aut
 const REDIRECT_URI = process.env.NEXTAUTH_URL
   ? `${process.env.NEXTAUTH_URL}/api/admin/emails/callback`
   : "https://edwartens.co.uk/api/admin/emails/callback";
-const SCOPES = "openid offline_access Mail.Read Mail.Send User.Read";
+const SCOPES = "openid offline_access Mail.Read Mail.Send User.Read Calendars.ReadWrite";
 
 export function isOutlookConfigured(): boolean {
   return !!(TENANT_ID && CLIENT_ID && CLIENT_SECRET);
@@ -32,7 +32,7 @@ export function getAuthUrl(state: string): string {
     scope: SCOPES,
     response_mode: "query",
     state,
-    prompt: "consent",
+    prompt: "select_account",
   });
   return `${AUTH_URL}?${params.toString()}`;
 }
