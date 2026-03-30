@@ -3,7 +3,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { formatDate } from "@/lib/utils";
-import { ArrowLeft, Download, Printer } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
+import InvoicePrintButton from "./InvoicePrintButton";
 
 export const metadata: Metadata = {
   title: "Invoice | EDWartens Admin",
@@ -51,9 +52,7 @@ export default async function InvoiceDetailPage({
         <Link href="/admin/invoices" className="flex items-center gap-2 text-sm text-text-muted hover:text-text-primary transition-colors">
           <ArrowLeft size={16} /> Back to Invoices
         </Link>
-        <div className="flex items-center gap-2">
-          <span className="text-xs text-text-muted">Use Ctrl+P to print</span>
-        </div>
+        <InvoicePrintButton />
       </div>
 
       {/* Invoice Card */}

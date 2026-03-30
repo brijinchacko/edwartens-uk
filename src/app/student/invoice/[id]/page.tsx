@@ -3,7 +3,8 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { formatDate } from "@/lib/utils";
 import Link from "next/link";
-import { ArrowLeft, Printer } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
+import InvoicePrintButton from "./InvoicePrintButton";
 
 export default async function StudentInvoicePage({
   params,
@@ -46,7 +47,7 @@ export default async function StudentInvoicePage({
         <Link href="/student/payments" className="flex items-center gap-2 text-sm text-text-muted hover:text-text-primary transition-colors">
           <ArrowLeft size={16} /> Back to Payments
         </Link>
-        <span className="text-xs text-text-muted">Use Ctrl+P to print</span>
+        <InvoicePrintButton />
       </div>
 
       <div className="glass-card rounded-xl overflow-hidden">

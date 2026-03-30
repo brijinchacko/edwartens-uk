@@ -471,3 +471,18 @@ body[data-accent="true"] .bg-neon-blue\/10 {
 body[data-accent="true"] .bg-neon-blue {
   background-color: var(--accent-color) !important;
 }
+
+
+/* Print styles for invoices */
+@media print {
+  body { background: white !important; color: black !important; }
+  nav, aside, header, .sticky, button, a[href="/admin/invoices"], a[href="/student/payments"] { display: none !important; }
+  .glass-card { background: white !important; border: 1px solid #e5e7eb !important; box-shadow: none !important; }
+  .text-text-primary { color: #111827 !important; }
+  .text-text-secondary { color: #374151 !important; }
+  .text-text-muted { color: #6b7280 !important; }
+  .text-neon-blue { color: #1a56db !important; }
+  .text-neon-green { color: #15803d !important; }
+  main { margin: 0 !important; padding: 0 !important; }
+  .border-white\/\[0\.06\] { border-color: #e5e7eb !important; }
+}
