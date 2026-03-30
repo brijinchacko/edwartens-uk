@@ -53,7 +53,7 @@ const courses = [
       "Advanced PLC Programming",
       "Siemens HMI Development",
       "WinCC SCADA Systems",
-      "Factory-IO Simulation",
+      "Industrial Communication Protocols",
       "Career Preparation & Assessment",
     ],
   },
@@ -117,7 +117,7 @@ const faqSchema = {
       name: "Is the training available online?",
       acceptedAnswer: {
         "@type": "Answer",
-        text: "Yes, EDWartens offers live online training sessions with remote lab access via FactoryIO for the Professional Module. Online students work on the same projects and assessments as classroom students, with real-time instructor support. Both modules also include 12+ hours of pre-recorded foundation content accessible from anywhere.",
+        text: "Yes, EDWartens offers live online training sessions via Microsoft Teams for the Professional Module. Online students work on the same projects and assessments as classroom students, with real-time instructor support. Both modules also include pre-recorded foundation content accessible from anywhere. Online students can optionally attend a practical session at our Milton Keynes office.",
       },
     },
     {
