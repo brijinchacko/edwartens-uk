@@ -198,14 +198,18 @@ export default async function CoursesPage() {
             const courseBatches = upcomingBatches.filter(
               (b) => b.course === course.courseType
             );
+            const displayedBatches = courseBatches.slice(0, 4);
+            const hasMoreBatches = courseBatches.length > 4;
+            const slug = COURSE_SLUG_REVERSE[course.courseType];
             return (
               <div
                 key={course.title}
-                className={`glass-card rounded-2xl p-8 sm:p-10 ${course.featured ? "gradient-border" : ""}`}
+                className={`glass-card rounded-2xl p-8 sm:p-10 lg:p-12 ${course.featured ? "gradient-border" : ""}`}
               >
-                <div className="flex flex-col lg:flex-row gap-8">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-4">
+                <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 lg:gap-12">
+                  {/* Left column - 3 cols */}
+                  <div className="lg:col-span-3 flex flex-col">
+                    <div className="flex items-center gap-3 mb-5">
                       <div className={`w-12 h-12 rounded-xl bg-${course.color}/10 flex items-center justify-center`}>
                         <Icon size={24} className={`text-${course.color}`} />
                       </div>
@@ -217,9 +221,9 @@ export default async function CoursesPage() {
                     </div>
 
                     <h2 className="text-2xl sm:text-3xl font-bold text-white mb-1">{course.title}</h2>
-                    <p className="text-sm text-neon-blue mb-3">{course.subtitle}</p>
+                    <p className="text-sm text-neon-blue mb-4">{course.subtitle}</p>
 
-                    <div className="flex flex-wrap items-center gap-3 mb-4">
+                    <div className="flex flex-wrap items-center gap-3 mb-5">
                       <span className="flex items-center gap-1.5 text-sm text-text-muted">
                         <Clock size={14} /> {course.duration}
                       </span>
@@ -235,17 +239,20 @@ export default async function CoursesPage() {
                       )}
                     </div>
 
-                    <p className="text-text-secondary mb-6 leading-relaxed">{course.description}</p>
+                    <p className="text-text-secondary mb-8 leading-relaxed flex-1">{course.description}</p>
 
-                    <Link
-                      href={course.href}
-                      className="inline-flex items-center gap-2 px-6 py-3 rounded-lg bg-gradient-to-r from-neon-blue to-neon-blue/80 text-white font-semibold text-sm hover:shadow-lg hover:shadow-neon-blue/25 transition-all"
-                    >
-                      View Full Details <ArrowRight size={16} />
-                    </Link>
+                    <div>
+                      <Link
+                        href={course.href}
+                        className="inline-flex items-center gap-2 px-6 py-3 rounded-lg bg-gradient-to-r from-neon-blue to-neon-blue/80 text-white font-semibold text-sm hover:shadow-lg hover:shadow-neon-blue/25 transition-all"
+                      >
+                        View Full Details <ArrowRight size={16} />
+                      </Link>
+                    </div>
                   </div>
 
-                  <div className="lg:w-80 space-y-6">
+                  {/* Right column - 2 cols */}
+                  <div className="lg:col-span-2 space-y-6">
                     <div>
                       <h3 className="text-sm font-semibold text-white mb-3">What You&apos;ll Learn</h3>
                       <ul className="space-y-2">
@@ -265,35 +272,44 @@ export default async function CoursesPage() {
                         Upcoming Batches
                       </h3>
                       <div className="space-y-2">
-                        {courseBatches.length > 0 ? (
-                          courseBatches.map((batch) => {
-                            const seats = batch.capacity - batch._count.students;
-                            const slug = COURSE_SLUG_REVERSE[course.courseType];
-                            return (
-                              <Link
-                                key={batch.id}
-                                href={`/courses/${slug}/batch/${batch.id}`}
-                                className="flex items-center justify-between text-sm bg-white/[0.03] rounded-lg px-3 py-2 hover:bg-white/[0.06] transition-colors"
-                              >
-                                <span className="text-text-secondary">
-                                  {new Intl.DateTimeFormat("en-GB", {
-                                    day: "numeric",
-                                    month: "short",
-                                    year: "numeric",
-                                  }).format(batch.startDate)}
-                                </span>
-                                <span
-                                  className={`text-xs font-medium ${
-                                    seats <= 3
-                                      ? "text-yellow-400"
-                                      : "text-neon-green"
-                                  }`}
+                        {displayedBatches.length > 0 ? (
+                          <>
+                            {displayedBatches.map((batch) => {
+                              const seats = batch.capacity - batch._count.students;
+                              return (
+                                <Link
+                                  key={batch.id}
+                                  href={`/courses/${slug}/batch/${batch.id}`}
+                                  className="flex items-center justify-between text-sm bg-white/[0.03] rounded-lg px-3 py-2 hover:bg-white/[0.06] transition-colors"
                                 >
-                                  {seats <= 0 ? "Full" : seats <= 3 ? "Limited Seats" : `${seats} seats left`}
-                                </span>
+                                  <span className="text-text-secondary">
+                                    {new Intl.DateTimeFormat("en-GB", {
+                                      day: "numeric",
+                                      month: "short",
+                                      year: "numeric",
+                                    }).format(batch.startDate)}
+                                  </span>
+                                  <span
+                                    className={`text-xs font-medium ${
+                                      seats <= 3
+                                        ? "text-yellow-400"
+                                        : "text-neon-green"
+                                    }`}
+                                  >
+                                    {seats <= 0 ? "Full" : seats <= 3 ? "Limited Seats" : `${seats} seats left`}
+                                  </span>
+                                </Link>
+                              );
+                            })}
+                            {hasMoreBatches && (
+                              <Link
+                                href={course.href}
+                                className="flex items-center justify-center gap-1 text-sm text-neon-blue hover:text-neon-blue/80 transition-colors pt-1"
+                              >
+                                View all batches <ArrowRight size={14} />
                               </Link>
-                            );
-                          })
+                            )}
+                          </>
                         ) : (
                           <p className="text-xs text-text-muted">No upcoming batches scheduled.</p>
                         )}

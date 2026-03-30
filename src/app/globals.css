@@ -423,6 +423,11 @@ html[data-theme="light"] .sidebar-logo {
   box-shadow: 0 0 30px rgba(146, 224, 44, 0.15);
 }
 
+/* Collapsible sections */
+details > summary { list-style: none; }
+details > summary::-webkit-details-marker { display: none; }
+details > summary::marker { display: none; }
+
 /* Focus styles */
 input:focus, textarea:focus, select:focus {
   outline: none;

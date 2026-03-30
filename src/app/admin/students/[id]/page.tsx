@@ -34,6 +34,8 @@ import {
   ClipboardCheck,
   Hash,
   Shield,
+  ChevronDown,
+  PlayCircle,
 } from "lucide-react";
 import StudentActions from "./StudentActions";
 import StudentQuickActions from "./StudentQuickActions";
@@ -369,10 +371,15 @@ export default async function StudentDetailPage({
         {/* ============ LEFT COLUMN ============ */}
         <div className="space-y-6">
           {/* --- Profile & Status --- */}
-          <div id="profile" className="glass-card p-5 scroll-mt-24">
-            <h2 className="text-base font-semibold text-text-primary mb-4">
-              Profile Information
-            </h2>
+          <details open id="profile" className="glass-card group scroll-mt-24">
+            <summary className="flex items-center justify-between px-5 py-4 cursor-pointer list-none">
+              <h2 className="text-base font-semibold text-text-primary flex items-center gap-2">
+                <User size={16} className="text-neon-blue" />
+                Profile Information
+              </h2>
+              <ChevronDown size={16} className="text-text-muted group-open:rotate-180 transition-transform" />
+            </summary>
+            <div className="px-5 pb-5">
             <div className="space-y-3">
               <div className="flex items-center gap-3 text-sm">
                 <Mail size={16} className="text-text-muted shrink-0" />
@@ -480,40 +487,47 @@ export default async function StudentDetailPage({
                 </div>
               </div>
             )}
-          </div>
+            </div>
+          </details>
 
           {/* --- Payment Card (hidden for non-admin roles) --- */}
-          {canSeeRevenue && <div className="glass-card p-5">
-            <h2 className="text-base font-semibold text-text-primary mb-4">
-              Payment
-            </h2>
-            <div className="space-y-2">
-              <div className="flex justify-between text-sm">
-                <span className="text-text-muted">Status</span>
-                <span
-                  className={`font-medium ${PAYMENT_COLORS[student.paymentStatus] || "text-text-secondary"}`}
-                >
-                  {student.paymentStatus}
-                </span>
+          {canSeeRevenue && <details open className="glass-card group">
+            <summary className="flex items-center justify-between px-5 py-4 cursor-pointer list-none">
+              <h2 className="text-base font-semibold text-text-primary flex items-center gap-2">
+                <CreditCard size={16} className="text-neon-blue" />
+                Payment
+              </h2>
+              <ChevronDown size={16} className="text-text-muted group-open:rotate-180 transition-transform" />
+            </summary>
+            <div className="px-5 pb-5">
+              <div className="space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span className="text-text-muted">Status</span>
+                  <span
+                    className={`font-medium ${PAYMENT_COLORS[student.paymentStatus] || "text-text-secondary"}`}
+                  >
+                    {student.paymentStatus}
+                  </span>
+                </div>
+                {student.paidAmount != null && (
+                  <div className="flex justify-between text-sm">
+                    <span className="text-text-muted">Paid Amount</span>
+                    <span className="text-text-secondary">
+                      {formatCurrency(student.paidAmount)}
+                    </span>
+                  </div>
+                )}
+                {student.stripePaymentId && (
+                  <div className="flex justify-between text-sm">
+                    <span className="text-text-muted">Stripe Ref</span>
+                    <span className="text-text-muted text-xs font-mono truncate ml-2 max-w-[160px]">
+                      {student.stripePaymentId}
+                    </span>
+                  </div>
+                )}
               </div>
-              {student.paidAmount != null && (
-                <div className="flex justify-between text-sm">
-                  <span className="text-text-muted">Paid Amount</span>
-                  <span className="text-text-secondary">
-                    {formatCurrency(student.paidAmount)}
-                  </span>
-                </div>
-              )}
-              {student.stripePaymentId && (
-                <div className="flex justify-between text-sm">
-                  <span className="text-text-muted">Stripe Ref</span>
-                  <span className="text-text-muted text-xs font-mono truncate ml-2 max-w-[160px]">
-                    {student.stripePaymentId}
-                  </span>
-                </div>
-              )}
             </div>
-          </div>}
+          </details>}
 
           {/* --- Quick Actions --- */}
           <StudentActions
@@ -534,10 +548,15 @@ export default async function StudentDetailPage({
           />
 
           {/* ====== INVOICES (admin only) ====== */}
-          {canSeeRevenue && <div id="invoices" className="glass-card p-5 scroll-mt-24">
-            <h2 className="text-base font-semibold text-text-primary mb-4">
-              Invoices
-            </h2>
+          {canSeeRevenue && <details open id="invoices" className="glass-card group scroll-mt-24">
+            <summary className="flex items-center justify-between px-5 py-4 cursor-pointer list-none">
+              <h2 className="text-base font-semibold text-text-primary flex items-center gap-2">
+                <FileText size={16} className="text-neon-blue" />
+                Invoices
+              </h2>
+              <ChevronDown size={16} className="text-text-muted group-open:rotate-180 transition-transform" />
+            </summary>
+            <div className="px-5 pb-5">
             {invoices.length === 0 ? (
               <p className="text-text-muted text-sm text-center py-4">
                 No invoices generated
@@ -604,13 +623,19 @@ export default async function StudentDetailPage({
                 </table>
               </div>
             )}
-          </div>}
+            </div>
+          </details>}
 
           {/* ====== DOCUMENTS ====== */}
-          <div id="documents" className="glass-card p-5 scroll-mt-24">
-            <h2 className="text-base font-semibold text-text-primary mb-4">
-              Documents
-            </h2>
+          <details open id="documents" className="glass-card group scroll-mt-24">
+            <summary className="flex items-center justify-between px-5 py-4 cursor-pointer list-none">
+              <h2 className="text-base font-semibold text-text-primary flex items-center gap-2">
+                <FileText size={16} className="text-neon-blue" />
+                Documents
+              </h2>
+              <ChevronDown size={16} className="text-text-muted group-open:rotate-180 transition-transform" />
+            </summary>
+            <div className="px-5 pb-5">
             {student.documents.length === 0 ? (
               <p className="text-text-muted text-sm text-center py-4">
                 No documents uploaded
@@ -651,13 +676,19 @@ export default async function StudentDetailPage({
                 ))}
               </div>
             )}
-          </div>
+            </div>
+          </details>
 
           {/* ====== CERTIFICATES ====== */}
-          <div id="certificates" className="glass-card p-5 scroll-mt-24">
-            <h2 className="text-base font-semibold text-text-primary mb-4">
-              Certificates
-            </h2>
+          <details open id="certificates" className="glass-card group scroll-mt-24">
+            <summary className="flex items-center justify-between px-5 py-4 cursor-pointer list-none">
+              <h2 className="text-base font-semibold text-text-primary flex items-center gap-2">
+                <Award size={16} className="text-neon-blue" />
+                Certificates
+              </h2>
+              <ChevronDown size={16} className="text-text-muted group-open:rotate-180 transition-transform" />
+            </summary>
+            <div className="px-5 pb-5">
             {student.certificates.length === 0 ? (
               <p className="text-text-muted text-sm text-center py-4">
                 No certificates issued
@@ -707,18 +738,22 @@ export default async function StudentDetailPage({
                 ))}
               </div>
             )}
-          </div>
+            </div>
+          </details>
 
           {/* ====== SESSION PROGRESS ====== */}
-          <div id="sessions" className="glass-card p-5 scroll-mt-24">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-base font-semibold text-text-primary">
-                Session Progress
+          <details open id="sessions" className="glass-card group scroll-mt-24">
+            <summary className="flex items-center justify-between px-5 py-4 cursor-pointer list-none">
+              <h2 className="text-base font-semibold text-text-primary flex items-center gap-2">
+                <PlayCircle size={16} className="text-neon-blue" />
+                Sessions
+                <span className="text-xs font-normal text-text-muted ml-1">
+                  {completedSessions}/{totalSessions} completed
+                </span>
               </h2>
-              <span className="text-sm text-text-muted">
-                {completedSessions}/{totalSessions} completed
-              </span>
-            </div>
+              <ChevronDown size={16} className="text-text-muted group-open:rotate-180 transition-transform" />
+            </summary>
+            <div className="px-5 pb-5">
             {totalSessions === 0 ? (
               <p className="text-text-muted text-sm text-center py-4">
                 No session data available
@@ -766,13 +801,19 @@ export default async function StudentDetailPage({
                 ))}
               </div>
             )}
-          </div>
+            </div>
+          </details>
 
           {/* ====== ASSESSMENTS ====== */}
-          <div id="assessments" className="glass-card p-5 scroll-mt-24">
-            <h2 className="text-base font-semibold text-text-primary mb-4">
-              Assessments
-            </h2>
+          <details open id="assessments" className="glass-card group scroll-mt-24">
+            <summary className="flex items-center justify-between px-5 py-4 cursor-pointer list-none">
+              <h2 className="text-base font-semibold text-text-primary flex items-center gap-2">
+                <ClipboardCheck size={16} className="text-neon-blue" />
+                Assessments
+              </h2>
+              <ChevronDown size={16} className="text-text-muted group-open:rotate-180 transition-transform" />
+            </summary>
+            <div className="px-5 pb-5">
             {student.assessments.length === 0 ? (
               <p className="text-text-muted text-sm text-center py-4">
                 No assessments yet
@@ -830,21 +871,33 @@ export default async function StudentDetailPage({
                 </table>
               </div>
             )}
-          </div>
+            </div>
+          </details>
 
           {/* ====== COMMUNICATION (Add Notes) ====== */}
-          <div id="communication" className="glass-card p-5 scroll-mt-24">
-            <h2 className="text-base font-semibold text-text-primary mb-4">
-              Add Communication
-            </h2>
-            <StudentNotes studentId={student.id} />
-          </div>
+          <details open id="communication" className="glass-card group scroll-mt-24">
+            <summary className="flex items-center justify-between px-5 py-4 cursor-pointer list-none">
+              <h2 className="text-base font-semibold text-text-primary flex items-center gap-2">
+                <MessageSquare size={16} className="text-neon-blue" />
+                Communication
+              </h2>
+              <ChevronDown size={16} className="text-text-muted group-open:rotate-180 transition-transform" />
+            </summary>
+            <div className="px-5 pb-5">
+              <StudentNotes studentId={student.id} />
+            </div>
+          </details>
 
           {/* ====== ACTIVITY TIMELINE ====== */}
-          <div id="timeline" className="glass-card p-5 scroll-mt-24">
-            <h2 className="text-base font-semibold text-text-primary mb-4">
-              Activity Timeline
-            </h2>
+          <details open id="timeline" className="glass-card group scroll-mt-24">
+            <summary className="flex items-center justify-between px-5 py-4 cursor-pointer list-none">
+              <h2 className="text-base font-semibold text-text-primary flex items-center gap-2">
+                <Clock size={16} className="text-neon-blue" />
+                Activity Timeline
+              </h2>
+              <ChevronDown size={16} className="text-text-muted group-open:rotate-180 transition-transform" />
+            </summary>
+            <div className="px-5 pb-5">
             {timeline.length === 0 ? (
               <p className="text-text-muted text-sm text-center py-4">
                 No activity recorded
@@ -891,7 +944,8 @@ export default async function StudentDetailPage({
                 ))}
               </div>
             )}
-          </div>
+            </div>
+          </details>
         </div>
       </div>
     </div>

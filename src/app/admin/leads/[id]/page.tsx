@@ -18,6 +18,8 @@ import {
   FileText,
   Download,
   Image,
+  ChevronDown,
+  MessageSquare,
 } from "lucide-react";
 import LeadActionsWithCallLog from "./LeadActionsWithCallLog";
 import LeadEmails from "./LeadEmails";
@@ -131,105 +133,117 @@ export default async function LeadDetailPage({
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Contact Info */}
         <div className="lg:col-span-1 space-y-6">
-          <div className="glass-card p-5">
-            <h2 className="text-base font-semibold text-text-primary mb-4">
-              Contact Information
-            </h2>
-            <div className="space-y-3">
-              <div className="flex items-center gap-3 text-sm">
-                <Mail size={16} className="text-text-muted shrink-0" />
-                <span className="text-text-secondary">{lead.email}</span>
-              </div>
-              <div className="flex items-center gap-3 text-sm">
-                <Phone size={16} className="text-text-muted shrink-0" />
-                <span className="text-text-secondary">{lead.phone}</span>
-              </div>
-              {lead.alternatePhone && (
+          <details open className="glass-card group">
+            <summary className="flex items-center justify-between px-5 py-4 cursor-pointer list-none">
+              <h2 className="text-base font-semibold text-text-primary flex items-center gap-2">
+                <User size={16} className="text-neon-blue" />
+                Contact Information
+              </h2>
+              <ChevronDown size={16} className="text-text-muted group-open:rotate-180 transition-transform" />
+            </summary>
+            <div className="px-5 pb-5">
+              <div className="space-y-3">
+                <div className="flex items-center gap-3 text-sm">
+                  <Mail size={16} className="text-text-muted shrink-0" />
+                  <span className="text-text-secondary">{lead.email}</span>
+                </div>
                 <div className="flex items-center gap-3 text-sm">
                   <Phone size={16} className="text-text-muted shrink-0" />
-                  <span className="text-text-secondary">{lead.alternatePhone} <span className="text-text-muted text-xs">(alt)</span></span>
+                  <span className="text-text-secondary">{lead.phone}</span>
                 </div>
-              )}
-              {lead.enquiryDate && (
-                <div className="flex items-center gap-3 text-sm">
-                  <Calendar size={16} className="text-text-muted shrink-0" />
-                  <span className="text-text-secondary">Enquiry: {formatDate(lead.enquiryDate)}</span>
-                </div>
-              )}
-              {lead.courseInterest && (
+                {lead.alternatePhone && (
+                  <div className="flex items-center gap-3 text-sm">
+                    <Phone size={16} className="text-text-muted shrink-0" />
+                    <span className="text-text-secondary">{lead.alternatePhone} <span className="text-text-muted text-xs">(alt)</span></span>
+                  </div>
+                )}
+                {lead.enquiryDate && (
+                  <div className="flex items-center gap-3 text-sm">
+                    <Calendar size={16} className="text-text-muted shrink-0" />
+                    <span className="text-text-secondary">Enquiry: {formatDate(lead.enquiryDate)}</span>
+                  </div>
+                )}
+                {lead.courseInterest && (
+                  <div className="flex items-center gap-3 text-sm">
+                    <Tag size={16} className="text-text-muted shrink-0" />
+                    <span className="text-text-secondary">
+                      {COURSE_LABELS[lead.courseInterest] || lead.courseInterest}
+                    </span>
+                  </div>
+                )}
+                {lead.qualification && (
+                  <div className="flex items-center gap-3 text-sm">
+                    <User size={16} className="text-text-muted shrink-0" />
+                    <span className="text-text-secondary">
+                      {lead.qualification}
+                    </span>
+                  </div>
+                )}
                 <div className="flex items-center gap-3 text-sm">
                   <Tag size={16} className="text-text-muted shrink-0" />
-                  <span className="text-text-secondary">
-                    {COURSE_LABELS[lead.courseInterest] || lead.courseInterest}
+                  <span className="text-text-secondary capitalize">
+                    Source: {lead.source}
                   </span>
                 </div>
-              )}
-              {lead.qualification && (
-                <div className="flex items-center gap-3 text-sm">
-                  <User size={16} className="text-text-muted shrink-0" />
-                  <span className="text-text-secondary">
-                    {lead.qualification}
-                  </span>
-                </div>
-              )}
-              <div className="flex items-center gap-3 text-sm">
-                <Tag size={16} className="text-text-muted shrink-0" />
-                <span className="text-text-secondary capitalize">
-                  Source: {lead.source}
-                </span>
+                {lead.followUpDate && (
+                  <div className="flex items-center gap-3 text-sm">
+                    <Calendar size={16} className="text-text-muted shrink-0" />
+                    <span className="text-text-secondary">
+                      Follow-up: {formatDate(lead.followUpDate)}
+                    </span>
+                  </div>
+                )}
+                {lead.assignedTo && (
+                  <div className="flex items-center gap-3 text-sm">
+                    <User size={16} className="text-text-muted shrink-0" />
+                    <span className="text-text-secondary">
+                      Assigned to: {lead.assignedTo.user.name}
+                    </span>
+                  </div>
+                )}
               </div>
-              {lead.followUpDate && (
-                <div className="flex items-center gap-3 text-sm">
-                  <Calendar size={16} className="text-text-muted shrink-0" />
-                  <span className="text-text-secondary">
-                    Follow-up: {formatDate(lead.followUpDate)}
-                  </span>
-                </div>
-              )}
-              {lead.assignedTo && (
-                <div className="flex items-center gap-3 text-sm">
-                  <User size={16} className="text-text-muted shrink-0" />
-                  <span className="text-text-secondary">
-                    Assigned to: {lead.assignedTo.user.name}
-                  </span>
-                </div>
-              )}
             </div>
-          </div>
+          </details>
 
           {/* UTM Info */}
           {(lead.utmSource || lead.utmMedium || lead.utmCampaign) && (
-            <div className="glass-card p-5">
-              <h2 className="text-base font-semibold text-text-primary mb-4">
-                Attribution
-              </h2>
-              <div className="space-y-2 text-sm">
-                {lead.utmSource && (
-                  <div className="flex justify-between">
-                    <span className="text-text-muted">Source</span>
-                    <span className="text-text-secondary">
-                      {lead.utmSource}
-                    </span>
-                  </div>
-                )}
-                {lead.utmMedium && (
-                  <div className="flex justify-between">
-                    <span className="text-text-muted">Medium</span>
-                    <span className="text-text-secondary">
-                      {lead.utmMedium}
-                    </span>
-                  </div>
-                )}
-                {lead.utmCampaign && (
-                  <div className="flex justify-between">
-                    <span className="text-text-muted">Campaign</span>
-                    <span className="text-text-secondary">
-                      {lead.utmCampaign}
-                    </span>
-                  </div>
-                )}
+            <details open className="glass-card group">
+              <summary className="flex items-center justify-between px-5 py-4 cursor-pointer list-none">
+                <h2 className="text-base font-semibold text-text-primary flex items-center gap-2">
+                  <Tag size={16} className="text-neon-blue" />
+                  Attribution
+                </h2>
+                <ChevronDown size={16} className="text-text-muted group-open:rotate-180 transition-transform" />
+              </summary>
+              <div className="px-5 pb-5">
+                <div className="space-y-2 text-sm">
+                  {lead.utmSource && (
+                    <div className="flex justify-between">
+                      <span className="text-text-muted">Source</span>
+                      <span className="text-text-secondary">
+                        {lead.utmSource}
+                      </span>
+                    </div>
+                  )}
+                  {lead.utmMedium && (
+                    <div className="flex justify-between">
+                      <span className="text-text-muted">Medium</span>
+                      <span className="text-text-secondary">
+                        {lead.utmMedium}
+                      </span>
+                    </div>
+                  )}
+                  {lead.utmCampaign && (
+                    <div className="flex justify-between">
+                      <span className="text-text-muted">Campaign</span>
+                      <span className="text-text-secondary">
+                        {lead.utmCampaign}
+                      </span>
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
+            </details>
           )}
         </div>
 
@@ -240,39 +254,44 @@ export default async function LeadDetailPage({
             const fileNotes = lead.notes.filter((n: any) => n.content?.includes("[File Imported]"));
             if (fileNotes.length === 0) return null;
             return (
-              <div className="glass-card p-5">
-                <h2 className="text-sm font-semibold text-text-primary mb-3 flex items-center gap-2">
-                  <FileText size={16} className="text-neon-blue" />
-                  Documents & Files ({fileNotes.length})
-                </h2>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                  {fileNotes.map((note: any) => {
-                    const match = note.content?.match(/\[File Imported\]\s*(.+?)\s*\((.+?)\)\s*—\s*(\S+)/);
-                    if (!match) return null;
-                    const [, fileName, fileSize, fileUrl] = match;
-                    const isPdf = fileName?.toLowerCase().endsWith(".pdf");
-                    const isImage = /\.(jpg|jpeg|png|webp|gif)$/i.test(fileName || "");
-                    return (
-                      <a
-                        key={note.id}
-                        href={fileUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center gap-3 p-3 rounded-lg bg-white/[0.02] border border-white/[0.04] hover:bg-white/[0.04] transition-colors group"
-                      >
-                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${isPdf ? "bg-red-500/10" : isImage ? "bg-blue-500/10" : "bg-white/[0.05]"}`}>
-                          {isImage ? <Image size={14} className="text-blue-400" /> : <FileText size={14} className={isPdf ? "text-red-400" : "text-text-muted"} />}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-xs text-text-primary truncate group-hover:text-neon-blue transition-colors">{fileName}</p>
-                          <p className="text-[10px] text-text-muted">{fileSize}</p>
-                        </div>
-                        <Download size={12} className="text-text-muted group-hover:text-neon-blue shrink-0" />
-                      </a>
-                    );
-                  })}
+              <details open className="glass-card group">
+                <summary className="flex items-center justify-between px-5 py-4 cursor-pointer list-none">
+                  <h2 className="text-base font-semibold text-text-primary flex items-center gap-2">
+                    <FileText size={16} className="text-neon-blue" />
+                    Documents & Files ({fileNotes.length})
+                  </h2>
+                  <ChevronDown size={16} className="text-text-muted group-open:rotate-180 transition-transform" />
+                </summary>
+                <div className="px-5 pb-5">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    {fileNotes.map((note: any) => {
+                      const match = note.content?.match(/\[File Imported\]\s*(.+?)\s*\((.+?)\)\s*—\s*(\S+)/);
+                      if (!match) return null;
+                      const [, fileName, fileSize, fileUrl] = match;
+                      const isPdf = fileName?.toLowerCase().endsWith(".pdf");
+                      const isImage = /\.(jpg|jpeg|png|webp|gif)$/i.test(fileName || "");
+                      return (
+                        <a
+                          key={note.id}
+                          href={fileUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-3 p-3 rounded-lg bg-white/[0.02] border border-white/[0.04] hover:bg-white/[0.04] transition-colors group"
+                        >
+                          <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${isPdf ? "bg-red-500/10" : isImage ? "bg-blue-500/10" : "bg-white/[0.05]"}`}>
+                            {isImage ? <Image size={14} className="text-blue-400" /> : <FileText size={14} className={isPdf ? "text-red-400" : "text-text-muted"} />}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-xs text-text-primary truncate group-hover:text-neon-blue transition-colors">{fileName}</p>
+                            <p className="text-[10px] text-text-muted">{fileSize}</p>
+                          </div>
+                          <Download size={12} className="text-text-muted group-hover:text-neon-blue shrink-0" />
+                        </a>
+                      );
+                    })}
+                  </div>
                 </div>
-              </div>
+              </details>
             );
           })()}
           {/* Emails Section */}
@@ -290,36 +309,47 @@ export default async function LeadDetailPage({
           />
 
           {/* Notes List (server-rendered) */}
-          {lead.notes.length === 0 ? (
-            <p className="text-text-muted text-sm py-8 text-center">
-              No notes yet. Add a note to track your interactions.
-            </p>
-          ) : (
-            <div className="space-y-4">
-              {lead.notes.map((note: any) => (
-                <div
-                  key={note.id}
-                  className="relative pl-6 pb-4 border-l border-white/[0.06] last:pb-0"
-                >
-                  <div className="absolute -left-[5px] top-0 w-2.5 h-2.5 rounded-full bg-neon-blue" />
-                  <div className="bg-white/[0.02] rounded-lg p-3">
-                    <p className="text-sm text-text-secondary whitespace-pre-wrap">
-                      {note.content}
-                    </p>
-                    <div className="flex items-center gap-3 mt-2">
-                      <span className="text-xs text-text-muted">
-                        {note.createdBy}
-                      </span>
-                      <span className="text-xs text-text-muted flex items-center gap-1">
-                        <Clock size={12} />
-                        {formatDate(note.createdAt)}
-                      </span>
+          <details open className="glass-card group">
+            <summary className="flex items-center justify-between px-5 py-4 cursor-pointer list-none">
+              <h2 className="text-base font-semibold text-text-primary flex items-center gap-2">
+                <MessageSquare size={16} className="text-neon-blue" />
+                Notes Timeline
+              </h2>
+              <ChevronDown size={16} className="text-text-muted group-open:rotate-180 transition-transform" />
+            </summary>
+            <div className="px-5 pb-5">
+              {lead.notes.length === 0 ? (
+                <p className="text-text-muted text-sm py-8 text-center">
+                  No notes yet. Add a note to track your interactions.
+                </p>
+              ) : (
+                <div className="space-y-4">
+                  {lead.notes.map((note: any) => (
+                    <div
+                      key={note.id}
+                      className="relative pl-6 pb-4 border-l border-white/[0.06] last:pb-0"
+                    >
+                      <div className="absolute -left-[5px] top-0 w-2.5 h-2.5 rounded-full bg-neon-blue" />
+                      <div className="bg-white/[0.02] rounded-lg p-3">
+                        <p className="text-sm text-text-secondary whitespace-pre-wrap">
+                          {note.content}
+                        </p>
+                        <div className="flex items-center gap-3 mt-2">
+                          <span className="text-xs text-text-muted">
+                            {note.createdBy}
+                          </span>
+                          <span className="text-xs text-text-muted flex items-center gap-1">
+                            <Clock size={12} />
+                            {formatDate(note.createdAt)}
+                          </span>
+                        </div>
+                      </div>
                     </div>
-                  </div>
+                  ))}
                 </div>
-              ))}
+              )}
             </div>
-          )}
+          </details>
         </div>
       </div>
     </div>
