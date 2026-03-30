@@ -70,6 +70,13 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     // Accent CSS variable
     body.style.setProperty("--accent-color", accent);
 
+    // Toggle data-accent attribute for CSS overrides
+    if (accent.toUpperCase() !== DEFAULT_ACCENT) {
+      body.setAttribute("data-accent", "true");
+    } else {
+      body.removeAttribute("data-accent");
+    }
+
     // Persist
     localStorage.setItem(THEME_KEY, theme);
     localStorage.setItem(ACCENT_KEY, accent);

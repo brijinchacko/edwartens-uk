@@ -3,7 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
 import {
   LayoutDashboard,
   Users,
@@ -32,6 +32,14 @@ import {
   Calendar,
   Gift,
   ScrollText,
+  ChevronRight,
+  ChevronDown,
+  FolderKanban,
+  MailOpen,
+  Crosshair,
+  UsersRound,
+  Database,
+  Cog,
 } from "lucide-react";
 import { getInitials } from "@/lib/utils";
 import { getNavItemsForRole } from "@/lib/rbac";
@@ -42,35 +50,123 @@ interface AdminSidebarProps {
   userImage?: string;
 }
 
-const ALL_NAV_ITEMS = [
-  { id: "dashboard", href: "/admin/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { id: "leads", href: "/admin/leads", label: "Leads", icon: Target },
-  { id: "pipeline", href: "/admin/pipeline", label: "Pipeline", icon: GitBranch },
-  { id: "students", href: "/admin/students", label: "Students", icon: GraduationCap },
-  { id: "batches", href: "/admin/batches", label: "Batches", icon: Layers },
-  { id: "sessions", href: "/admin/sessions", label: "Sessions", icon: Video },
-  { id: "assessments", href: "/admin/assessments", label: "Assessments", icon: ClipboardCheck },
-  { id: "question-bank", href: "/admin/question-bank", label: "Question Bank", icon: BookOpen },
-  { id: "import", href: "/admin/import", label: "Import Data", icon: Upload },
-  { id: "career", href: "/admin/placements", label: "Career Support", icon: Briefcase },
-  { id: "certificates", href: "/admin/certificates", label: "Certificates", icon: Award },
-  { id: "invoices", href: "/admin/invoices", label: "Invoices", icon: FileText },
-  { id: "jobs", href: "/admin/jobs", label: "Jobs", icon: Briefcase },
-  { id: "alumni", href: "/admin/alumni", label: "Alumni", icon: Users },
-  { id: "alumni-network", href: "/admin/alumni-network", label: "Alumni Network", icon: Users },
-  { id: "referrals", href: "/admin/referrals", label: "Referrals", icon: Gift },
-  { id: "team-activity", href: "/admin/team-activity", label: "Team Activity", icon: Users },
-  { id: "employees", href: "/admin/employees", label: "Team", icon: UserCog },
-  { id: "reports", href: "/admin/reports", label: "Reports", icon: BarChart3 },
-  { id: "users", href: "/admin/users", label: "User Management", icon: Shield },
-  { id: "feedback", href: "/admin/feedback", label: "Feedback", icon: MessageSquare },
-  { id: "emails", href: "/admin/emails", label: "Emails", icon: Mail },
-  { id: "drip-campaigns", href: "/admin/drip-campaigns", label: "Drip Campaigns", icon: Droplets },
-  { id: "calendar", href: "/admin/calendar", label: "Calendar", icon: Calendar },
-  { id: "notifications", href: "/admin/notifications", label: "Notifications", icon: Bell },
-  { id: "audit", href: "/admin/audit", label: "Audit Log", icon: ScrollText },
-  { id: "settings", href: "/admin/settings", label: "Settings", icon: Settings },
+interface NavItem {
+  id: string;
+  href: string;
+  label: string;
+  icon: React.ComponentType<{ size?: number; className?: string }>;
+}
+
+interface NavGroup {
+  key: string;
+  label: string;
+  icon: React.ComponentType<{ size?: number; className?: string }>;
+  items: NavItem[];
+}
+
+const DASHBOARD_ITEM: NavItem = {
+  id: "dashboard",
+  href: "/admin/dashboard",
+  label: "Dashboard",
+  icon: LayoutDashboard,
+};
+
+const NAV_GROUPS: NavGroup[] = [
+  {
+    key: "sales",
+    label: "Sales & Leads",
+    icon: FolderKanban,
+    items: [
+      { id: "leads", href: "/admin/leads", label: "Leads", icon: Target },
+      { id: "pipeline", href: "/admin/pipeline", label: "Pipeline", icon: GitBranch },
+      { id: "drip-campaigns", href: "/admin/drip-campaigns", label: "Drip Campaigns", icon: Droplets },
+    ],
+  },
+  {
+    key: "training",
+    label: "Training",
+    icon: GraduationCap,
+    items: [
+      { id: "students", href: "/admin/students", label: "Students", icon: GraduationCap },
+      { id: "batches", href: "/admin/batches", label: "Batches", icon: Layers },
+      { id: "sessions", href: "/admin/sessions", label: "Sessions", icon: Video },
+      { id: "assessments", href: "/admin/assessments", label: "Assessments", icon: ClipboardCheck },
+      { id: "question-bank", href: "/admin/question-bank", label: "Question Bank", icon: BookOpen },
+      { id: "certificates", href: "/admin/certificates", label: "Certificates", icon: Award },
+    ],
+  },
+  {
+    key: "communication",
+    label: "Communication",
+    icon: MailOpen,
+    items: [
+      { id: "emails", href: "/admin/emails", label: "Emails", icon: Mail },
+      { id: "calendar", href: "/admin/calendar", label: "Calendar", icon: Calendar },
+    ],
+  },
+  {
+    key: "career",
+    label: "Career & Alumni",
+    icon: Crosshair,
+    items: [
+      { id: "career", href: "/admin/placements", label: "Career Support", icon: Briefcase },
+      { id: "alumni", href: "/admin/alumni", label: "Alumni", icon: Users },
+      { id: "jobs", href: "/admin/jobs", label: "Jobs", icon: Briefcase },
+      { id: "referrals", href: "/admin/referrals", label: "Referrals", icon: Gift },
+    ],
+  },
+  {
+    key: "team",
+    label: "Team & HR",
+    icon: UsersRound,
+    items: [
+      { id: "team-activity", href: "/admin/team-activity", label: "Team Activity", icon: Users },
+      { id: "employees", href: "/admin/employees", label: "Team", icon: UserCog },
+      { id: "reports", href: "/admin/reports", label: "Reports", icon: BarChart3 },
+      { id: "feedback", href: "/admin/feedback", label: "Feedback", icon: MessageSquare },
+    ],
+  },
+  {
+    key: "data",
+    label: "Data",
+    icon: Database,
+    items: [
+      { id: "import", href: "/admin/import", label: "Import Data", icon: Upload },
+      { id: "invoices", href: "/admin/invoices", label: "Invoices", icon: FileText },
+    ],
+  },
+  {
+    key: "system",
+    label: "System",
+    icon: Cog,
+    items: [
+      { id: "users", href: "/admin/users", label: "User Management", icon: Shield },
+      { id: "audit", href: "/admin/audit", label: "Audit Log", icon: ScrollText },
+      { id: "notifications", href: "/admin/notifications", label: "Notifications", icon: Bell },
+      { id: "settings", href: "/admin/settings", label: "Settings", icon: Settings },
+    ],
+  },
 ];
+
+const STORAGE_KEY = "edw-sidebar-groups";
+
+function loadExpandedGroups(): string[] {
+  if (typeof window === "undefined") return [];
+  try {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    return stored ? JSON.parse(stored) : [];
+  } catch {
+    return [];
+  }
+}
+
+function saveExpandedGroups(groups: string[]) {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(groups));
+  } catch {
+    // silently fail
+  }
+}
 
 export function AdminSidebar({
   userName,
@@ -79,11 +175,19 @@ export function AdminSidebar({
 }: AdminSidebarProps) {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [expandedGroups, setExpandedGroups] = useState<string[]>([]);
 
-  const navItems = useMemo(() => {
-    const allowedIds = getNavItemsForRole(userRole);
-    return ALL_NAV_ITEMS.filter((item) => allowedIds.includes(item.id));
-  }, [userRole]);
+  const allowedIds = useMemo(() => getNavItemsForRole(userRole), [userRole]);
+
+  // Filter groups: only show groups that have at least one visible item
+  const visibleGroups = useMemo(() => {
+    return NAV_GROUPS.map((group) => ({
+      ...group,
+      items: group.items.filter((item) => allowedIds.includes(item.id)),
+    })).filter((group) => group.items.length > 0);
+  }, [allowedIds]);
+
+  const showDashboard = allowedIds.includes("dashboard");
 
   const isActive = (href: string) => {
     if (href === "/admin/dashboard") {
@@ -91,6 +195,33 @@ export function AdminSidebar({
     }
     return pathname.startsWith(href);
   };
+
+  // Find which group contains the current active page and auto-expand it
+  useEffect(() => {
+    const stored = loadExpandedGroups();
+    const activeGroupKey = visibleGroups.find((group) =>
+      group.items.some((item) => isActive(item.href))
+    )?.key;
+
+    if (activeGroupKey && !stored.includes(activeGroupKey)) {
+      const merged = [...stored, activeGroupKey];
+      setExpandedGroups(merged);
+      saveExpandedGroups(merged);
+    } else {
+      setExpandedGroups(stored);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pathname]);
+
+  const toggleGroup = useCallback((key: string) => {
+    setExpandedGroups((prev) => {
+      const next = prev.includes(key)
+        ? prev.filter((k) => k !== key)
+        : [...prev, key];
+      saveExpandedGroups(next);
+      return next;
+    });
+  }, []);
 
   const sidebarContent = (
     <>
@@ -101,7 +232,7 @@ export function AdminSidebar({
           alt="EDWartens UK Logo"
           width={36}
           height={36}
-          className="rounded-lg"
+          className="rounded-lg sidebar-logo"
         />
         <div>
           <h1 className="text-sm font-semibold text-text-primary">
@@ -113,19 +244,65 @@ export function AdminSidebar({
 
       {/* Navigation */}
       <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-1">
-        {navItems.map((item) => {
-          const Icon = item.icon;
-          const active = isActive(item.href);
+        {/* Dashboard - always top level */}
+        {showDashboard && (
+          <Link
+            href={DASHBOARD_ITEM.href}
+            onClick={() => setMobileOpen(false)}
+            className={`sidebar-link ${isActive(DASHBOARD_ITEM.href) ? "active" : ""}`}
+          >
+            <LayoutDashboard size={18} />
+            <span>{DASHBOARD_ITEM.label}</span>
+          </Link>
+        )}
+
+        {/* Grouped nav items */}
+        {visibleGroups.map((group) => {
+          const isExpanded = expandedGroups.includes(group.key);
+          const GroupIcon = group.icon;
+          const hasActiveChild = group.items.some((item) => isActive(item.href));
+
           return (
-            <Link
-              key={item.href}
-              href={item.href}
-              onClick={() => setMobileOpen(false)}
-              className={`sidebar-link ${active ? "active" : ""}`}
-            >
-              <Icon size={18} />
-              <span>{item.label}</span>
-            </Link>
+            <div key={group.key} className="mt-3">
+              {/* Group header */}
+              <button
+                onClick={() => toggleGroup(group.key)}
+                className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold uppercase tracking-wider transition-colors ${
+                  hasActiveChild
+                    ? "text-neon-blue/80"
+                    : "text-text-muted hover:text-text-secondary"
+                } hover:bg-white/[0.03]`}
+              >
+                <GroupIcon size={14} className="shrink-0" />
+                <span className="flex-1 text-left">{group.label}</span>
+                {isExpanded ? (
+                  <ChevronDown size={14} className="shrink-0" />
+                ) : (
+                  <ChevronRight size={14} className="shrink-0" />
+                )}
+              </button>
+
+              {/* Group items */}
+              {isExpanded && (
+                <div className="mt-0.5 space-y-0.5">
+                  {group.items.map((item) => {
+                    const Icon = item.icon;
+                    const active = isActive(item.href);
+                    return (
+                      <Link
+                        key={item.href}
+                        href={item.href}
+                        onClick={() => setMobileOpen(false)}
+                        className={`sidebar-link pl-8 ${active ? "active" : ""}`}
+                      >
+                        <Icon size={16} />
+                        <span>{item.label}</span>
+                      </Link>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
           );
         })}
       </nav>

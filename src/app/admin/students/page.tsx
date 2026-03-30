@@ -124,7 +124,9 @@ async function getFilterOptions() {
 
 function buildUrl(current: Record<string, string | undefined>, updates: Record<string, string | undefined>) {
   const params = new URLSearchParams();
-  const merged = { ...current, ...updates, page: undefined };
+  const merged = { ...current, ...updates };
+  // Only reset page when a non-page filter changes
+  if (!updates.page) delete merged.page;
   for (const [key, val] of Object.entries(merged)) {
     if (val && val !== "ALL") params.set(key, val);
   }

@@ -305,6 +305,12 @@ body.theme-light .dot-grid {
   background-image: radial-gradient(rgba(0, 0, 0, 0.06) 1px, transparent 1px) !important;
 }
 
+/* Logo visibility in light mode */
+body.theme-light .sidebar-logo,
+html[data-theme="light"] .sidebar-logo {
+  filter: brightness(0.15) !important;
+}
+
 /* Mesh Gradient Backgrounds */
 .mesh-gradient-hero {
   background:
@@ -443,4 +449,20 @@ input:focus, textarea:focus, select:focus {
   color: #fff;
   background: rgba(40, 145, 255, 0.1);
   border: 1px solid rgba(40, 145, 255, 0.2);
+}
+
+/* Custom accent color override */
+body[data-accent="true"] .text-neon-blue,
+body[data-accent="true"] .border-neon-blue,
+body[data-accent="true"] .border-neon-blue\/20 {
+  color: var(--accent-color) !important;
+  border-color: color-mix(in srgb, var(--accent-color) 20%, transparent) !important;
+}
+
+body[data-accent="true"] .bg-neon-blue\/10 {
+  background-color: color-mix(in srgb, var(--accent-color) 10%, transparent) !important;
+}
+
+body[data-accent="true"] .bg-neon-blue {
+  background-color: var(--accent-color) !important;
 }
