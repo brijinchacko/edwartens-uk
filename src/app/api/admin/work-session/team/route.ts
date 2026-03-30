@@ -5,16 +5,16 @@ import { isCrmRole } from "@/lib/rbac";
 
 /**
  * Role hierarchy for visibility:
- * SUPER_ADMIN → sees everyone
- * ADMIN → sees all except SUPER_ADMIN
- * SALES_LEAD → sees ADMISSION_COUNSELLOR, TRAINER (peers/below)
- * ADMISSION_COUNSELLOR → sees own status only
- * TRAINER → sees own status only
+ * SUPER_ADMIN → sees everyone (full detail)
+ * ADMIN → sees all except SUPER_ADMIN (full detail)
+ * SALES_LEAD → sees ONLY own status
+ * ADMISSION_COUNSELLOR → sees ONLY own status
+ * TRAINER → sees ONLY own status
  */
 const ROLE_VISIBILITY: Record<string, string[]> = {
   SUPER_ADMIN: ["SUPER_ADMIN", "ADMIN", "SALES_LEAD", "ADMISSION_COUNSELLOR", "TRAINER"],
   ADMIN: ["ADMIN", "SALES_LEAD", "ADMISSION_COUNSELLOR", "TRAINER"],
-  SALES_LEAD: ["SALES_LEAD", "ADMISSION_COUNSELLOR", "TRAINER"],
+  SALES_LEAD: [],
   ADMISSION_COUNSELLOR: [],
   TRAINER: [],
 };

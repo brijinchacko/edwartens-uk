@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
-import { isCrmRole } from "@/lib/rbac";
 import TeamActivityClient from "./TeamActivityClient";
 
 export const metadata: Metadata = {
@@ -15,8 +14,8 @@ export default async function TeamActivityPage() {
 
   const user = session.user as { role: string };
 
-  // All CRM roles can see team activity (API handles hierarchy)
-  if (!isCrmRole(user.role)) {
+  // Only SUPER_ADMIN and ADMIN can see team activity
+  if (!["SUPER_ADMIN", "ADMIN"].includes(user.role)) {
     redirect("/admin/dashboard");
   }
 
