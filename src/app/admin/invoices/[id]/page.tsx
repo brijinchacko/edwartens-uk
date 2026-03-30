@@ -52,9 +52,7 @@ export default async function InvoiceDetailPage({
           <ArrowLeft size={16} /> Back to Invoices
         </Link>
         <div className="flex items-center gap-2">
-          <button onClick={() => {}} className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/[0.03] border border-white/[0.06] text-text-muted text-xs hover:bg-white/[0.06] transition-colors">
-            <Printer size={12} /> Print
-          </button>
+          <span className="text-xs text-text-muted">Use Ctrl+P to print</span>
         </div>
       </div>
 

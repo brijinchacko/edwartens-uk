@@ -46,12 +46,7 @@ export default async function StudentInvoicePage({
         <Link href="/student/payments" className="flex items-center gap-2 text-sm text-text-muted hover:text-text-primary transition-colors">
           <ArrowLeft size={16} /> Back to Payments
         </Link>
-        <button
-          onClick={() => {}}
-          className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/[0.03] border border-white/[0.06] text-text-muted text-xs hover:bg-white/[0.06] transition-colors print:hidden"
-        >
-          <Printer size={12} /> Print
-        </button>
+        <span className="text-xs text-text-muted">Use Ctrl+P to print</span>
       </div>
 
       <div className="glass-card rounded-xl overflow-hidden">
