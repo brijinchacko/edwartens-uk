@@ -18,7 +18,8 @@ const STATUS_COLORS: Record<string, string> = {
   POST_TRAINING: "bg-blue-500/10 text-blue-400 border-blue-500/20",
   CAREER_SUPPORT: "bg-purple-500/10 text-purple-400 border-purple-500/20",
   COMPLETED: "bg-neon-blue/10 text-neon-blue border-neon-blue/20",
-  ALUMNI: "bg-neon-green/10 text-neon-green border-neon-green/20",
+  ALUMNI_PLACED: "bg-neon-green/10 text-neon-green border-neon-green/20",
+  ALUMNI_NOT_PLACED: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
   DROPPED: "bg-red-500/10 text-red-400 border-red-500/20",
 };
 
@@ -190,7 +191,8 @@ export default async function StudentsPage({
           { value: "POST_TRAINING", label: "Post-Training", count: counts.POST_TRAINING || 0 },
           { value: "CAREER_SUPPORT", label: "Career Support", count: counts.CAREER_SUPPORT || 0 },
           { value: "COMPLETED", label: "Completed", count: counts.COMPLETED || 0 },
-          { value: "ALUMNI", label: "Alumni", count: counts.ALUMNI || 0 },
+          { value: "ALUMNI_PLACED", label: "Alumni (Placed)", count: counts.ALUMNI_PLACED || 0 },
+          { value: "ALUMNI_NOT_PLACED", label: "Alumni (Not Placed)", count: counts.ALUMNI_NOT_PLACED || 0 },
           { value: "ON_HOLD", label: "On Hold", count: counts.ON_HOLD || 0 },
           { value: "DROPPED", label: "Dropped", count: counts.DROPPED || 0 },
         ].map((s) => (

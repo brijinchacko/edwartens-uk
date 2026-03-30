@@ -34,7 +34,7 @@ export default function StudentFilters({ options }: { options: FilterOptions }) 
         className="px-2.5 py-1.5 rounded-lg bg-white/[0.03] border border-white/[0.06] text-text-muted text-xs focus:border-neon-blue/40"
       >
         <option value="ALL">All Statuses</option>
-        {["ONBOARDING", "ACTIVE", "ON_HOLD", "POST_TRAINING", "CAREER_SUPPORT", "COMPLETED", "ALUMNI", "DROPPED"].map((s) => (
+        {["ONBOARDING", "ACTIVE", "ON_HOLD", "POST_TRAINING", "CAREER_SUPPORT", "COMPLETED", "ALUMNI_PLACED", "ALUMNI_NOT_PLACED", "DROPPED"].map((s) => (
           <option key={s} value={s}>{s.replace(/_/g, " ")} ({options.statusCounts[s] || 0})</option>
         ))}
       </select>

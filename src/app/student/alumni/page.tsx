@@ -200,7 +200,7 @@ export default function StudentAlumniPage() {
         <div className="glass-card rounded-xl p-6 border border-white/[0.06] space-y-4">
           <h2 className="text-lg font-semibold text-text-primary">Update Your Alumni Profile</h2>
           <p className="text-sm text-text-muted">
-            Only available for students with COMPLETED or ALUMNI status.
+            Only available for students with COMPLETED or Alumni status.
           </p>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <input

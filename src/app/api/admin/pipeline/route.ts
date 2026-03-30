@@ -14,7 +14,8 @@ const STUDENT_STAGES = [
   "POST_TRAINING",
   "CAREER_SUPPORT",
   "COMPLETED",
-  "ALUMNI",
+  "ALUMNI_PLACED",
+  "ALUMNI_NOT_PLACED",
   "DROPPED",
 ] as const;
 
@@ -22,7 +23,7 @@ const STUDENT_STAGES = [
 const VIEW_STAGES: Record<string, { leadStatuses: string[]; studentStatuses: string[] }> = {
   full: {
     leadStatuses: ["NEW", "CONTACTED", "QUALIFIED", "ENROLLED", "LOST"],
-    studentStatuses: ["ONBOARDING", "ACTIVE", "ON_HOLD", "POST_TRAINING", "CAREER_SUPPORT", "COMPLETED", "ALUMNI", "DROPPED"],
+    studentStatuses: ["ONBOARDING", "ACTIVE", "ON_HOLD", "POST_TRAINING", "CAREER_SUPPORT", "COMPLETED", "ALUMNI_PLACED", "ALUMNI_NOT_PLACED", "DROPPED"],
   },
   sales: {
     leadStatuses: ["NEW", "CONTACTED", "QUALIFIED", "ENROLLED"],
@@ -34,7 +35,7 @@ const VIEW_STAGES: Record<string, { leadStatuses: string[]; studentStatuses: str
   },
   career: {
     leadStatuses: [],
-    studentStatuses: ["CAREER_SUPPORT", "COMPLETED", "ALUMNI"],
+    studentStatuses: ["CAREER_SUPPORT", "COMPLETED", "ALUMNI_PLACED", "ALUMNI_NOT_PLACED"],
   },
   risk: {
     leadStatuses: ["LOST"],
@@ -306,7 +307,7 @@ export async function GET(req: NextRequest) {
       const items: StageItem[] = stageStudents.map((student: any) => {
         const lastAct = studentLastActivity[student.id] || null;
         const daysInStage = daysBetween(new Date(student.updatedAt), now);
-        const isIdle = daysInStage > 7 && !["COMPLETED", "ALUMNI", "DROPPED"].includes(student.status);
+        const isIdle = daysInStage > 7 && !["COMPLETED", "ALUMNI_PLACED", "ALUMNI_NOT_PLACED", "DROPPED"].includes(student.status);
         return {
           id: student.id,
           name: student.user.name,
@@ -449,7 +450,7 @@ export async function PATCH(req: NextRequest) {
     } else if (type === "student") {
       const validStatuses = [
         "ONBOARDING", "ACTIVE", "ON_HOLD", "POST_TRAINING",
-        "CAREER_SUPPORT", "COMPLETED", "ALUMNI", "DROPPED",
+        "CAREER_SUPPORT", "COMPLETED", "ALUMNI_PLACED", "ALUMNI_NOT_PLACED", "DROPPED",
       ];
       if (!validStatuses.includes(newStatus)) {
         return NextResponse.json({ error: "Invalid student status" }, { status: 400 });

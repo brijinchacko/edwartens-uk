@@ -32,7 +32,7 @@ export async function GET() {
     // Stats
     const totalStudents = await prisma.student.count();
     const completedStudents = await prisma.student.count({
-      where: { status: { in: ["COMPLETED", "ALUMNI"] } },
+      where: { status: { in: ["COMPLETED", "ALUMNI_PLACED", "ALUMNI_NOT_PLACED"] } },
     });
     const totalAlumni = profiles.length;
     const placedPercentage = completedStudents > 0 ? Math.round((totalAlumni / completedStudents) * 100) : 0;

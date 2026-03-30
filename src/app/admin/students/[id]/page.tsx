@@ -36,6 +36,7 @@ import {
   Shield,
 } from "lucide-react";
 import StudentActions from "./StudentActions";
+import StudentQuickActions from "./StudentQuickActions";
 import StudentNotes from "./StudentNotes";
 
 export const metadata: Metadata = {
@@ -49,7 +50,8 @@ const STATUS_COLORS: Record<string, string> = {
   POST_TRAINING: "bg-purple-500/10 text-purple-400 border-purple-500/20",
   CAREER_SUPPORT: "bg-blue-500/10 text-blue-400 border-blue-500/20",
   COMPLETED: "bg-neon-blue/10 text-neon-blue border-neon-blue/20",
-  ALUMNI: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
+  ALUMNI_PLACED: "bg-neon-green/10 text-neon-green border-neon-green/20",
+  ALUMNI_NOT_PLACED: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
   DROPPED: "bg-red-500/10 text-red-400 border-red-500/20",
 };
 
@@ -524,6 +526,13 @@ export default async function StudentDetailPage({
 
         {/* ============ RIGHT COLUMN ============ */}
         <div className="lg:col-span-2 space-y-6">
+          {/* ====== QUICK ACTIONS ====== */}
+          <StudentQuickActions
+            studentId={student.id}
+            studentName={student.user.name}
+            canSeeRevenue={canSeeRevenue}
+          />
+
           {/* ====== INVOICES (admin only) ====== */}
           {canSeeRevenue && <div id="invoices" className="glass-card p-5 scroll-mt-24">
             <h2 className="text-base font-semibold text-text-primary mb-4">

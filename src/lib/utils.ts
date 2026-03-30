@@ -70,6 +70,7 @@ export const STUDENT_STATUS_LABELS: Record<string, string> = {
   POST_TRAINING: "Post-Training",
   CAREER_SUPPORT: "Career Support",
   COMPLETED: "Completed",
-  ALUMNI: "Alumni",
+  ALUMNI_PLACED: "Alumni (Placed)",
+  ALUMNI_NOT_PLACED: "Alumni (Not Placed)",
   DROPPED: "Dropped",
 };

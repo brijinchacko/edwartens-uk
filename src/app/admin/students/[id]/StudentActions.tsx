@@ -10,7 +10,8 @@ const STUDENT_STATUSES = [
   "POST_TRAINING",
   "CAREER_SUPPORT",
   "COMPLETED",
-  "ALUMNI",
+  "ALUMNI_PLACED",
+  "ALUMNI_NOT_PLACED",
   "DROPPED",
 ] as const;
 
@@ -21,7 +22,8 @@ const STATUS_LABELS: Record<string, string> = {
   POST_TRAINING: "Post Training",
   CAREER_SUPPORT: "Career Support",
   COMPLETED: "Completed",
-  ALUMNI: "Alumni",
+  ALUMNI_PLACED: "Alumni (Placed)",
+  ALUMNI_NOT_PLACED: "Alumni (Not Placed)",
   DROPPED: "Dropped",
 };
 

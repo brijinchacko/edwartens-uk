@@ -67,7 +67,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Student not found" }, { status: 404 });
     }
 
-    if (!["COMPLETED", "ALUMNI"].includes(student.status)) {
+    if (!["COMPLETED", "ALUMNI_PLACED", "ALUMNI_NOT_PLACED"].includes(student.status)) {
       return NextResponse.json({ error: "Only completed/alumni students can update profiles" }, { status: 403 });
     }
 

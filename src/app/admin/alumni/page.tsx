@@ -15,13 +15,14 @@ export const metadata: Metadata = {
 
 const STATUS_COLORS: Record<string, string> = {
   COMPLETED: "bg-green-500/10 text-green-400 border-green-500/20",
-  ALUMNI: "bg-neon-blue/10 text-neon-blue border-neon-blue/20",
+  ALUMNI_PLACED: "bg-neon-green/10 text-neon-green border-neon-green/20",
+  ALUMNI_NOT_PLACED: "bg-neon-blue/10 text-neon-blue border-neon-blue/20",
 };
 
 async function getAlumni(search?: string, course?: string, status?: string) {
   try {
     const where: Record<string, unknown> = {
-      status: { in: status ? [status] : ["COMPLETED", "ALUMNI"] },
+      status: { in: status ? [status] : ["COMPLETED", "ALUMNI_PLACED", "ALUMNI_NOT_PLACED"] },
     };
 
     if (course) {
@@ -86,7 +87,7 @@ export default async function AlumniPage({
   const alumni = await getAlumni(params.search, params.course, params.status);
 
   const completedCount = alumni.filter((a) => a.status === "COMPLETED").length;
-  const alumniCount = alumni.filter((a) => a.status === "ALUMNI").length;
+  const alumniCount = alumni.filter((a) => a.status === "ALUMNI_PLACED" || a.status === "ALUMNI_NOT_PLACED").length;
   const placedCount = alumni.filter((a) => a.placements.length > 0).length;
   const certifiedCount = alumni.filter((a) => a._count.certificates > 0).length;
 
@@ -157,7 +158,8 @@ export default async function AlumniPage({
           >
             <option value="">All Statuses</option>
             <option value="COMPLETED">Completed</option>
-            <option value="ALUMNI">Alumni</option>
+            <option value="ALUMNI_PLACED">Alumni (Placed)</option>
+            <option value="ALUMNI_NOT_PLACED">Alumni (Not Placed)</option>
           </select>
           <button
             type="submit"

@@ -83,7 +83,8 @@ const STAGE_COLORS: Record<string, { bg: string; border: string; text: string; d
   POST_TRAINING: { bg: "bg-teal-500/5", border: "border-teal-500/20", text: "text-teal-400", dot: "bg-teal-400" },
   CAREER_SUPPORT: { bg: "bg-sky-500/5", border: "border-sky-500/20", text: "text-sky-400", dot: "bg-sky-400" },
   COMPLETED: { bg: "bg-violet-500/5", border: "border-violet-500/20", text: "text-violet-400", dot: "bg-violet-400" },
-  ALUMNI: { bg: "bg-fuchsia-500/5", border: "border-fuchsia-500/20", text: "text-fuchsia-400", dot: "bg-fuchsia-400" },
+  ALUMNI_PLACED: { bg: "bg-fuchsia-500/5", border: "border-fuchsia-500/20", text: "text-fuchsia-400", dot: "bg-fuchsia-400" },
+  ALUMNI_NOT_PLACED: { bg: "bg-pink-500/5", border: "border-pink-500/20", text: "text-pink-400", dot: "bg-pink-400" },
   DROPPED: { bg: "bg-rose-500/5", border: "border-rose-500/20", text: "text-rose-400", dot: "bg-rose-400" },
   OVERDUE_FOLLOWUP: { bg: "bg-orange-500/5", border: "border-orange-500/20", text: "text-orange-400", dot: "bg-orange-400" },
 };
@@ -100,7 +101,8 @@ const STAGE_LABELS: Record<string, string> = {
   POST_TRAINING: "Post-Training",
   CAREER_SUPPORT: "Career Support",
   COMPLETED: "Completed",
-  ALUMNI: "Alumni",
+  ALUMNI_PLACED: "Alumni (Placed)",
+  ALUMNI_NOT_PLACED: "Alumni (Not Placed)",
   DROPPED: "Dropped",
   OVERDUE_FOLLOWUP: "Overdue Follow-ups",
 };
@@ -108,7 +110,7 @@ const STAGE_LABELS: Record<string, string> = {
 const LEAD_STATUSES = ["NEW", "CONTACTED", "QUALIFIED", "ENROLLED", "LOST"];
 const STUDENT_STATUSES = [
   "ONBOARDING", "ACTIVE", "ON_HOLD", "POST_TRAINING",
-  "CAREER_SUPPORT", "COMPLETED", "ALUMNI", "DROPPED",
+  "CAREER_SUPPORT", "COMPLETED", "ALUMNI_PLACED", "ALUMNI_NOT_PLACED", "DROPPED",
 ];
 
 const COURSE_LABELS: Record<string, string> = {
@@ -705,7 +707,7 @@ function PipelineCard({
       {/* Meta row */}
       <div className="flex items-center justify-between mt-2 text-[10px] text-text-muted">
         <span>{item.assignedTo || "Unassigned"}</span>
-        <span className={item.daysInStage > 7 && !["ENROLLED", "LOST", "COMPLETED", "ALUMNI", "DROPPED"].includes(item.status) ? "text-amber-400 font-medium" : ""}>
+        <span className={item.daysInStage > 7 && !["ENROLLED", "LOST", "COMPLETED", "ALUMNI_PLACED", "ALUMNI_NOT_PLACED", "DROPPED"].includes(item.status) ? "text-amber-400 font-medium" : ""}>
           {item.daysInStage}d in stage
         </span>
       </div>
