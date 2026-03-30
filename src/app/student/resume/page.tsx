@@ -292,6 +292,43 @@ export default function ResumePage() {
           </p>
         )}
       </div>
+
+      {/* Resume Templates */}
+      <div className="glass-card p-5">
+        <h2 className="text-sm font-semibold text-text-primary mb-1">
+          Resume Templates
+        </h2>
+        <p className="text-xs text-text-muted mb-4">
+          Download professional resume templates tailored for automation engineering roles. Customise with your details.
+        </p>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+          {[
+            { file: "01_Automation_Engineer_Resume.docx", role: "Automation Engineer" },
+            { file: "02_PLC_Programmer_Resume.docx", role: "PLC Programmer" },
+            { file: "03_Maintenance_Engineer_Resume.docx", role: "Maintenance Engineer" },
+            { file: "04_Service_Engineer_Resume.docx", role: "Service Engineer" },
+            { file: "05_Design_Engineer_Resume.docx", role: "Design Engineer" },
+            { file: "06_Multiskilled_Engineer_Resume.docx", role: "Multiskilled Engineer" },
+            { file: "07_Electrical_Engineer_Resume.docx", role: "Electrical Engineer" },
+          ].map((t) => (
+            <a
+              key={t.file}
+              href={`/resume-templates/${t.file}`}
+              download
+              className="flex items-center gap-3 p-3 rounded-lg bg-white/[0.02] border border-white/[0.04] hover:bg-white/[0.04] hover:border-neon-blue/20 transition-colors group"
+            >
+              <div className="w-8 h-8 rounded-lg bg-neon-blue/10 flex items-center justify-center shrink-0">
+                <FileText size={14} className="text-neon-blue" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-xs font-medium text-text-primary group-hover:text-neon-blue transition-colors">{t.role}</p>
+                <p className="text-[10px] text-text-muted">.docx template</p>
+              </div>
+              <Download size={12} className="text-text-muted group-hover:text-neon-blue shrink-0" />
+            </a>
+          ))}
+        </div>
+      </div>
     </div>
   );
 }
