@@ -40,6 +40,7 @@ interface StudentSidebarProps {
 
 const navItems = [
   { href: "/student/dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/student/trainers", label: "Meet Your Trainers", icon: Users },
   { href: "/student/sessions", label: "Sessions", icon: PlayCircle },
   { href: "/student/progress", label: "Progress", icon: TrendingUp },
   { href: "/student/attendance", label: "Attendance", icon: CalendarCheck },
