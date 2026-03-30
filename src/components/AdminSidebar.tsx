@@ -34,6 +34,7 @@ import {
   ScrollText,
   ChevronRight,
   ChevronDown,
+  ChevronUp,
   FolderKanban,
   MailOpen,
   Crosshair,
@@ -135,17 +136,14 @@ const NAV_GROUPS: NavGroup[] = [
       { id: "invoices", href: "/admin/invoices", label: "Invoices", icon: FileText },
     ],
   },
-  {
-    key: "system",
-    label: "System",
-    icon: Cog,
-    items: [
-      { id: "users", href: "/admin/users", label: "User Management", icon: Shield },
-      { id: "audit", href: "/admin/audit", label: "Audit Log", icon: ScrollText },
-      { id: "notifications", href: "/admin/notifications", label: "Notifications", icon: Bell },
-      { id: "settings", href: "/admin/settings", label: "Settings", icon: Settings },
-    ],
-  },
+];
+
+// System items moved to user profile dropdown
+const SYSTEM_ITEMS = [
+  { id: "settings", href: "/admin/settings", label: "Settings", icon: Settings },
+  { id: "notifications", href: "/admin/notifications", label: "Notifications", icon: Bell },
+  { id: "users", href: "/admin/users", label: "User Management", icon: Shield },
+  { id: "audit", href: "/admin/audit", label: "Audit Log", icon: ScrollText },
 ];
 
 const STORAGE_KEY = "edw-sidebar-groups";
@@ -176,6 +174,7 @@ export function AdminSidebar({
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [expandedGroups, setExpandedGroups] = useState<string[]>([]);
+  const [showUserMenu, setShowUserMenu] = useState(false);
 
   const allowedIds = useMemo(() => getNavItemsForRole(userRole), [userRole]);
 
@@ -307,36 +306,57 @@ export function AdminSidebar({
         })}
       </nav>
 
-      {/* User section */}
-      <div className="border-t border-white/[0.06] p-4">
-        <div className="flex items-center gap-3">
+      {/* User section with system menu */}
+      <div className="border-t border-white/[0.06] p-3 relative">
+        {/* System menu dropdown (opens upward) */}
+        {showUserMenu && (
+          <div className="absolute bottom-full left-2 right-2 mb-1 rounded-xl border border-white/[0.08] bg-[#0c1018] shadow-2xl overflow-hidden z-50">
+            {SYSTEM_ITEMS.filter((item) => allowedIds.includes(item.id)).map((item) => (
+              <Link
+                key={item.id}
+                href={item.href}
+                onClick={() => { setShowUserMenu(false); setMobileOpen(false); }}
+                className={`flex items-center gap-3 px-4 py-2.5 text-xs transition-colors ${
+                  pathname === item.href
+                    ? "bg-neon-blue/10 text-neon-blue"
+                    : "text-text-muted hover:text-text-primary hover:bg-white/[0.04]"
+                }`}
+              >
+                <item.icon size={14} />
+                {item.label}
+              </Link>
+            ))}
+            <div className="border-t border-white/[0.06]">
+              <form action="/api/auth/signout" method="POST">
+                <button
+                  type="submit"
+                  className="flex items-center gap-3 px-4 py-2.5 text-xs text-red-400 hover:bg-red-500/10 w-full text-left transition-colors"
+                >
+                  <LogOut size={14} />
+                  Sign Out
+                </button>
+              </form>
+            </div>
+          </div>
+        )}
+
+        <button
+          onClick={() => setShowUserMenu(!showUserMenu)}
+          className="flex items-center gap-3 w-full rounded-lg p-2 hover:bg-white/[0.03] transition-colors"
+        >
           {userImage ? (
-            <Image
-              src={userImage}
-              alt={userName}
-              width={32}
-              height={32}
-              className="rounded-full"
-            />
+            <Image src={userImage} alt={userName} width={32} height={32} className="rounded-full" />
           ) : (
             <div className="w-8 h-8 rounded-full bg-neon-blue/20 flex items-center justify-center text-xs font-medium text-neon-blue">
               {getInitials(userName)}
             </div>
           )}
-          <div className="flex-1 min-w-0">
+          <div className="flex-1 min-w-0 text-left">
             <p className="text-sm text-text-primary truncate">{userName}</p>
-            <p className="text-[11px] text-text-muted">{userRole}</p>
+            <p className="text-[11px] text-text-muted">{userRole.replace(/_/g, " ")}</p>
           </div>
-          <form action="/api/auth/signout" method="POST">
-            <button
-              type="submit"
-              className="p-1.5 rounded-md text-text-muted hover:text-red-400 hover:bg-white/[0.03] transition-colors"
-              title="Sign out"
-            >
-              <LogOut size={16} />
-            </button>
-          </form>
-        </div>
+          <ChevronUp size={14} className={`text-text-muted transition-transform ${showUserMenu ? "rotate-180" : ""}`} />
+        </button>
       </div>
     </>
   );
