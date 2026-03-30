@@ -153,7 +153,10 @@ function getInitials(name: string): string {
 
 // ---- Component ----
 
-export default function PipelineClient() {
+const REVENUE_HIDDEN_ROLES = ["SALES_LEAD", "ADMISSION_COUNSELLOR", "TRAINER"];
+
+export default function PipelineClient({ userRole = "" }: { userRole?: string }) {
+  const canSeeRevenue = !REVENUE_HIDDEN_ROLES.includes(userRole);
   const [data, setData] = useState<PipelineData | null>(null);
   const [loading, setLoading] = useState(true);
   const [view, setView] = useState<PipelineView>("full");
@@ -327,15 +330,17 @@ export default function PipelineClient() {
           </div>
           <p className="text-lg font-bold text-amber-400">{summary.atRisk}</p>
         </div>
-        <div className="glass-card p-3">
-          <div className="flex items-center gap-2 mb-1">
-            <PoundSterling size={14} className="text-emerald-400" />
-            <span className="text-[11px] text-text-muted uppercase tracking-wide">Revenue Pot.</span>
+        {canSeeRevenue && (
+          <div className="glass-card p-3">
+            <div className="flex items-center gap-2 mb-1">
+              <PoundSterling size={14} className="text-emerald-400" />
+              <span className="text-[11px] text-text-muted uppercase tracking-wide">Revenue Pot.</span>
+            </div>
+            <p className="text-lg font-bold text-emerald-400">
+              {new Intl.NumberFormat("en-GB", { style: "currency", currency: "GBP", minimumFractionDigits: 0 }).format(summary.revenuePotential)}
+            </p>
           </div>
-          <p className="text-lg font-bold text-emerald-400">
-            {new Intl.NumberFormat("en-GB", { style: "currency", currency: "GBP", minimumFractionDigits: 0 }).format(summary.revenuePotential)}
-          </p>
-        </div>
+        )}
       </div>
 
       {/* View Tabs */}

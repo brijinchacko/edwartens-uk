@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import {
   COURSE_LABELS,
@@ -218,6 +219,10 @@ export default async function StudentDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
+  const session = await auth();
+  const userRole = (session?.user as { role?: string })?.role || "";
+  const canSeeRevenue = ["SUPER_ADMIN", "ADMIN"].includes(userRole);
+
   const [student, invoices, journeyEvents, leadData] = await Promise.all([
     getStudent(id),
     getInvoices(id),
@@ -475,8 +480,8 @@ export default async function StudentDetailPage({
             )}
           </div>
 
-          {/* --- Payment Card --- */}
-          <div className="glass-card p-5">
+          {/* --- Payment Card (hidden for non-admin roles) --- */}
+          {canSeeRevenue && <div className="glass-card p-5">
             <h2 className="text-base font-semibold text-text-primary mb-4">
               Payment
             </h2>
@@ -506,7 +511,7 @@ export default async function StudentDetailPage({
                 </div>
               )}
             </div>
-          </div>
+          </div>}
 
           {/* --- Quick Actions --- */}
           <StudentActions
@@ -519,8 +524,8 @@ export default async function StudentDetailPage({
 
         {/* ============ RIGHT COLUMN ============ */}
         <div className="lg:col-span-2 space-y-6">
-          {/* ====== INVOICES ====== */}
-          <div id="invoices" className="glass-card p-5 scroll-mt-24">
+          {/* ====== INVOICES (admin only) ====== */}
+          {canSeeRevenue && <div id="invoices" className="glass-card p-5 scroll-mt-24">
             <h2 className="text-base font-semibold text-text-primary mb-4">
               Invoices
             </h2>
@@ -590,7 +595,7 @@ export default async function StudentDetailPage({
                 </table>
               </div>
             )}
-          </div>
+          </div>}
 
           {/* ====== DOCUMENTS ====== */}
           <div id="documents" className="glass-card p-5 scroll-mt-24">

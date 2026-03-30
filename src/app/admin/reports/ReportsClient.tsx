@@ -777,7 +777,9 @@ const DATE_RANGES: { value: DateRange; label: string }[] = [
   { value: "all", label: "All Time" },
 ];
 
-export function ReportsClient() {
+export function ReportsClient({ userRole = "ADMIN" }: { userRole?: string }) {
+  const canSeeRevenue = userRole === "SUPER_ADMIN";
+  const visibleTabs = canSeeRevenue ? TABS : TABS.filter((t) => t.id !== "sales");
   const [activeTab, setActiveTab] = useState<TabType>("leads");
   const [dateRange, setDateRange] = useState<DateRange>("all");
   const [data, setData] = useState<Record<string, unknown> | null>(null);
@@ -838,7 +840,7 @@ export function ReportsClient() {
 
       {/* Tabs */}
       <div className="flex gap-1 rounded-xl border border-white/[0.06] bg-dark-secondary/50 p-1 overflow-x-auto">
-        {TABS.map((tab) => (
+        {visibleTabs.map((tab) => (
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}

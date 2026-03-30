@@ -17,5 +17,5 @@ export default async function ReportsPage() {
     redirect("/admin/dashboard");
   }
 
-  return <ReportsClient />;
+  return <ReportsClient userRole={role || "ADMIN"} />;
 }
