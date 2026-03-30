@@ -78,6 +78,17 @@ export async function POST(req: NextRequest) {
       },
     });
 
+    // Notify student
+    await prisma.notification.create({
+      data: {
+        userId: student.userId,
+        title: "Invoice Generated",
+        message: `Your invoice ${invoiceNumber} for £${totalAmount.toFixed(2)} has been generated. You can view and download it from your Payments section.`,
+        type: "INVOICE",
+        link: "/student/payments",
+      },
+    });
+
     return NextResponse.json({
       message: "Invoice generated",
       invoice: {
