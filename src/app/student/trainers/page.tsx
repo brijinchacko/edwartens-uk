@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { Award, Briefcase, GraduationCap, MapPin, Linkedin, Wrench, Cpu, Zap, Globe } from "lucide-react";
+import { Award, Briefcase, GraduationCap, MapPin, ExternalLink, Wrench, Cpu, Zap, Globe } from "lucide-react";
 
 export const metadata = {
   title: "Meet Your Trainers | EDWartens UK",
@@ -44,7 +44,7 @@ What sets Allwyn apart is his rare combination of deep technical expertise acros
     name: "Shahul Hameed, MIET",
     role: "Practical Trainer — Milton Keynes",
     title: "Automation Engineer | PLC Programmer | MIET",
-    photo: null,
+    photo: "/images/trainers/shahul-hameed.jpeg",
     location: "Bristol, UK",
     linkedin: "https://www.linkedin.com/in/shahul-hameed-miet",
     type: "practical",
@@ -76,7 +76,7 @@ Shahul's unique background as both an academic (former Assistant Professor in El
     name: "Mohammed Ansel",
     role: "Practical Trainer — Milton Keynes",
     title: "Maintenance Engineer | Multi-Skilled Engineer",
-    photo: null,
+    photo: "/images/trainers/mohammed-ansel.png",
     location: "London, UK",
     linkedin: null,
     type: "practical",
@@ -103,6 +103,40 @@ Currently a Maintenance Engineer at Merlin Entertainments (responsible for the L
       { role: "Multi-Skilled Engineer", company: "National Batteries, India", period: "Mar 2008 – Mar 2013 (5 years)" },
     ],
     quote: "Real engineering is about solving problems under pressure. I teach students the troubleshooting mindset that makes the difference between a good engineer and a great one.",
+  },
+  {
+    name: "Brijin Chacko",
+    role: "Founder & Practical Trainer",
+    title: "CEO, Wartens Ltd | Industrial Automation Specialist",
+    photo: "/images/trainers/brijin-chacko.jpeg",
+    location: "Milton Keynes, UK",
+    linkedin: "https://www.linkedin.com/in/brijinchacko",
+    type: "practical",
+    bio: `Brijin Chacko is the founder and CEO of Wartens Ltd and the driving force behind EDWartens UK. With deep expertise in industrial automation and a portfolio spanning some of the world's most demanding industries, Brijin personally leads practical training sessions at the Milton Keynes centre, ensuring students learn from someone who has built and commissioned real-world automation systems.
+
+Since 2020, Brijin has delivered automation projects across the UK spanning FMCG, Energy, Water Treatment, Automotive, and Cloud Infrastructure sectors. His project portfolio includes work with global automotive giants Toyota and Hyundai, as well as critical infrastructure projects for Amazon Web Services (AWS) during his tenure at Schneider Electric — all delivered in the UK. This breadth of experience across industries gives students a unique perspective on how automation engineering works in the real world — from factory floors to data centres.
+
+Brijin's vision for EDWartens UK is to create the most practical, career-focused automation training programme in the UK — one that doesn't just teach theory, but transforms careers. Every aspect of the curriculum, from the hands-on projects to the career support programme, reflects his belief that the best engineers are made through real-world practice, not just classroom study.`,
+    expertise: [
+      "Siemens TIA Portal — PLC, HMI, SCADA",
+      "Schneider Electric Systems & EcoStruxure",
+      "Industrial Automation — FMCG, Energy, Water, Automotive",
+      "AWS Data Centre Infrastructure Projects",
+      "Toyota & Hyundai Automotive Automation (India)",
+      "Control Panel Design & Commissioning",
+      "Project Management & Client Delivery",
+      "Business Leadership & Training Programme Design",
+    ],
+    education: [
+      { degree: "Industrial Automation Engineering", school: "Specialist Training & Certifications", year: "2018–2020" },
+    ],
+    experience: [
+      { role: "Founder & CEO", company: "Wartens Ltd (EDWartens UK)", period: "2023 – Present" },
+      { role: "Automation Engineer", company: "Schneider Electric — AWS Data Centre Projects, UK", period: "2020 – 2023" },
+      { role: "Automation Engineer", company: "Toyota & Hyundai Automotive Projects, UK", period: "2020 – 2023" },
+      { role: "Industrial Automation", company: "FMCG, Energy, Water Treatment Projects, UK", period: "2020 – Present" },
+    ],
+    quote: "I built EDWartens because I saw too many talented engineers struggling to break into automation. Our programme doesn't just teach you PLC programming — it gives you the confidence, the portfolio, and the industry connections to land your first automation role in the UK.",
   },
 ];
 
@@ -170,7 +204,7 @@ export default function TrainersPage() {
                       rel="noopener noreferrer"
                       className="flex items-center gap-1 text-xs text-neon-blue hover:underline"
                     >
-                      <Linkedin size={12} /> LinkedIn Profile
+                      <ExternalLink size={12} /> LinkedIn Profile
                     </a>
                   )}
                 </div>
