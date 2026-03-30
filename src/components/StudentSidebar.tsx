@@ -29,6 +29,7 @@ import {
   Users,
   Newspaper,
   Gift,
+  Settings,
 } from "lucide-react";
 
 interface StudentSidebarProps {
@@ -59,6 +60,7 @@ const navItems = [
   { href: "/student/feedback", label: "Feedback", icon: MessageSquare },
   { href: "/student/profile", label: "Profile", icon: User },
   { href: "/student/support", label: "Support", icon: HelpCircle },
+  { href: "/student/settings", label: "Settings", icon: Settings },
 ];
 
 export default function StudentSidebar({
