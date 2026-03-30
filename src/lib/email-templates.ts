@@ -607,6 +607,91 @@ export const emailTemplates: EmailTemplate[] = [
 
     <p>Thank you for being part of the {{companyName}} family. We wish you every success in your automation career!</p>`),
   },
+
+  // ─── PRACTICAL SESSION ─────────────────────────────────────────────
+  {
+    id: "practical-session-invitation",
+    name: "Practical Session Invitation",
+    category: "Practical Session",
+    subject: "Your Practical Session is Confirmed -- {{date}} | EDWartens UK",
+    variables: ["name", "firstName", "date", "time", "venue", "deadline", "trainerName", ...ALL_VARS],
+    body: wrap(`
+    <p>Hi {{firstName}},</p>
+
+    <p>Great news! Your <strong>Practical Training Session</strong> at our Milton Keynes centre has been scheduled. Please review the details below and confirm your attendance.</p>
+
+    <div style="background:#f0f7ff;border:1px solid #d0e3ff;border-radius:8px;padding:16px 20px;margin:16px 0;">
+      <h3 style="color:#2891FF;font-size:15px;margin:0 0 12px;">Session Details</h3>
+      <table style="width:100%;font-size:13px;color:#374151;">
+        <tr><td style="padding:4px 0;font-weight:600;width:120px;">Date:</td><td>{{date}}</td></tr>
+        <tr><td style="padding:4px 0;font-weight:600;">Time:</td><td>{{time}}</td></tr>
+        <tr><td style="padding:4px 0;font-weight:600;">Venue:</td><td>{{venue}}</td></tr>
+        <tr><td style="padding:4px 0;font-weight:600;">Trainer:</td><td>{{trainerName}}</td></tr>
+      </table>
+    </div>
+
+    <h3 style="color:#2891FF;font-size:15px;margin:20px 0 8px;">Venue Rules &amp; Requirements</h3>
+    <ul style="padding-left:20px;color:#374151;">
+      <li>Arrive <strong>15 minutes early</strong> for registration and setup</li>
+      <li>Bring your <strong>laptop</strong> with TIA Portal installed</li>
+      <li>Wear <strong>appropriate footwear</strong> (closed-toe shoes required)</li>
+      <li>No food or drinks near equipment</li>
+      <li><strong>Photo ID</strong> is required for entry</li>
+    </ul>
+
+    <h3 style="color:#2891FF;font-size:15px;margin:20px 0 8px;">What You Will Cover</h3>
+    <ul style="padding-left:20px;color:#374151;">
+      <li>Hands-on PLC programming with real industrial hardware</li>
+      <li>Panel wiring and troubleshooting exercises</li>
+      <li>HMI configuration and testing</li>
+      <li>Real-world scenario-based challenges</li>
+    </ul>
+
+    <div style="background:#fff7ed;border-left:4px solid #f59e0b;padding:12px 16px;margin:16px 0;border-radius:0 4px 4px 0;">
+      <p style="margin:0;font-size:13px;color:#374151;"><strong>Important:</strong> Please confirm your attendance by <strong>{{deadline}}</strong>. Once confirmed, cancellation will mean no future free practical sessions will be offered.</p>
+    </div>
+
+    <p>Please log in to your <a href="https://app.edwartens.com/student/practical" style="color:#2891FF;text-decoration:none;font-weight:600;">Student Portal</a> to accept or decline this invitation.</p>
+
+    <p>We look forward to seeing you there!</p>`),
+  },
+  {
+    id: "practical-session-reminder",
+    name: "Practical Session Reminder",
+    category: "Practical Session",
+    subject: "Reminder: Practical Session on {{date}} -- Please Confirm | EDWartens UK",
+    variables: ["name", "firstName", "date", "time", "venue", "deadline", "trainerName", ...ALL_VARS],
+    body: wrap(`
+    <p>Hi {{firstName}},</p>
+
+    <p>This is a friendly reminder that your <strong>Practical Training Session</strong> is coming up soon! If you have not yet confirmed your attendance, please do so as soon as possible.</p>
+
+    <div style="background:#f0f7ff;border:1px solid #d0e3ff;border-radius:8px;padding:16px 20px;margin:16px 0;">
+      <h3 style="color:#2891FF;font-size:15px;margin:0 0 12px;">Session Details</h3>
+      <table style="width:100%;font-size:13px;color:#374151;">
+        <tr><td style="padding:4px 0;font-weight:600;width:120px;">Date:</td><td>{{date}}</td></tr>
+        <tr><td style="padding:4px 0;font-weight:600;">Time:</td><td>{{time}}</td></tr>
+        <tr><td style="padding:4px 0;font-weight:600;">Venue:</td><td>{{venue}}</td></tr>
+        <tr><td style="padding:4px 0;font-weight:600;">Trainer:</td><td>{{trainerName}}</td></tr>
+      </table>
+    </div>
+
+    <div style="background:#fef2f2;border-left:4px solid #ef4444;padding:12px 16px;margin:16px 0;border-radius:0 4px 4px 0;">
+      <p style="margin:0;font-size:13px;color:#374151;"><strong>Booking Deadline: {{deadline}}</strong></p>
+      <p style="margin:4px 0 0;font-size:12px;color:#6b7280;">If we do not receive at least 3 confirmed bookings by the deadline, the session may be cancelled or rescheduled. Please confirm at your earliest convenience.</p>
+    </div>
+
+    <h3 style="color:#2891FF;font-size:15px;margin:20px 0 8px;">Capacity Rules</h3>
+    <ul style="padding-left:20px;color:#374151;">
+      <li>Maximum <strong>6 students</strong> per session for optimal hands-on experience</li>
+      <li>Minimum <strong>3 confirmed bookings</strong> required for the session to proceed</li>
+      <li>First-come, first-served basis once capacity is reached</li>
+    </ul>
+
+    <p>Please log in to your <a href="https://app.edwartens.com/student/practical" style="color:#2891FF;text-decoration:none;font-weight:600;">Student Portal</a> to confirm your attendance now.</p>
+
+    <p>If you have any questions or need to discuss alternative dates, please do not hesitate to reach out.</p>`),
+  },
 ];
 
 /* ─── Utility Functions ──────────────────────────────────────────── */

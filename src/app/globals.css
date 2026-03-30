@@ -106,51 +106,120 @@ body {
 }
 
 /* ---------------------------------------------------------------------------
-   Light-mode overrides  (applied via ThemeProvider adding .theme-light to body)
+   Light-mode overrides  (applied via ThemeProvider adding .theme-light to body
+   AND data-theme="light" on <html>)
+   Uses !important on ALL overrides to win against Tailwind specificity.
    --------------------------------------------------------------------------- */
+body.theme-light,
+body.theme-light * {
+  --tw-text-opacity: 1;
+}
+
 body.theme-light {
-  background: #f5f7fa;
-  color: #1e293b;
+  background: #f5f7fa !important;
+  color: #1e293b !important;
 }
 
 body.theme-light ::selection {
-  background: rgba(40, 145, 255, 0.2);
-  color: #0f172a;
+  background: rgba(40, 145, 255, 0.2) !important;
+  color: #0f172a !important;
 }
 
 /* Scrollbar */
 body.theme-light ::-webkit-scrollbar-track {
-  background: #f5f7fa;
+  background: #f5f7fa !important;
 }
 body.theme-light ::-webkit-scrollbar-thumb {
-  background: rgba(0, 0, 0, 0.15);
+  background: rgba(0, 0, 0, 0.15) !important;
 }
 body.theme-light ::-webkit-scrollbar-thumb:hover {
-  background: rgba(0, 0, 0, 0.25);
+  background: rgba(0, 0, 0, 0.25) !important;
 }
 
 /* Glass card -> solid card in light mode */
 body.theme-light .glass-card {
-  background: #ffffff;
-  border-color: #e2e8f0;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
-  backdrop-filter: none;
-  -webkit-backdrop-filter: none;
+  background: #ffffff !important;
+  border-color: #e2e8f0 !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
 }
 body.theme-light .glass-card:hover {
-  background: #ffffff;
-  border-color: #cbd5e1;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.06), 0 2px 4px rgba(0, 0, 0, 0.04);
+  background: #ffffff !important;
+  border-color: #cbd5e1 !important;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.06), 0 2px 4px rgba(0, 0, 0, 0.04) !important;
 }
 
 /* Admin layout shell */
 body.theme-light .theme-bg {
-  background: #f5f7fa;
+  background: #f5f7fa !important;
 }
 
-/* Tailwind color overrides via utility classes won't auto-switch,
-   so we override the custom theme palette for elements that use
-   Tailwind's bg-dark-*, text-text-*, border-* utilities.            */
+/* ---- Force ALL white text to dark in light mode ---- */
+body.theme-light .text-white,
+body.theme-light [class*="text-white"],
+html[data-theme="light"] .text-white,
+html[data-theme="light"] [class*="text-white"] {
+  color: #1e293b !important;
+}
+
+/* White-alpha text */
+body.theme-light [class*="text-white/"],
+html[data-theme="light"] [class*="text-white/"] {
+  color: rgba(15, 23, 42, 0.7) !important;
+}
+
+/* ---- Force dark backgrounds to light ---- */
+body.theme-light [style*="#0a0a14"],
+body.theme-light [style*="#0c1018"],
+body.theme-light [style*="rgb(10, 10, 20)"],
+body.theme-light [style*="rgb(12, 16, 24)"],
+html[data-theme="light"] [style*="#0a0a14"],
+html[data-theme="light"] [style*="#0c1018"] {
+  background-color: #ffffff !important;
+  color: #1e293b !important;
+}
+
+body.theme-light [class*="bg-\[#0a"],
+html[data-theme="light"] [class*="bg-\[#0a"] {
+  background-color: #ffffff !important;
+  color: #1e293b !important;
+}
+
+body.theme-light [class*="bg-\[#0c"],
+html[data-theme="light"] [class*="bg-\[#0c"] {
+  background-color: #f8fafc !important;
+  color: #1e293b !important;
+}
+
+/* ---- Select/option readability ---- */
+body.theme-light select,
+body.theme-light select option,
+html[data-theme="light"] select,
+html[data-theme="light"] select option {
+  background: #ffffff !important;
+  color: #1e293b !important;
+}
+
+/* ---- Modal backgrounds ---- */
+body.theme-light [class*="bg-\[#0a0a14\]/95"],
+body.theme-light [class*="bg-\[#0a0a14\]/90"],
+html[data-theme="light"] [class*="bg-\[#0a0a14\]/95"],
+html[data-theme="light"] [class*="bg-\[#0a0a14\]/90"] {
+  background-color: rgba(255, 255, 255, 0.97) !important;
+  color: #1e293b !important;
+}
+
+/* Modal overlay backdrop */
+body.theme-light [class*="bg-black/60"],
+body.theme-light [class*="bg-black/50"] {
+  background-color: rgba(0, 0, 0, 0.3) !important;
+}
+body.theme-light [class*="backdrop-blur"] {
+  backdrop-filter: blur(4px) !important;
+}
+
+/* ---- Tailwind color utility overrides ---- */
 body.theme-light .bg-dark-primary   { background-color: #f5f7fa !important; }
 body.theme-light .bg-dark-secondary { background-color: #ffffff !important; }
 body.theme-light .bg-dark-tertiary  { background-color: #f1f5f9 !important; }
@@ -169,42 +238,10 @@ body.theme-light [class*="border-white/"]  { border-color: #e2e8f0 !important; }
 body.theme-light [class*="bg-white/[0.0"]  { background-color: #f1f5f9 !important; }
 body.theme-light [class*="bg-white/10"]    { background-color: #e2e8f0 !important; }
 
-/* Input fields */
+/* Input fields -- all types */
 body.theme-light select,
 body.theme-light input[type="number"],
-body.theme-light input[type="text"] {
-  background-color: #f8fafc !important;
-  border-color: #e2e8f0 !important;
-  color: #0f172a !important;
-}
-body.theme-light select option {
-  background-color: #ffffff;
-  color: #0f172a;
-}
-
-/* Sidebar adjustments */
-body.theme-light .bg-dark-secondary\/95 { background-color: rgba(255,255,255,0.97) !important; }
-
-/* Table rows */
-body.theme-light tr { border-color: #e2e8f0 !important; }
-
-/* Code blocks */
-body.theme-light code {
-  background-color: #f1f5f9 !important;
-  color: #334155 !important;
-}
-
-/* Fix white text on white background in light mode */
-body.theme-light .text-white { color: #0f172a !important; }
-body.theme-light .placeholder\:text-text-muted::placeholder { color: #94a3b8 !important; }
-
-/* Fix inline dark backgrounds */
-body.theme-light [class*="bg-\[#0a0a14\]"] { background-color: #ffffff !important; }
-body.theme-light [class*="bg-\[#0a0a14\]/95"] { background-color: rgba(255,255,255,0.97) !important; }
-body.theme-light [class*="bg-\[#0c1018\]"] { background-color: #f8fafc !important; }
-body.theme-light [style*="background"] { color: #0f172a; }
-
-/* Fix date inputs in light mode */
+body.theme-light input[type="text"],
 body.theme-light input[type="date"],
 body.theme-light input[type="time"],
 body.theme-light textarea,
@@ -219,30 +256,53 @@ body.theme-light input[type="search"] {
   color-scheme: light !important;
 }
 
-/* Sidebar text */
-body.theme-light .text-text-primary { color: #0f172a !important; }
-body.theme-light [class*="text-white/"] { color: rgba(15,23,42,0.7) !important; }
+/* Sidebar adjustments */
+body.theme-light .bg-dark-secondary\/95 { background-color: rgba(255,255,255,0.97) !important; }
+
+/* Table rows */
+body.theme-light tr { border-color: #e2e8f0 !important; }
+
+/* Code blocks */
+body.theme-light code {
+  background-color: #f1f5f9 !important;
+  color: #334155 !important;
+}
+
+/* Placeholder text */
+body.theme-light .placeholder\:text-text-muted::placeholder { color: #94a3b8 !important; }
+
+/* Inline style backgrounds */
+body.theme-light [style*="background"] { color: #0f172a !important; }
 
 /* Fix neon-blue/neon-green text to be darker in light mode for readability */
 body.theme-light .text-neon-blue { color: #1a6fd4 !important; }
 body.theme-light .text-neon-green { color: #3d8b0e !important; }
 body.theme-light .text-purple { color: #7c3aed !important; }
 
-/* Fix modal overlays */
-body.theme-light [class*="bg-black/60"] { background-color: rgba(0,0,0,0.3) !important; }
-body.theme-light [class*="backdrop-blur"] { backdrop-filter: blur(4px) !important; }
-
 /* Student portal specific fixes */
-body.theme-light .bg-dark-primary { background-color: #f5f7fa !important; }
 body.theme-light [class*="bg-neon-blue/10"] { background-color: rgba(26,111,212,0.08) !important; }
 body.theme-light [class*="bg-neon-green/10"] { background-color: rgba(61,139,14,0.08) !important; }
 body.theme-light [class*="bg-red-500/10"] { background-color: rgba(239,68,68,0.06) !important; }
 body.theme-light [class*="bg-yellow-500/10"] { background-color: rgba(234,179,8,0.06) !important; }
 body.theme-light [class*="bg-green-500/10"] { background-color: rgba(34,197,94,0.06) !important; }
 
+/* Sidebar links in light mode */
+body.theme-light .sidebar-link {
+  color: #475569 !important;
+}
+body.theme-light .sidebar-link:hover {
+  color: #1e293b !important;
+  background: rgba(0, 0, 0, 0.04) !important;
+}
+body.theme-light .sidebar-link.active {
+  color: #1a6fd4 !important;
+  background: rgba(26, 111, 212, 0.08) !important;
+  border-color: rgba(26, 111, 212, 0.2) !important;
+}
+
 /* Dot grid */
 body.theme-light .dot-grid {
-  background-image: radial-gradient(rgba(0, 0, 0, 0.06) 1px, transparent 1px);
+  background-image: radial-gradient(rgba(0, 0, 0, 0.06) 1px, transparent 1px) !important;
 }
 
 /* Mesh Gradient Backgrounds */

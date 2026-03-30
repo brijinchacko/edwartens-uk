@@ -61,6 +61,15 @@ export async function GET(
                 user: { select: { name: true, email: true } },
               },
             },
+            bookings: {
+              include: {
+                student: {
+                  include: {
+                    user: { select: { name: true, email: true } },
+                  },
+                },
+              },
+            },
           },
           orderBy: { date: "asc" },
         },

@@ -275,6 +275,7 @@ model Student {
   alumniProfile        AlumniProfile?
   referralsMade        Referral[]    @relation("ReferralsMade")
   signatures           DocumentSignature[]
+  practicalBookings    PracticalBooking[]
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
 }
@@ -433,19 +434,39 @@ model BatchReadiness {
 }
 
 model PracticalSession {
-  id        String    @id @default(cuid())
-  batchId   String
-  batch     Batch     @relation(fields: [batchId], references: [id], onDelete: Cascade)
-  title     String    @default("Practical Session - Milton Keynes")
-  date      DateTime
-  startTime String?
-  endTime   String?
-  location  String    @default("8 Lyon Road, Milton Keynes, MK1 1EX")
-  trainerId String?
-  trainer   Employee? @relation("PracticalTrainer", fields: [trainerId], references: [id])
-  status    String    @default("SCHEDULED")
-  notes     String?
-  createdAt DateTime  @default(now())
+  id              String    @id @default(cuid())
+  batchId         String
+  batch           Batch     @relation(fields: [batchId], references: [id], onDelete: Cascade)
+  title           String    @default("Practical Session - Milton Keynes")
+  date            DateTime
+  startTime       String?
+  endTime         String?
+  location        String    @default("8 Lyon Road, Milton Keynes, MK1 1EX")
+  trainerId       String?
+  trainer         Employee? @relation("PracticalTrainer", fields: [trainerId], references: [id])
+  status          String    @default("SCHEDULED")
+  notes           String?
+  capacity        Int       @default(6)
+  minCapacity     Int       @default(3)
+  bookingDeadline DateTime?
+  bookings        PracticalBooking[]
+  createdAt       DateTime  @default(now())
+}
+
+model PracticalBooking {
+  id                 String           @id @default(cuid())
+  practicalSessionId String
+  practicalSession   PracticalSession @relation(fields: [practicalSessionId], references: [id], onDelete: Cascade)
+  studentId          String
+  student            Student          @relation(fields: [studentId], references: [id])
+  status             String           @default("INVITED") // INVITED, ACCEPTED, DECLINED, CANCELLED, ATTENDED
+  invitedAt          DateTime         @default(now())
+  respondedAt        DateTime?
+  cancelledAt        DateTime?
+  cancelReason       String?
+  notes              String?
+
+  @@unique([practicalSessionId, studentId])
 }
 
 model Phase {

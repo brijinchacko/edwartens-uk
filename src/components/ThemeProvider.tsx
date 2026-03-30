@@ -54,14 +54,18 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     setMounted(true);
   }, []);
 
-  // Apply theme class + accent variable to <body>
+  // Apply theme class + accent variable to <body> AND data-theme on <html>
   useEffect(() => {
     if (!mounted) return;
     const body = document.body;
+    const html = document.documentElement;
 
-    // Theme class
+    // Theme class on body
     body.classList.remove("theme-dark", "theme-light");
     body.classList.add(`theme-${theme}`);
+
+    // data-theme attribute on <html> for extra CSS specificity hooks
+    html.setAttribute("data-theme", theme);
 
     // Accent CSS variable
     body.style.setProperty("--accent-color", accent);

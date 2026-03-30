@@ -971,6 +971,8 @@ function PracticalTab({
 }) {
   const [showForm, setShowForm] = useState(false);
   const [creating, setCreating] = useState(false);
+  const [inviting, setInviting] = useState<string | null>(null);
+  const [selectedStudents, setSelectedStudents] = useState<string[]>([]);
   const [form, setForm] = useState({
     title: "Practical Session - Milton Keynes",
     date: "",
@@ -979,9 +981,13 @@ function PracticalTab({
     location: "8 Lyon Road, Milton Keynes, MK1 1EX",
     trainerId: "",
     notes: "",
+    capacity: "6",
+    minCapacity: "3",
+    bookingDeadline: "",
   });
 
   const practicals = batch.practicalSessions || [];
+  const students = batch.students || [];
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -1007,16 +1013,78 @@ function PracticalTab({
           location: "8 Lyon Road, Milton Keynes, MK1 1EX",
           trainerId: "",
           notes: "",
+          capacity: "6",
+          minCapacity: "3",
+          bookingDeadline: "",
         });
         onRefresh();
       } else {
         const data = await res.json();
         alert(data.error || "Failed to create practical session");
       }
-    } catch (e) {
+    } catch {
       alert("Failed to create practical session");
     } finally {
       setCreating(false);
+    }
+  };
+
+  const handleInviteStudents = async (practicalId: string) => {
+    if (selectedStudents.length === 0) {
+      return alert("Select at least one student to invite");
+    }
+
+    const practical = practicals.find((p: any) => p.id === practicalId);
+    if (!practical) return;
+
+    setInviting(practicalId);
+    try {
+      const res = await fetch("/api/admin/practical-booking", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          batchId,
+          title: practical.title,
+          date: practical.date,
+          startTime: practical.startTime,
+          endTime: practical.endTime,
+          trainerId: practical.trainerId,
+          location: practical.location,
+          capacity: practical.capacity || 6,
+          minCapacity: practical.minCapacity || 3,
+          bookingDeadline: practical.bookingDeadline,
+          studentIds: selectedStudents,
+        }),
+      });
+      if (res.ok) {
+        setSelectedStudents([]);
+        setInviting(null);
+        onRefresh();
+        alert("Invitations sent successfully!");
+      } else {
+        const data = await res.json();
+        alert(data.error || "Failed to send invitations");
+      }
+    } catch {
+      alert("Failed to send invitations");
+    } finally {
+      setInviting(null);
+    }
+  };
+
+  const toggleStudent = (studentId: string) => {
+    setSelectedStudents((prev) =>
+      prev.includes(studentId)
+        ? prev.filter((id) => id !== studentId)
+        : [...prev, studentId]
+    );
+  };
+
+  const selectAll = () => {
+    if (selectedStudents.length === students.length) {
+      setSelectedStudents([]);
+    } else {
+      setSelectedStudents(students.map((s: any) => s.id));
     }
   };
 
@@ -1024,6 +1092,14 @@ function PracticalTab({
     SCHEDULED: "bg-cyan/10 text-cyan border-cyan/20",
     COMPLETED: "bg-green-500/10 text-green-400 border-green-500/20",
     CANCELLED: "bg-red-500/10 text-red-400 border-red-500/20",
+  };
+
+  const BOOKING_STATUS: Record<string, string> = {
+    INVITED: "bg-yellow-500/10 text-yellow-400",
+    ACCEPTED: "bg-green-500/10 text-green-400",
+    DECLINED: "bg-red-500/10 text-red-400",
+    CANCELLED: "bg-red-500/10 text-red-400",
+    ATTENDED: "bg-neon-blue/10 text-neon-blue",
   };
 
   return (
@@ -1047,48 +1123,183 @@ function PracticalTab({
             No practical sessions scheduled
           </p>
         ) : (
-          <div className="space-y-3">
-            {practicals.map((p: any) => (
-              <div
-                key={p.id}
-                className="flex items-center gap-4 py-3 border-b border-white/[0.04] last:border-0"
-              >
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="text-sm text-text-primary font-medium">
-                      {p.title}
-                    </span>
-                    <span
-                      className={`inline-flex px-2 py-0.5 rounded-full text-[10px] font-medium border ${PRACTICAL_STATUS[p.status] || PRACTICAL_STATUS.SCHEDULED}`}
-                    >
-                      {p.status}
-                    </span>
+          <div className="space-y-4">
+            {practicals.map((p: any) => {
+              const bookings = p.bookings || [];
+              const acceptedCount = bookings.filter(
+                (b: any) => b.status === "ACCEPTED"
+              ).length;
+              const declinedCount = bookings.filter(
+                (b: any) => b.status === "DECLINED"
+              ).length;
+              const pendingCount = bookings.filter(
+                (b: any) => b.status === "INVITED"
+              ).length;
+              const hasBookings = bookings.length > 0;
+
+              return (
+                <div
+                  key={p.id}
+                  className="py-3 border-b border-white/[0.04] last:border-0"
+                >
+                  <div className="flex items-center gap-4">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="text-sm text-text-primary font-medium">
+                          {p.title}
+                        </span>
+                        <span
+                          className={`inline-flex px-2 py-0.5 rounded-full text-[10px] font-medium border ${PRACTICAL_STATUS[p.status] || PRACTICAL_STATUS.SCHEDULED}`}
+                        >
+                          {p.status}
+                        </span>
+                      </div>
+                      <div className="flex flex-wrap items-center gap-3 text-xs text-text-muted">
+                        <span className="flex items-center gap-1">
+                          <Calendar size={10} /> {formatDate(p.date)}
+                        </span>
+                        {(p.startTime || p.endTime) && (
+                          <span className="flex items-center gap-1">
+                            <Clock size={10} /> {p.startTime || "-"} -{" "}
+                            {p.endTime || "-"}
+                          </span>
+                        )}
+                        <span className="flex items-center gap-1">
+                          <MapPin size={10} /> {p.location}
+                        </span>
+                        {p.trainer && (
+                          <span className="flex items-center gap-1">
+                            <User size={10} /> {p.trainer.user.name}
+                          </span>
+                        )}
+                      </div>
+                      {p.notes && (
+                        <p className="text-xs text-text-muted mt-1">
+                          {p.notes}
+                        </p>
+                      )}
+                    </div>
                   </div>
-                  <div className="flex flex-wrap items-center gap-3 text-xs text-text-muted">
-                    <span className="flex items-center gap-1">
-                      <Calendar size={10} /> {formatDate(p.date)}
-                    </span>
-                    {(p.startTime || p.endTime) && (
-                      <span className="flex items-center gap-1">
-                        <Clock size={10} /> {p.startTime || "-"} -{" "}
-                        {p.endTime || "-"}
-                      </span>
-                    )}
-                    <span className="flex items-center gap-1">
-                      <MapPin size={10} /> {p.location}
-                    </span>
-                    {p.trainer && (
-                      <span className="flex items-center gap-1">
-                        <User size={10} /> {p.trainer.user.name}
-                      </span>
-                    )}
-                  </div>
-                  {p.notes && (
-                    <p className="text-xs text-text-muted mt-1">{p.notes}</p>
+
+                  {/* Booking Stats */}
+                  {hasBookings && (
+                    <div className="mt-3 space-y-2">
+                      <div className="flex items-center gap-4 text-xs">
+                        <span className="text-green-400">
+                          {acceptedCount} accepted
+                        </span>
+                        <span className="text-red-400">
+                          {declinedCount} declined
+                        </span>
+                        <span className="text-yellow-400">
+                          {pendingCount} pending
+                        </span>
+                        <span className="text-text-muted">
+                          / {bookings.length} invited
+                        </span>
+                      </div>
+
+                      {/* Warning if less than minCapacity accepted */}
+                      {acceptedCount < (p.minCapacity || 3) && (
+                        <div className="flex items-center gap-2 text-xs text-yellow-400 bg-yellow-500/5 px-3 py-1.5 rounded-lg border border-yellow-500/10">
+                          <span>
+                            Only {acceptedCount} accepted. Need at least{" "}
+                            {p.minCapacity || 3} for session to proceed.
+                          </span>
+                        </div>
+                      )}
+
+                      {/* Individual booking statuses */}
+                      <div className="flex flex-wrap gap-1.5">
+                        {bookings.map((b: any) => (
+                          <span
+                            key={b.id}
+                            className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium ${BOOKING_STATUS[b.status] || BOOKING_STATUS.INVITED}`}
+                            title={b.cancelReason ? `Reason: ${b.cancelReason}` : undefined}
+                          >
+                            {b.student?.user?.name || "Student"}: {b.status}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Invite Students Button */}
+                  {!hasBookings && p.status === "SCHEDULED" && (
+                    <div className="mt-3">
+                      {inviting === p.id ? (
+                        <div className="space-y-3">
+                          <div className="flex items-center justify-between">
+                            <h4 className="text-xs font-semibold text-text-primary">
+                              Select Students to Invite
+                            </h4>
+                            <button
+                              onClick={selectAll}
+                              className="text-[10px] text-neon-blue hover:underline"
+                            >
+                              {selectedStudents.length === students.length
+                                ? "Deselect All"
+                                : "Select All"}
+                            </button>
+                          </div>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
+                            {students.map((s: any) => (
+                              <label
+                                key={s.id}
+                                className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white/[0.02] border border-white/[0.04] cursor-pointer hover:bg-white/[0.04] transition-colors"
+                              >
+                                <input
+                                  type="checkbox"
+                                  checked={selectedStudents.includes(s.id)}
+                                  onChange={() => toggleStudent(s.id)}
+                                  className="rounded"
+                                />
+                                <div className="min-w-0">
+                                  <p className="text-xs text-text-primary truncate">
+                                    {s.user.name}
+                                  </p>
+                                  <p className="text-[10px] text-text-muted truncate">
+                                    {s.user.email}
+                                  </p>
+                                </div>
+                              </label>
+                            ))}
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <button
+                              onClick={() => handleInviteStudents(p.id)}
+                              disabled={selectedStudents.length === 0}
+                              className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-neon-blue/10 text-neon-blue border border-neon-blue/20 hover:bg-neon-blue/20 transition-colors text-xs font-medium disabled:opacity-50"
+                            >
+                              <Mail size={12} />
+                              Send {selectedStudents.length} Invitation
+                              {selectedStudents.length !== 1 ? "s" : ""}
+                            </button>
+                            <button
+                              onClick={() => {
+                                setInviting(null);
+                                setSelectedStudents([]);
+                              }}
+                              className="px-3 py-1.5 rounded-lg text-text-muted hover:text-text-primary text-xs"
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <button
+                          onClick={() => setInviting(p.id)}
+                          className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-purple/10 text-purple border border-purple/20 hover:bg-purple/20 transition-colors text-xs font-medium"
+                        >
+                          <Mail size={12} />
+                          Invite Students
+                        </button>
+                      )}
+                    </div>
                   )}
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>
@@ -1165,6 +1376,49 @@ function PracticalTab({
                     setForm({ ...form, location: e.target.value })
                   }
                   className="w-full px-3 py-2 text-sm bg-white/[0.03] border border-white/[0.06] rounded-lg text-text-primary placeholder:text-text-muted/50 focus:outline-none focus:border-neon-blue/30"
+                />
+              </div>
+              <div>
+                <label className="block text-[10px] text-text-muted uppercase tracking-wider mb-1">
+                  Capacity
+                </label>
+                <input
+                  type="number"
+                  value={form.capacity}
+                  onChange={(e) =>
+                    setForm({ ...form, capacity: e.target.value })
+                  }
+                  min="1"
+                  max="20"
+                  className="w-full px-3 py-2 text-sm bg-white/[0.03] border border-white/[0.06] rounded-lg text-text-primary focus:outline-none focus:border-neon-blue/30"
+                />
+              </div>
+              <div>
+                <label className="block text-[10px] text-text-muted uppercase tracking-wider mb-1">
+                  Min Capacity
+                </label>
+                <input
+                  type="number"
+                  value={form.minCapacity}
+                  onChange={(e) =>
+                    setForm({ ...form, minCapacity: e.target.value })
+                  }
+                  min="1"
+                  max="20"
+                  className="w-full px-3 py-2 text-sm bg-white/[0.03] border border-white/[0.06] rounded-lg text-text-primary focus:outline-none focus:border-neon-blue/30"
+                />
+              </div>
+              <div>
+                <label className="block text-[10px] text-text-muted uppercase tracking-wider mb-1">
+                  Booking Deadline
+                </label>
+                <input
+                  type="date"
+                  value={form.bookingDeadline}
+                  onChange={(e) =>
+                    setForm({ ...form, bookingDeadline: e.target.value })
+                  }
+                  className="w-full px-3 py-2 text-sm bg-white/[0.03] border border-white/[0.06] rounded-lg text-text-primary focus:outline-none focus:border-neon-blue/30"
                 />
               </div>
               <div>
