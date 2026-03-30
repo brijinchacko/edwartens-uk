@@ -89,6 +89,15 @@ export default function StudentQuickActions({
   }
 
   async function handleGenerateInvoice() {
+    const amountStr = prompt("Enter invoice amount (£):", "2568");
+    if (!amountStr) return;
+    const amount = parseFloat(amountStr);
+    if (isNaN(amount) || amount <= 0) {
+      setInvoiceMsg("Invalid amount");
+      return;
+    }
+    const description = prompt("Description (optional):", "Professional Module — PLC, SCADA & HMI Training") || undefined;
+
     setGeneratingInvoice(true);
     setInvoiceMsg("");
 
@@ -96,7 +105,7 @@ export default function StudentQuickActions({
       const res = await fetch("/api/admin/invoices/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ studentId }),
+        body: JSON.stringify({ studentId, amount, description }),
       });
 
       if (!res.ok) {

@@ -2,7 +2,11 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { hasPermission } from "@/lib/rbac";
-import { generateInvoice } from "@/lib/invoice";
+
+function generateInvoiceNumber(seq: number) {
+  const year = new Date().getFullYear();
+  return `EDW-INV-${year}-${String(seq).padStart(5, "0")}`;
+}
 
 export async function POST(req: NextRequest) {
   try {
@@ -11,13 +15,11 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { studentId } = await req.json();
+    const body = await req.json();
+    const { studentId, amount, description, vatRate = 20 } = body;
 
     if (!studentId) {
-      return NextResponse.json(
-        { error: "studentId is required" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "studentId is required" }, { status: 400 });
     }
 
     const student = await prisma.student.findUnique({
@@ -26,76 +28,67 @@ export async function POST(req: NextRequest) {
     });
 
     if (!student) {
-      return NextResponse.json(
-        { error: "Student not found" },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: "Student not found" }, { status: 404 });
     }
 
-    // Find completed payments for this student
-    const payments = await prisma.payment.findMany({
-      where: {
+    // Get next sequence
+    const lastInvoice = await prisma.invoice.findFirst({
+      orderBy: { invoiceNumber: "desc" },
+    });
+    let seq = 1;
+    if (lastInvoice) {
+      seq = parseInt(lastInvoice.invoiceNumber.split("-").pop() || "0") + 1;
+    }
+
+    const invoiceNumber = generateInvoiceNumber(seq);
+    const totalAmount = amount || student.paidAmount || 0;
+
+    if (totalAmount <= 0) {
+      return NextResponse.json({ error: "Amount must be greater than 0" }, { status: 400 });
+    }
+
+    const netAmount = Math.round((totalAmount / (1 + vatRate / 100)) * 100) / 100;
+    const vatAmount = Math.round((totalAmount - netAmount) * 100) / 100;
+
+    const lineDescription = description || (totalAmount <= 100
+      ? `Course Deposit — Professional Module`
+      : `Professional Module — PLC, SCADA & HMI Training (CPD Accredited)`);
+
+    const invoice = await prisma.invoice.create({
+      data: {
+        invoiceNumber,
         studentId,
-        status: "completed",
+        date: new Date(),
+        dueDate: new Date(),
+        description: `Invoice for ${student.user.name}`,
+        lineItems: JSON.stringify([{
+          description: lineDescription,
+          quantity: 1,
+          unitPrice: netAmount,
+          total: netAmount,
+        }]),
+        subtotal: netAmount,
+        vatRate,
+        vatAmount,
+        total: totalAmount,
+        status: "PAID",
       },
-      orderBy: { createdAt: "asc" },
+      include: {
+        student: { include: { user: { select: { name: true } } } },
+      },
     });
 
-    if (payments.length === 0) {
-      return NextResponse.json(
-        { error: "No completed payments found for this student" },
-        { status: 400 }
-      );
-    }
-
-    let generated = 0;
-    let skipped = 0;
-    let lastInvoiceNumber = "";
-
-    for (const payment of payments) {
-      // Check if invoice already exists for this payment
-      const existing = await prisma.invoice.findFirst({
-        where: { paymentId: payment.id, studentId },
-      });
-
-      if (existing) {
-        skipped++;
-        lastInvoiceNumber = existing.invoiceNumber;
-        continue;
-      }
-
-      await generateInvoice(payment.id, studentId);
-      generated++;
-
-      // Get the invoice number that was just created
-      const newInvoice = await prisma.invoice.findFirst({
-        where: { paymentId: payment.id, studentId },
-      });
-      if (newInvoice) {
-        lastInvoiceNumber = newInvoice.invoiceNumber;
-      }
-    }
-
-    if (generated === 0 && skipped > 0) {
-      return NextResponse.json({
-        message: "Invoices already exist for all payments",
-        invoiceNumber: lastInvoiceNumber,
-        generated: 0,
-        skipped,
-      });
-    }
-
     return NextResponse.json({
-      message: `${generated} invoice(s) generated`,
-      invoiceNumber: lastInvoiceNumber,
-      generated,
-      skipped,
+      message: "Invoice generated",
+      invoice: {
+        id: invoice.id,
+        invoiceNumber: invoice.invoiceNumber,
+        total: invoice.total,
+        studentName: invoice.student?.user?.name,
+      },
     });
   } catch (error) {
     console.error("Invoice generation error:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
