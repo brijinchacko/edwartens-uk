@@ -589,14 +589,16 @@ export default async function StudentDetailPage({
                         key={inv.id}
                         className="border-b border-white/[0.04]"
                       >
-                        <td className="px-3 py-2.5 text-text-secondary font-mono text-xs">
-                          {inv.invoiceNumber}
+                        <td className="px-3 py-2.5 font-mono text-xs">
+                          <Link href={`/admin/invoices/${inv.id}`} className="text-neon-blue hover:underline">
+                            {inv.invoiceNumber}
+                          </Link>
                         </td>
                         <td className="px-3 py-2.5 text-text-muted">
                           {formatDate(inv.date)}
                         </td>
                         <td className="px-3 py-2.5 text-text-secondary text-right">
-                          {formatCurrency(inv.total / 100)}
+                          £{(inv.total || 0).toFixed(2)}
                         </td>
                         <td className="px-3 py-2.5">
                           <span

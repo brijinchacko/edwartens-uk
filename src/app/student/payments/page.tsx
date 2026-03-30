@@ -257,19 +257,15 @@ export default async function PaymentsPage() {
                 </div>
                 <div className="flex items-center gap-3">
                   <span className="text-sm font-semibold text-text-primary">
-                    {formatCurrency(inv.total / 100)}
+                    £{inv.total.toFixed(2)}
                   </span>
-                  {inv.pdfUrl && (
-                    <a
-                      href={inv.pdfUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-neon-blue/10 border border-neon-blue/20 text-neon-blue text-xs font-medium hover:bg-neon-blue/20 transition-colors"
-                    >
-                      <Download size={14} />
-                      Download
-                    </a>
-                  )}
+                  <a
+                    href={`/student/invoice/${inv.id}`}
+                    className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-neon-blue/10 border border-neon-blue/20 text-neon-blue text-xs font-medium hover:bg-neon-blue/20 transition-colors"
+                  >
+                    <FileText size={14} />
+                    View Invoice
+                  </a>
                 </div>
               </div>
             ))}
