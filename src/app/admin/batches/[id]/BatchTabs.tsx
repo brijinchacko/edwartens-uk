@@ -1153,6 +1153,24 @@ function PracticalTab({
                         >
                           {p.status}
                         </span>
+                        {p.status === "SCHEDULED" && (
+                          <button
+                            onClick={async () => {
+                              if (!confirm("Cancel this practical session?")) return;
+                              try {
+                                await fetch(`/api/admin/batches/${batchId}/practical?practicalId=${p.id}`, {
+                                  method: "PATCH",
+                                  headers: { "Content-Type": "application/json" },
+                                  body: JSON.stringify({ status: "CANCELLED" }),
+                                });
+                                onRefresh();
+                              } catch { alert("Failed to cancel"); }
+                            }}
+                            className="text-[10px] text-red-400 hover:text-red-300 hover:underline"
+                          >
+                            Cancel
+                          </button>
+                        )}
                       </div>
                       <div className="flex flex-wrap items-center gap-3 text-xs text-text-muted">
                         <span className="flex items-center gap-1">
@@ -1169,7 +1187,7 @@ function PracticalTab({
                         </span>
                         {p.trainer && (
                           <span className="flex items-center gap-1">
-                            <User size={10} /> {p.trainer.user.name}
+                            <User size={10} /> {p.trainer.user?.name || "Trainer"}
                           </span>
                         )}
                       </div>
@@ -1420,6 +1438,29 @@ function PracticalTab({
                   }
                   className="w-full px-3 py-2 text-sm bg-white/[0.03] border border-white/[0.06] rounded-lg text-text-primary focus:outline-none focus:border-neon-blue/30"
                 />
+              </div>
+              <div>
+                <label className="block text-[10px] text-text-muted uppercase tracking-wider mb-1">
+                  Trainer *
+                </label>
+                <select
+                  value={form.trainerId}
+                  onChange={(e) => setForm({ ...form, trainerId: e.target.value })}
+                  className="w-full px-3 py-2 text-sm bg-white/[0.03] border border-white/[0.06] rounded-lg text-text-primary focus:outline-none focus:border-neon-blue/30"
+                >
+                  <option value="">Select Trainer</option>
+                  {(batch.instructor ? [{ id: batch.instructor.id, name: batch.instructor.user?.name || "Batch Trainer" }] : [])
+                    .concat([
+                      { id: "allwyn", name: "Allwyn Joseph" },
+                      { id: "shahul", name: "Shahul Hameed" },
+                      { id: "ansel", name: "Mohammed Ansel" },
+                      { id: "brijin", name: "Brijin Chacko" },
+                    ].filter(t => !batch.instructor || t.id !== batch.instructor.id))
+                    .map((t: any) => (
+                      <option key={t.id} value={t.id}>{t.name}</option>
+                    ))
+                  }
+                </select>
               </div>
               <div>
                 <label className="block text-[10px] text-text-muted uppercase tracking-wider mb-1">

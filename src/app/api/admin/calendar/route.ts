@@ -51,13 +51,23 @@ export async function GET(req: NextRequest) {
       });
     }
 
-    const events = await getCalendarEvents(employee.id, startDate, endDate);
-
-    return NextResponse.json({
-      events,
-      connected: true,
-      email: outlook.email,
-    });
+    try {
+      const events = await getCalendarEvents(employee.id, startDate, endDate);
+      return NextResponse.json({
+        events,
+        connected: true,
+        email: outlook.email,
+      });
+    } catch (graphErr: any) {
+      // Token expired or Graph API error — return empty but show as connected
+      console.error("Graph calendar error:", graphErr?.message);
+      return NextResponse.json({
+        events: [],
+        connected: true,
+        email: outlook.email,
+        warning: "Could not fetch Outlook events. Your token may need refreshing — go to Emails page to reconnect.",
+      });
+    }
   } catch (error) {
     console.error("Calendar GET error:", error);
     return NextResponse.json(
