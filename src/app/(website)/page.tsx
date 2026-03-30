@@ -62,12 +62,6 @@ const jsonLd = {
         contactType: "admissions",
         email: "info@wartens.com",
       },
-      aggregateRating: {
-        "@type": "AggregateRating",
-        ratingValue: "4.9",
-        reviewCount: "150",
-        bestRating: "5",
-      },
     },
     {
       "@type": "WebSite",

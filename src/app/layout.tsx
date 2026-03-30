@@ -289,57 +289,7 @@ export default function RootLayout({
             }),
           }}
         />
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{
-            __html: JSON.stringify({
-              "@context": "https://schema.org",
-              "@type": "FAQPage",
-              mainEntity: [
-                {
-                  "@type": "Question",
-                  name: "What is EDWartens?",
-                  acceptedAnswer: {
-                    "@type": "Answer",
-                    text: "EDWartens is the training division of Wartens, a global engineering and technology company. We provide CPD Accredited industrial automation training including PLC, SCADA, HMI, and robotics courses in the UK.",
-                  },
-                },
-                {
-                  "@type": "Question",
-                  name: "What PLC training courses does EDWartens UK offer?",
-                  acceptedAnswer: {
-                    "@type": "Answer",
-                    text: "EDWartens UK offers two main courses: Professional Module (5 days covering Siemens PLC, HMI, WinCC SCADA with 15 hours of recorded sessions) and AI Module (5 days covering AI and ML in industry, Python for engineers, predictive maintenance, computer vision, AI-SCADA, and digital twins). Both courses are CPD Accredited and include hands-on training.",
-                  },
-                },
-                {
-                  "@type": "Question",
-                  name: "Is EDWartens training CPD Accredited?",
-                  acceptedAnswer: {
-                    "@type": "Answer",
-                    text: "Yes, EDWartens training is CPD Accredited and registered with UKRLP. Our certifications are recognised by employers across the UK.",
-                  },
-                },
-                {
-                  "@type": "Question",
-                  name: "Where is EDWartens UK located?",
-                  acceptedAnswer: {
-                    "@type": "Answer",
-                    text: "EDWartens UK is located at 8 Lyon Road, Milton Keynes, MK1 1EX. We offer both classroom training at our Milton Keynes centre and online training options.",
-                  },
-                },
-                {
-                  "@type": "Question",
-                  name: "Does EDWartens provide career support after training?",
-                  acceptedAnswer: {
-                    "@type": "Answer",
-                    text: "Yes, EDWartens provides dedicated career support including CV review, interview coaching, and job opportunity notifications. Our Professional Module includes 6 months of career support to help graduates transition into automation engineering roles.",
-                  },
-                },
-              ],
-            }),
-          }}
-        />
+        {/* FAQPage schema removed from root layout — course-specific FAQs are on individual course pages */}
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
