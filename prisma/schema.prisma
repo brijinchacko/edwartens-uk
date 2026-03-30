@@ -283,8 +283,9 @@ model Student {
 model Lead {
   id              String     @id @default(cuid())
   name            String
-  email           String
+  email           String     @default("")
   phone           String
+  alternatePhone  String?
   qualification   String?
   courseInterest  CourseType?
   source          String     @default("website")
@@ -292,6 +293,7 @@ model Lead {
   assignedToId    String?
   assignedTo      Employee?  @relation(fields: [assignedToId], references: [id])
   followUpDate    DateTime?
+  enquiryDate     DateTime   @default(now())
   notes           LeadNote[]
   payments        Payment[]
   utmSource       String?

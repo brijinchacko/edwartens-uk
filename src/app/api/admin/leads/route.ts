@@ -105,17 +105,19 @@ export async function POST(req: NextRequest) {
       name,
       email,
       phone,
+      alternatePhone,
       qualification,
       courseInterest,
       source,
       assignedToId,
       followUpDate,
+      enquiryDate,
       note,
     } = body;
 
-    if (!name || !email || !phone) {
+    if (!name || !phone) {
       return NextResponse.json(
-        { error: "Name, email, and phone are required" },
+        { error: "Name and phone are required" },
         { status: 400 }
       );
     }
@@ -123,13 +125,15 @@ export async function POST(req: NextRequest) {
     const lead = await prisma.lead.create({
       data: {
         name,
-        email,
+        email: email || "",
         phone,
+        alternatePhone: alternatePhone || null,
         qualification: qualification || null,
         courseInterest: courseInterest || null,
         source: source || "manual",
         assignedToId: assignedToId || null,
         followUpDate: followUpDate ? new Date(followUpDate) : null,
+        enquiryDate: enquiryDate ? new Date(enquiryDate) : new Date(),
       },
       include: {
         assignedTo: {

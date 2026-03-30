@@ -144,6 +144,18 @@ export default async function LeadDetailPage({
                 <Phone size={16} className="text-text-muted shrink-0" />
                 <span className="text-text-secondary">{lead.phone}</span>
               </div>
+              {lead.alternatePhone && (
+                <div className="flex items-center gap-3 text-sm">
+                  <Phone size={16} className="text-text-muted shrink-0" />
+                  <span className="text-text-secondary">{lead.alternatePhone} <span className="text-text-muted text-xs">(alt)</span></span>
+                </div>
+              )}
+              {lead.enquiryDate && (
+                <div className="flex items-center gap-3 text-sm">
+                  <Calendar size={16} className="text-text-muted shrink-0" />
+                  <span className="text-text-secondary">Enquiry: {formatDate(lead.enquiryDate)}</span>
+                </div>
+              )}
               {lead.courseInterest && (
                 <div className="flex items-center gap-3 text-sm">
                   <Tag size={16} className="text-text-muted shrink-0" />

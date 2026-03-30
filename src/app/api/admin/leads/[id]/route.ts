@@ -79,6 +79,8 @@ export async function PATCH(
     if (body.courseInterest !== undefined)
       allowedFields.courseInterest = body.courseInterest;
     if (body.source !== undefined) allowedFields.source = body.source;
+    if (body.alternatePhone !== undefined) allowedFields.alternatePhone = body.alternatePhone || null;
+    if (body.enquiryDate !== undefined) allowedFields.enquiryDate = body.enquiryDate ? new Date(body.enquiryDate) : null;
 
     const lead = await prisma.lead.update({
       where: { id },
