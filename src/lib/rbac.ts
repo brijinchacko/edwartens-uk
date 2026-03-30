@@ -140,7 +140,7 @@ export function getNavItemsForRole(role: string): string[] {
       return [
         "dashboard", "leads", "pipeline", "students", "batches", "sessions",
         "assessments", "question-bank", "career", "certificates", "invoices", "jobs", "alumni", "alumni-network", "referrals", "team-activity", "employees",
-        "reports", "feedback", "users", "emails", "drip-campaigns", "calendar", "notifications", "import", "settings",
+        "reports", "feedback", "users", "emails", "drip-campaigns", "calendar", "notifications", "import", "audit", "settings",
       ];
     case "ADMIN":
       return [

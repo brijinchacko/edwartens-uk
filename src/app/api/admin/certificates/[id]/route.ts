@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { hasPermission } from "@/lib/rbac";
 import { prisma } from "@/lib/prisma";
+import { logAudit } from "@/lib/audit";
 import fs from "fs";
 import path from "path";
 
@@ -34,6 +35,18 @@ export async function DELETE(
     }
 
     await prisma.certificate.delete({ where: { id } });
+
+    // Audit log for DELETE: log what was deleted so it can be recovered
+    await logAudit({
+      userId: session.user.id as string,
+      userName: (session.user as { name?: string }).name || (session.user as { email?: string }).email || "Unknown",
+      userRole: (session.user as { role: string }).role,
+      action: "DELETE",
+      entity: "certificate",
+      entityId: id,
+      entityName: cert.certificateNo,
+      details: JSON.stringify({ certificateNo: cert.certificateNo, type: cert.type, studentId: cert.studentId, pdfUrl: cert.pdfUrl }),
+    });
 
     return NextResponse.json({ message: "Certificate deleted" });
   } catch (error) {

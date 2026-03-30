@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { hasPermission } from "@/lib/rbac";
+import { logAudit } from "@/lib/audit";
 
 export async function GET(req: NextRequest) {
   try {
@@ -115,6 +116,18 @@ export async function POST(req: NextRequest) {
       },
     });
 
+    // Audit log
+    await logAudit({
+      userId: session.user.id as string,
+      userName: session.user.name || session.user.email,
+      userRole: session.user.role,
+      action: "CREATE",
+      entity: "session",
+      entityId: newSession.id,
+      entityName: title,
+      details: JSON.stringify({ title, phaseId, batchId, order }),
+    });
+
     return NextResponse.json(newSession, { status: 201 });
   } catch (error) {
     console.error("Admin session create error:", error);
@@ -138,9 +151,27 @@ export async function DELETE(req: NextRequest) {
       return NextResponse.json({ error: "Session ID required" }, { status: 400 });
     }
 
+    // Get session details before deleting for audit
+    const sessionToDelete = await prisma.session.findUnique({
+      where: { id },
+      select: { title: true, phaseId: true, batchId: true },
+    });
+
     // Delete progress records first
     await prisma.sessionProgress.deleteMany({ where: { sessionId: id } });
     await prisma.session.delete({ where: { id } });
+
+    // Audit log DELETE with recovery data
+    await logAudit({
+      userId: session.user.id as string,
+      userName: session.user.name || session.user.email,
+      userRole: session.user.role,
+      action: "DELETE",
+      entity: "session",
+      entityId: id,
+      entityName: sessionToDelete?.title || id,
+      details: JSON.stringify({ title: sessionToDelete?.title, phaseId: sessionToDelete?.phaseId, batchId: sessionToDelete?.batchId }),
+    });
 
     return NextResponse.json({ success: true });
   } catch (error) {

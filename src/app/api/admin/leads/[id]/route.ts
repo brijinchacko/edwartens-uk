@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { hasPermission } from "@/lib/rbac";
+import { logAudit } from "@/lib/audit";
 
 export async function GET(
   _req: NextRequest,
@@ -92,6 +93,28 @@ export async function PATCH(
           orderBy: { createdAt: "desc" },
         },
       },
+    });
+
+    // Audit log
+    const auditAction = body.status !== undefined && body.status !== existing.status ? "STATUS_CHANGE" : "UPDATE";
+    const details: Record<string, unknown> = {};
+    if (body.status !== undefined && body.status !== existing.status) {
+      details.statusChange = `${existing.status} -> ${body.status}`;
+    }
+    if (body.assignedToId !== undefined && body.assignedToId !== existing.assignedToId) {
+      details.assignedToChanged = true;
+    }
+    Object.keys(allowedFields).forEach((k) => { details[k] = allowedFields[k]; });
+
+    await logAudit({
+      userId: session.user.id as string,
+      userName: session.user.name || session.user.email,
+      userRole: session.user.role,
+      action: auditAction,
+      entity: "lead",
+      entityId: id,
+      entityName: `${lead.name || existing.name} (${lead.email || existing.email})`,
+      details: JSON.stringify(details),
     });
 
     // Auto-create WhatsApp task when lead is assigned to a new counsellor

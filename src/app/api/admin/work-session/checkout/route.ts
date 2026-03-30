@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { isCrmRole } from "@/lib/rbac";
+import { logAudit } from "@/lib/audit";
 
 export async function POST(req: NextRequest) {
   try {
@@ -124,6 +125,18 @@ export async function POST(req: NextRequest) {
           breaks: { orderBy: { startedAt: "asc" } },
         },
       });
+    });
+
+    // Audit log
+    await logAudit({
+      userId: session.user.id as string,
+      userName: session.user.name || session.user.email,
+      userRole: session.user.role,
+      action: "CHECK_OUT",
+      entity: "work-session",
+      entityId: updatedSession.id,
+      entityName: `${session.user.name} - ${updatedSession.workLocation}`,
+      details: JSON.stringify({ totalMinutes: updatedSession.totalMinutes, activeMinutes: updatedSession.activeMinutes, summary }),
     });
 
     return NextResponse.json({

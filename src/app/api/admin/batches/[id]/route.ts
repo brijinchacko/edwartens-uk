@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { hasPermission } from "@/lib/rbac";
+import { logAudit } from "@/lib/audit";
 
 export async function GET(
   req: NextRequest,
@@ -137,6 +138,18 @@ export async function PATCH(
           },
         },
       },
+    });
+
+    // Audit log
+    await logAudit({
+      userId: session.user.id as string,
+      userName: session.user.name || session.user.email,
+      userRole: session.user.role,
+      action: "UPDATE",
+      entity: "batch",
+      entityId: id,
+      entityName: batch.name,
+      details: JSON.stringify(data),
     });
 
     return NextResponse.json({ batch });

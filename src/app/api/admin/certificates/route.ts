@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { generateCertificateNo, formatDate } from "@/lib/utils";
 import { hasPermission } from "@/lib/rbac";
 import { generateCertificateImage } from "@/lib/certificate-generator";
+import { logAudit } from "@/lib/audit";
 
 export async function GET(req: NextRequest) {
   try {
@@ -154,6 +155,18 @@ export async function POST(req: NextRequest) {
           },
         },
       },
+    });
+
+    // Audit log
+    await logAudit({
+      userId: session.user.id as string,
+      userName: session.user.name || session.user.email,
+      userRole: session.user.role,
+      action: "CREATE",
+      entity: "certificate",
+      entityId: certificate.id,
+      entityName: `${type} - ${student.user.name} (${certificateNo})`,
+      details: JSON.stringify({ type, certificateNo, studentId, studentName: student.user.name, replaced: !!existingCert }),
     });
 
     return NextResponse.json({

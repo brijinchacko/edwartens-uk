@@ -3,6 +3,7 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { generateTempPassword } from "@/lib/utils";
 import { hasPermission } from "@/lib/rbac";
+import { logAudit } from "@/lib/audit";
 import bcrypt from "bcryptjs";
 
 export async function POST(
@@ -114,6 +115,30 @@ export async function POST(
     console.log(
       `[WELCOME EMAIL] Login URL: ${process.env.NEXTAUTH_URL || "https://edwartens.co.uk"}/login`
     );
+
+    // Audit log for student creation
+    await logAudit({
+      userId: session.user.id as string,
+      userName: session.user.name || session.user.email,
+      userRole: session.user.role,
+      action: "CREATE",
+      entity: "student",
+      entityId: result.student.id,
+      entityName: `${lead.name} (${lead.email})`,
+      details: JSON.stringify({ convertedFromLeadId: id, course: courseType, batchId }),
+    });
+
+    // Audit log for lead status change
+    await logAudit({
+      userId: session.user.id as string,
+      userName: session.user.name || session.user.email,
+      userRole: session.user.role,
+      action: "STATUS_CHANGE",
+      entity: "lead",
+      entityId: id,
+      entityName: `${lead.name} (${lead.email})`,
+      details: JSON.stringify({ statusChange: `${lead.status} -> ENROLLED`, convertedToStudentId: result.student.id }),
+    });
 
     return NextResponse.json(
       {

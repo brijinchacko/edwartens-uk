@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { hasPermission } from "@/lib/rbac";
+import { logAudit } from "@/lib/audit";
 
 export async function GET(req: NextRequest) {
   try {
@@ -171,6 +172,18 @@ export async function POST(req: NextRequest) {
         console.error("Failed to create WhatsApp task:", e);
       }
     }
+
+    // Audit log
+    await logAudit({
+      userId: session.user.id as string,
+      userName: session.user.name || session.user.email,
+      userRole: session.user.role,
+      action: "CREATE",
+      entity: "lead",
+      entityId: lead.id,
+      entityName: `${name} (${email})`,
+      details: JSON.stringify({ name, email, phone, source: source || "manual", courseInterest }),
+    });
 
     return NextResponse.json(lead, { status: 201 });
   } catch (error) {

@@ -3,6 +3,7 @@ import { auth } from "@/lib/auth";
 import { sendEmail } from "@/lib/microsoft-graph";
 import { prisma } from "@/lib/prisma";
 import { isCrmRole } from "@/lib/rbac";
+import { logAudit } from "@/lib/audit";
 
 export async function POST(req: NextRequest) {
   try {
@@ -31,16 +32,49 @@ export async function POST(req: NextRequest) {
     // Send email via Microsoft Graph using employee's own account
     await sendEmail(employee.id, to, subject, emailBody);
 
+    const senderName = session.user.name || session.user.email || "CRM";
+    const recipientEmail = Array.isArray(to) ? to[0] : to;
+
     // If linked to a lead, create a LeadNote
     if (leadId) {
       await prisma.leadNote.create({
         data: {
           leadId,
-          content: `[Email Sent] Subject: ${subject}\nTo: ${to}\nSent by: ${session.user.name || session.user.email}`,
-          createdBy: session.user.name || session.user.email || "CRM",
+          content: `[Email Sent] Subject: ${subject}\nTo: ${recipientEmail}\nSent by: ${senderName}`,
+          createdBy: senderName,
         },
       });
     }
+
+    // Also search for ALL leads matching the recipient email and log to each one
+    const matchingLeads = await prisma.lead.findMany({
+      where: {
+        email: { equals: recipientEmail, mode: "insensitive" },
+        ...(leadId ? { id: { not: leadId } } : {}),
+      },
+      select: { id: true },
+    });
+
+    for (const lead of matchingLeads) {
+      await prisma.leadNote.create({
+        data: {
+          leadId: lead.id,
+          content: `[Email Sent] Subject: ${subject} | To: ${recipientEmail} | By: ${senderName}`,
+          createdBy: senderName,
+        },
+      });
+    }
+
+    // Audit log
+    await logAudit({
+      userId: session.user.id as string,
+      userName: senderName,
+      userRole: session.user.role,
+      action: "SEND_EMAIL",
+      entity: "email",
+      entityName: subject,
+      details: JSON.stringify({ to: recipientEmail, subject, leadId: leadId || null, autoLoggedLeads: matchingLeads.length }),
+    });
 
     return NextResponse.json({ success: true });
   } catch (error: unknown) {

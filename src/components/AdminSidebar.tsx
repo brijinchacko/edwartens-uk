@@ -31,6 +31,7 @@ import {
   Droplets,
   Calendar,
   Gift,
+  ScrollText,
 } from "lucide-react";
 import { getInitials } from "@/lib/utils";
 import { getNavItemsForRole } from "@/lib/rbac";
@@ -67,6 +68,7 @@ const ALL_NAV_ITEMS = [
   { id: "drip-campaigns", href: "/admin/drip-campaigns", label: "Drip Campaigns", icon: Droplets },
   { id: "calendar", href: "/admin/calendar", label: "Calendar", icon: Calendar },
   { id: "notifications", href: "/admin/notifications", label: "Notifications", icon: Bell },
+  { id: "audit", href: "/admin/audit", label: "Audit Log", icon: ScrollText },
   { id: "settings", href: "/admin/settings", label: "Settings", icon: Settings },
 ];
 

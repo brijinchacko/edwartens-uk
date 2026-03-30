@@ -954,3 +954,20 @@ model Referral {
   notes           String?
   createdAt       DateTime  @default(now())
 }
+
+model AuditLog {
+  id          String   @id @default(cuid())
+  userId      String
+  userName    String
+  userRole    String
+  action      String   // CREATE, UPDATE, DELETE, LOGIN, LOGOUT, SEND_EMAIL, etc
+  entity      String   // lead, student, batch, session, certificate, etc
+  entityId    String?
+  entityName  String?  // Human readable name of what was affected
+  details     String?  // JSON or text with what changed
+  ipAddress   String?
+  createdAt   DateTime @default(now())
+
+  @@index([userId, createdAt])
+  @@index([entity, createdAt])
+}

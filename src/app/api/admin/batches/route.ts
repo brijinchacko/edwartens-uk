@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { hasPermission } from "@/lib/rbac";
+import { logAudit } from "@/lib/audit";
 
 export async function GET(req: NextRequest) {
   try {
@@ -95,6 +96,18 @@ export async function POST(req: NextRequest) {
       },
     });
 
+    // Audit log
+    await logAudit({
+      userId: session.user.id as string,
+      userName: session.user.name || session.user.email,
+      userRole: session.user.role,
+      action: "CREATE",
+      entity: "batch",
+      entityId: batch.id,
+      entityName: name,
+      details: JSON.stringify({ name, course, startDate, mode: mode || "ONLINE" }),
+    });
+
     return NextResponse.json(batch, { status: 201 });
   } catch (error) {
     console.error("Admin batch create error:", error);
@@ -133,10 +146,35 @@ export async function DELETE(req: NextRequest) {
         where: { id: batchId },
         data: { status: "CANCELLED" },
       });
+
+      await logAudit({
+        userId: session.user.id as string,
+        userName: session.user.name || session.user.email,
+        userRole: session.user.role,
+        action: "STATUS_CHANGE",
+        entity: "batch",
+        entityId: batchId,
+        entityName: batch.name,
+        details: JSON.stringify({ oldStatus: batch.status, newStatus: "CANCELLED", reason: "Has enrolled students" }),
+      });
+
       return NextResponse.json({ message: "Batch cancelled (has enrolled students)" });
     }
 
     await prisma.batch.delete({ where: { id: batchId } });
+
+    // Audit log DELETE with recovery data
+    await logAudit({
+      userId: session.user.id as string,
+      userName: session.user.name || session.user.email,
+      userRole: session.user.role,
+      action: "DELETE",
+      entity: "batch",
+      entityId: batchId,
+      entityName: batch.name,
+      details: JSON.stringify({ name: batch.name, course: batch.course, startDate: batch.startDate, status: batch.status }),
+    });
+
     return NextResponse.json({ message: "Batch deleted" });
   } catch (error) {
     console.error("Batch delete error:", error);

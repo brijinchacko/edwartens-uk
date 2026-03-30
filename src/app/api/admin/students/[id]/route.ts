@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { hasPermission } from "@/lib/rbac";
+import { logAudit } from "@/lib/audit";
 
 export async function PATCH(
   req: NextRequest,
@@ -33,6 +34,19 @@ export async function PATCH(
     const student = await prisma.student.update({
       where: { id },
       data: updateData,
+      include: { user: { select: { name: true, email: true } } },
+    });
+
+    // Audit log
+    await logAudit({
+      userId: session.user.id as string,
+      userName: session.user.name || session.user.email,
+      userRole: session.user.role,
+      action: body.status !== undefined && body.status !== existing.status ? "STATUS_CHANGE" : "UPDATE",
+      entity: "student",
+      entityId: id,
+      entityName: `${student.user.name} (${student.user.email})`,
+      details: JSON.stringify(updateData),
     });
 
     return NextResponse.json(student);
