@@ -425,9 +425,31 @@ export default function SessionPlayerPage() {
           </div>
 
           {data.description && (
-            <p className="text-sm text-text-secondary leading-relaxed">
-              {data.description}
-            </p>
+            <div className="text-sm text-text-secondary leading-relaxed space-y-2 mt-2 pt-3 border-t border-white/[0.06]">
+              {data.description.split("\n").map((line, i) => {
+                const trimmed = line.trim();
+                if (!trimmed) return <div key={i} className="h-1" />;
+                // Bold headers with **text**
+                if (trimmed.startsWith("**") && trimmed.endsWith("**")) {
+                  return <h4 key={i} className="text-sm font-semibold text-text-primary mt-3">{trimmed.replace(/\*\*/g, "")}</h4>;
+                }
+                // Bold prefix: **text:** rest
+                if (trimmed.includes("**")) {
+                  const parts = trimmed.split(/\*\*/).map((part, j) =>
+                    j % 2 === 1 ? <strong key={j} className="text-text-primary">{part}</strong> : <span key={j}>{part}</span>
+                  );
+                  if (trimmed.startsWith("•")) {
+                    return <div key={i} className="flex gap-2 ml-2"><span className="text-neon-blue shrink-0">•</span><span>{parts}</span></div>;
+                  }
+                  return <p key={i}>{parts}</p>;
+                }
+                // Bullet points
+                if (trimmed.startsWith("•")) {
+                  return <div key={i} className="flex gap-2 ml-2"><span className="text-neon-blue shrink-0">•</span><span>{trimmed.substring(1).trim()}</span></div>;
+                }
+                return <p key={i}>{trimmed}</p>;
+              })}
+            </div>
           )}
 
           {/* Watch Progress */}
