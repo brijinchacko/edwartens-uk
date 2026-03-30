@@ -65,25 +65,14 @@ const DASHBOARD_ITEM: NavItem = {
 
 const NAV_GROUPS: NavGroup[] = [
   {
-    key: "learning",
-    label: "Learning",
+    key: "course",
+    label: "My Course",
     icon: BookOpen,
     items: [
-      { href: "/student/trainers", label: "Meet Your Trainers", icon: Users },
       { href: "/student/sessions", label: "Sessions", icon: PlayCircle },
       { href: "/student/progress", label: "Progress", icon: TrendingUp },
       { href: "/student/assessments", label: "Assessments", icon: ClipboardCheck },
-      { href: "/student/project", label: "Project", icon: FileCode },
-    ],
-  },
-  {
-    key: "training",
-    label: "Training",
-    icon: Hammer,
-    items: [
-      { href: "/student/practical", label: "Practical Session", icon: Wrench },
       { href: "/student/attendance", label: "Attendance", icon: CalendarCheck },
-      { href: "/student/software", label: "Software", icon: Monitor },
       { href: "/student/certificates", label: "Certificates", icon: Award },
     ],
   },
@@ -93,24 +82,19 @@ const NAV_GROUPS: NavGroup[] = [
     icon: BriefcaseBusiness,
     items: [
       { href: "/student/resume", label: "Resume & CV", icon: File },
-      { href: "/student/linkedin", label: "LinkedIn", icon: Globe },
-      { href: "/student/job-tracker", label: "Job Tracker", icon: BarChart },
       { href: "/student/jobs", label: "Jobs", icon: Briefcase },
-      { href: "/student/job-board", label: "Job Board", icon: Newspaper },
       { href: "/student/alumni", label: "Alumni Network", icon: Users },
+      { href: "/student/referrals", label: "Refer & Earn", icon: Gift },
     ],
   },
   {
     key: "account",
-    label: "Account",
+    label: "My Account",
     icon: CircleUser,
     items: [
-      { href: "/student/profile", label: "Profile", icon: User },
       { href: "/student/documents", label: "Documents", icon: FileText },
-      { href: "/student/sign", label: "Sign Documents", icon: PenTool },
-      { href: "/student/payments", label: "Payments", icon: CreditCard },
-      { href: "/student/referrals", label: "Referrals", icon: Gift },
-      { href: "/student/feedback", label: "Feedback", icon: MessageSquare },
+      { href: "/student/payments", label: "Payments & Invoices", icon: CreditCard },
+      { href: "/student/profile", label: "Profile", icon: User },
     ],
   },
 ];
