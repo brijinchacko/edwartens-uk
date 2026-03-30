@@ -94,7 +94,7 @@ export async function POST(req: NextRequest) {
       for (const f of multiFiles) {
         filesToProcess.push({
           file: f,
-          type: "Other",
+          type: documentType || "Other",
           name: f.name,
         });
       }

@@ -163,10 +163,10 @@ export default async function StudentDashboardPage() {
         : "N/A";
 
   const checklistItems = [
-    { label: "Terms & Conditions accepted", done: termsAccepted, href: "/student/profile" },
+    { label: "Terms & Conditions accepted", done: termsAccepted, href: "/student/sign" },
     { label: "ID Proof uploaded", done: hasIdProof, href: "/student/documents" },
     { label: "Qualification Certificate uploaded", done: hasQualification, href: "/student/documents" },
-    { label: "CV uploaded", done: hasCv, href: "/student/resume" },
+    { label: "CV uploaded", done: hasCv, href: "/student/documents" },
     { label: "Full payment completed", done: fullPaymentDone, href: "/student/payments" },
     { label: "Software installed & verified", done: softwareVerified, href: "/student/software" },
   ];
