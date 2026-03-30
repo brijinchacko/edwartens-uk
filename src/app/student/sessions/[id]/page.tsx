@@ -153,7 +153,7 @@ export default function SessionPlayerPage() {
   function getEmbedUrl(): string | null {
     if (!data) return null;
     if (data.videoPlatform === "youtube" && data.videoId) {
-      return `https://www.youtube.com/embed/${data.videoId}?autoplay=1&rel=0`;
+      return `https://www.youtube.com/embed/${data.videoId}?autoplay=1&rel=0&modestbranding=1&showinfo=0&controls=1&iv_load_policy=3&cc_load_policy=0&fs=1&disablekb=0&color=white`;
     }
     if (data.videoPlatform === "vimeo" && data.videoId) {
       return `https://player.vimeo.com/video/${data.videoId}?autoplay=1`;
@@ -163,7 +163,7 @@ export default function SessionPlayerPage() {
         /(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/))([^&\s]+)/
       );
       if (ytMatch) {
-        return `https://www.youtube.com/embed/${ytMatch[1]}?autoplay=1&rel=0`;
+        return `https://www.youtube.com/embed/${ytMatch[1]}?autoplay=1&rel=0&modestbranding=1&showinfo=0&controls=1&iv_load_policy=3&cc_load_policy=0&fs=1&disablekb=0&color=white`;
       }
       const vimeoMatch = data.videoUrl.match(/vimeo\.com\/(\d+)/);
       if (vimeoMatch) {
@@ -356,16 +356,29 @@ export default function SessionPlayerPage() {
           </div>
         </div>
 
-        {/* Video Player */}
-        <div className="glass-card overflow-hidden rounded-xl">
+        {/* Video Player — EDWartens LMS branded */}
+        <div className="rounded-xl overflow-hidden border border-white/[0.08] shadow-2xl shadow-black/20">
+          {/* Player header bar */}
+          <div className="flex items-center justify-between px-4 py-2 bg-[#0c1018] border-b border-white/[0.06]">
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 rounded-full bg-neon-blue animate-pulse" />
+              <span className="text-xs text-text-muted font-medium">
+                EDWartens Learning • Phase {data.phase.number} — {data.phase.name}
+              </span>
+            </div>
+            <span className="text-[10px] text-text-muted">
+              {data.duration ? `${Math.floor(data.duration / 60)}:${String(data.duration % 60).padStart(2, "0")}` : ""}
+            </span>
+          </div>
           {embedUrl ? (
-            <div className="relative w-full" style={{ paddingTop: "56.25%" }}>
+            <div className="relative w-full bg-black" style={{ paddingTop: "56.25%" }}>
               <iframe
                 src={embedUrl}
                 className="absolute inset-0 w-full h-full"
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                 allowFullScreen
                 title={data.title}
+                style={{ border: "none" }}
               />
             </div>
           ) : (

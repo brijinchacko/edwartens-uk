@@ -113,22 +113,12 @@ export default async function SessionsPage() {
   const progressPercent =
     totalSessions > 0 ? Math.round((completedCount / totalSessions) * 100) : 0;
 
+  // All sessions are unlocked — students can take any video anytime
   function isLocked(
-    phaseIndex: number,
-    sessionIndex: number,
-    sessionId: string
+    _phaseIndex: number,
+    _sessionIndex: number,
+    _sessionId: string
   ): boolean {
-    if (completedSessionIds.has(sessionId)) return false;
-    if (phaseIndex === 0 && sessionIndex === 0) return false;
-    const allOrderedSessions = phases.flatMap((p) => p.sessions);
-    const currentIdx = allOrderedSessions.findIndex((s) => s.id === sessionId);
-    if (currentIdx <= 0) return false;
-    for (let i = currentIdx - 1; i >= 0; i--) {
-      const prev = allOrderedSessions[i];
-      if (prev.isMandatory) {
-        return !completedSessionIds.has(prev.id);
-      }
-    }
     return false;
   }
 

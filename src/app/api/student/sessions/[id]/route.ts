@@ -132,26 +132,12 @@ export async function GET(
           });
         }
 
-        // Determine status
+        // Determine status — all sessions unlocked
         let status = "NOT_STARTED";
         if (completedIds.has(s.id)) {
           status = "COMPLETED";
         } else if (s.progress[0]?.status === "IN_PROGRESS") {
           status = "IN_PROGRESS";
-        } else {
-          // Check if locked (same logic as sessions list page)
-          let locked = false;
-          if (i > 0) {
-            for (let j = i - 1; j >= 0; j--) {
-              if (allSessions[j].isMandatory) {
-                if (!completedIds.has(allSessions[j].id)) {
-                  locked = true;
-                }
-                break;
-              }
-            }
-          }
-          if (locked) status = "LOCKED";
         }
 
         phaseMap.get(phaseKey)!.sessions.push({
