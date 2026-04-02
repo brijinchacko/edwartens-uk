@@ -2,6 +2,15 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import type { ZadarmaCallEvent } from "@/lib/zadarma";
 
+// Zadarma verification: echoes back zd_echo param to confirm webhook URL
+export async function GET(req: NextRequest) {
+  const zdEcho = req.nextUrl.searchParams.get("zd_echo");
+  if (zdEcho) {
+    return new NextResponse(zdEcho, { status: 200 });
+  }
+  return NextResponse.json({ status: "ok" }, { status: 200 });
+}
+
 // Zadarma sends POST webhooks for call events
 export async function POST(req: NextRequest) {
   try {
