@@ -1,7 +1,7 @@
 import crypto from "crypto";
 
-const API_KEY = process.env.ZADARMA_API_KEY || "";
-const API_SECRET = process.env.ZADARMA_API_SECRET || "";
+const API_KEY = (process.env.ZADARMA_API_KEY || "").replace(/"/g, "").trim();
+const API_SECRET = (process.env.ZADARMA_API_SECRET || "").replace(/"/g, "").trim();
 const BASE_URL = "https://api.zadarma.com";
 
 function generateSignature(method: string, params: Record<string, string> = {}): string {
