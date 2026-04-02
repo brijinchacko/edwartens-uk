@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Plus, X, Loader2 } from "lucide-react";
+import { PhoneInput } from "@/components/PhoneInput";
 
 const SOURCES = [
   { value: "website", label: "Website" },
@@ -197,17 +198,26 @@ export default function AddLeadModal() {
                   <label className="block text-sm text-text-muted mb-1.5">
                     Phone <span className="text-red-400">*</span>
                   </label>
-                  <input type="tel" name="phone" required value={form.phone} onChange={handleChange}
-                    placeholder="+44 7xxx xxx xxx"
-                    className="w-full px-3 py-2 rounded-lg bg-white/[0.03] border border-white/[0.06] text-white placeholder:text-text-muted text-sm focus:outline-none focus:border-neon-blue/40" />
+                  <PhoneInput
+                    name="phone"
+                    value={form.phone}
+                    onChange={(val) => setForm((prev) => ({ ...prev, phone: val }))}
+                    placeholder="7xxx xxx xxx"
+                    required
+                    defaultCountryCode="+44"
+                  />
                 </div>
                 <div>
                   <label className="block text-sm text-text-muted mb-1.5">
                     Alternate Phone
                   </label>
-                  <input type="tel" name="alternatePhone" value={form.alternatePhone} onChange={handleChange}
+                  <PhoneInput
+                    name="alternatePhone"
+                    value={form.alternatePhone}
+                    onChange={(val) => setForm((prev) => ({ ...prev, alternatePhone: val }))}
                     placeholder="Optional"
-                    className="w-full px-3 py-2 rounded-lg bg-white/[0.03] border border-white/[0.06] text-white placeholder:text-text-muted text-sm focus:outline-none focus:border-neon-blue/40" />
+                    defaultCountryCode="+44"
+                  />
                 </div>
               </div>
 

@@ -310,6 +310,9 @@ export default async function LeadDetailPage({
             courseInterest={lead.courseInterest}
             phone={lead.phone}
             email={lead.email}
+            alternatePhone={lead.alternatePhone || null}
+            qualification={lead.qualification || null}
+            source={lead.source}
             followUpDate={lead.followUpDate ? lead.followUpDate.toISOString() : null}
             assignedToId={lead.assignedToId}
             assignedToName={lead.assignedTo?.user?.name || null}

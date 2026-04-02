@@ -5,6 +5,56 @@ import { hasPermission } from "@/lib/rbac";
 import { logAudit } from "@/lib/audit";
 import { notifyEmployee, notifyRole } from "@/lib/notify";
 
+// DELETE: Only SUPER_ADMIN and ADMIN can delete leads
+export async function DELETE(
+  _req: NextRequest,
+  ctx: { params: Promise<{ id: string }> }
+) {
+  try {
+    const session = await auth();
+    if (!session?.user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+    const role = (session.user as { role: string }).role;
+    if (!["SUPER_ADMIN", "ADMIN"].includes(role)) {
+      return NextResponse.json({ error: "Only admins can delete leads" }, { status: 403 });
+    }
+
+    const { id } = await ctx.params;
+
+    const lead = await prisma.lead.findUnique({ where: { id }, select: { id: true, name: true, email: true, convertedToStudentId: true } });
+    if (!lead) {
+      return NextResponse.json({ error: "Lead not found" }, { status: 404 });
+    }
+
+    if (lead.convertedToStudentId) {
+      return NextResponse.json({ error: "Cannot delete a lead that has been converted to a student" }, { status: 400 });
+    }
+
+    // Delete notes first, then the lead
+    await prisma.$transaction([
+      prisma.leadNote.deleteMany({ where: { leadId: id } }),
+      prisma.lead.delete({ where: { id } }),
+    ]);
+
+    await logAudit({
+      userId: session.user.id as string,
+      userName: session.user.name || session.user.email,
+      userRole: role,
+      action: "DELETE",
+      entity: "lead",
+      entityId: id,
+      entityName: `${lead.name} (${lead.email})`,
+      details: JSON.stringify({ deletedLead: lead }),
+    });
+
+    return NextResponse.json({ message: "Lead deleted successfully" });
+  } catch (error) {
+    console.error("Admin lead delete error:", error);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+  }
+}
+
 export async function GET(
   _req: NextRequest,
   ctx: { params: Promise<{ id: string }> }

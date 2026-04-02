@@ -93,6 +93,14 @@ const ROLE_PERMISSIONS: Record<string, Permission[]> = {
     "question-bank:manage",
     "dashboard:read",
   ],
+  HR_MANAGER: [
+    "students:read",
+    "alumni:read",
+    "dashboard:read",
+    "pipeline:read",
+    "notifications:read",
+    "documents:manage",
+  ],
 };
 
 export function hasPermission(role: string, permission: Permission): boolean {
@@ -116,6 +124,7 @@ export const CRM_ROLES = [
   "SALES_LEAD",
   "ADMISSION_COUNSELLOR",
   "TRAINER",
+  "HR_MANAGER",
 ];
 
 // Check if a role can access admin panel
@@ -156,6 +165,8 @@ export function getNavItemsForRole(role: string): string[] {
       ];
     case "TRAINER":
       return ["dashboard", "batches", "sessions", "assessments", "question-bank", "students", "notifications", "settings"];
+    case "HR_MANAGER":
+      return ["dashboard", "employees", "students", "alumni", "alumni-network", "team-activity", "reports", "notifications", "settings"];
     default:
       return ["dashboard"];
   }

@@ -45,6 +45,7 @@ import {
   Activity,
   Send,
   Monitor,
+  User,
 } from "lucide-react";
 import { getInitials } from "@/lib/utils";
 import { getNavItemsForRole } from "@/lib/rbac";
@@ -142,6 +143,7 @@ const ADMIN_NAV_GROUPS: NavGroup[] = [
 
 // System items moved to user profile dropdown
 const SYSTEM_ITEMS = [
+  { id: "profile", href: "/admin/profile", label: "My Profile", icon: User },
   { id: "settings", href: "/admin/settings", label: "Settings", icon: Settings },
   { id: "notifications", href: "/admin/notifications", label: "Notifications", icon: Bell },
   { id: "users", href: "/admin/users", label: "User Management", icon: Shield },

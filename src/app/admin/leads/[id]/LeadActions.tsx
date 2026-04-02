@@ -41,11 +41,15 @@ const DROP_REASONS = [
 
 interface LeadActionsProps {
   leadId: string;
+  leadName: string;
   currentStatus: string;
   isConverted: boolean;
   courseInterest: string | null;
   phone: string | null;
   email: string;
+  alternatePhone: string | null;
+  qualification: string | null;
+  source: string;
   followUpDate: string | null;
   onLogCall?: () => void;
   assignedToId: string | null;
@@ -57,11 +61,15 @@ interface LeadActionsProps {
 
 export default function LeadActions({
   leadId,
+  leadName,
   currentStatus,
   isConverted,
   courseInterest,
   phone,
   email,
+  alternatePhone,
+  qualification,
+  source,
   followUpDate: followUpDateProp,
   onLogCall,
   assignedToId: initialAssignedToId,
@@ -117,6 +125,61 @@ export default function LeadActions({
   const [pendingStatus, setPendingStatus] = useState<string | null>(null);
   const [statusNote, setStatusNote] = useState("");
   const [statusNoteLoading, setStatusNoteLoading] = useState(false);
+
+  // Edit modal state
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editForm, setEditForm] = useState({
+    name: leadName || "",
+    email: email || "",
+    phone: phone || "",
+    alternatePhone: alternatePhone || "",
+    qualification: qualification || "",
+    courseInterest: courseInterest || "",
+    source: source || "",
+  });
+  const [editLoading, setEditLoading] = useState(false);
+
+  // Delete state
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleteLoading, setDeleteLoading] = useState(false);
+
+  const canDelete = ["SUPER_ADMIN", "ADMIN"].includes(userRole);
+
+  const handleEditSave = async () => {
+    setEditLoading(true);
+    try {
+      const res = await fetch(`/api/admin/leads/${leadId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(editForm),
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || "Failed to update lead");
+      }
+      setShowEditModal(false);
+      router.refresh();
+    } catch (err: any) {
+      alert(err.message || "Failed to update lead");
+    } finally {
+      setEditLoading(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    setDeleteLoading(true);
+    try {
+      const res = await fetch(`/api/admin/leads/${leadId}`, { method: "DELETE" });
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || "Failed to delete lead");
+      }
+      router.push("/admin/leads");
+    } catch (err: any) {
+      alert(err.message || "Failed to delete lead");
+      setDeleteLoading(false);
+    }
+  };
 
   // Convert modal state
   const [showConvertModal, setShowConvertModal] = useState(false);
@@ -957,6 +1020,24 @@ export default function LeadActions({
         </div>
       )}
 
+      {/* Edit + Delete Actions */}
+      <div className="glass-card p-5 flex gap-3">
+        <button
+          onClick={() => setShowEditModal(true)}
+          className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-neon-blue/10 text-neon-blue border border-neon-blue/20 hover:bg-neon-blue/20 transition-colors text-sm font-medium"
+        >
+          ✏️ Edit Lead
+        </button>
+        {canDelete && !isConverted && (
+          <button
+            onClick={() => setShowDeleteConfirm(true)}
+            className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-red-500/10 text-red-400 border border-red-500/20 hover:bg-red-500/20 transition-colors text-sm font-medium"
+          >
+            🗑️ Delete
+          </button>
+        )}
+      </div>
+
       {/* Add Note Form */}
       <div className="glass-card p-5 space-y-4">
         <div className="flex items-center justify-between">
@@ -1188,6 +1269,103 @@ export default function LeadActions({
                 </div>
               </div>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* Edit Lead Modal */}
+      {showEditModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+          <div className="glass-card p-6 w-full max-w-lg mx-4 space-y-4 max-h-[85vh] overflow-y-auto">
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-semibold text-text-primary">Edit Lead</h3>
+              <button onClick={() => setShowEditModal(false)} className="p-1 rounded-lg hover:bg-white/[0.03] text-text-muted hover:text-text-primary transition-colors">
+                <X size={18} />
+              </button>
+            </div>
+            <div className="space-y-3">
+              <div>
+                <label className="block text-xs text-text-muted mb-1">Name</label>
+                <input type="text" value={editForm.name} onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
+                  className="w-full px-3 py-2 rounded-lg bg-white/[0.03] border border-white/[0.06] text-white text-sm focus:outline-none focus:border-neon-blue/40" />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs text-text-muted mb-1">Phone</label>
+                  <input type="tel" value={editForm.phone} onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })}
+                    className="w-full px-3 py-2 rounded-lg bg-white/[0.03] border border-white/[0.06] text-white text-sm focus:outline-none focus:border-neon-blue/40" />
+                </div>
+                <div>
+                  <label className="block text-xs text-text-muted mb-1">Alt Phone</label>
+                  <input type="tel" value={editForm.alternatePhone} onChange={(e) => setEditForm({ ...editForm, alternatePhone: e.target.value })}
+                    className="w-full px-3 py-2 rounded-lg bg-white/[0.03] border border-white/[0.06] text-white text-sm focus:outline-none focus:border-neon-blue/40" />
+                </div>
+              </div>
+              <div>
+                <label className="block text-xs text-text-muted mb-1">Email</label>
+                <input type="email" value={editForm.email} onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
+                  className="w-full px-3 py-2 rounded-lg bg-white/[0.03] border border-white/[0.06] text-white text-sm focus:outline-none focus:border-neon-blue/40" />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs text-text-muted mb-1">Qualification</label>
+                  <input type="text" value={editForm.qualification} onChange={(e) => setEditForm({ ...editForm, qualification: e.target.value })}
+                    className="w-full px-3 py-2 rounded-lg bg-white/[0.03] border border-white/[0.06] text-white text-sm focus:outline-none focus:border-neon-blue/40" />
+                </div>
+                <div>
+                  <label className="block text-xs text-text-muted mb-1">Course Interest</label>
+                  <select value={editForm.courseInterest} onChange={(e) => setEditForm({ ...editForm, courseInterest: e.target.value })}
+                    className="w-full px-3 py-2 rounded-lg bg-white/[0.03] border border-white/[0.06] text-white text-sm focus:outline-none focus:border-neon-blue/40">
+                    <option value="" className="bg-gray-900">None</option>
+                    {Object.entries(COURSE_LABELS).map(([k, v]) => (
+                      <option key={k} value={k} className="bg-gray-900">{v}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+              <div>
+                <label className="block text-xs text-text-muted mb-1">Source</label>
+                <input type="text" value={editForm.source} onChange={(e) => setEditForm({ ...editForm, source: e.target.value })}
+                  className="w-full px-3 py-2 rounded-lg bg-white/[0.03] border border-white/[0.06] text-white text-sm focus:outline-none focus:border-neon-blue/40" />
+              </div>
+            </div>
+            <div className="flex gap-3 pt-2">
+              <button onClick={() => setShowEditModal(false)}
+                className="flex-1 px-4 py-2.5 rounded-lg text-sm font-medium text-text-muted hover:text-text-secondary border border-white/[0.06] hover:bg-white/[0.03] transition-colors">
+                Cancel
+              </button>
+              <button onClick={handleEditSave} disabled={editLoading}
+                className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-neon-blue/10 text-neon-blue border border-neon-blue/20 hover:bg-neon-blue/20 transition-colors text-sm font-medium disabled:opacity-50">
+                {editLoading && <Loader2 size={14} className="animate-spin" />}
+                Save Changes
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+          <div className="glass-card p-6 w-full max-w-sm mx-4 space-y-4">
+            <div className="flex items-center gap-3 text-red-400">
+              <AlertTriangle size={24} />
+              <h3 className="text-lg font-semibold">Delete Lead</h3>
+            </div>
+            <p className="text-sm text-text-secondary">
+              Are you sure you want to permanently delete <strong className="text-white">{leadName}</strong>? This action cannot be undone. All notes and history will be lost.
+            </p>
+            <div className="flex gap-3">
+              <button onClick={() => setShowDeleteConfirm(false)}
+                className="flex-1 px-4 py-2.5 rounded-lg text-sm font-medium text-text-muted hover:text-text-secondary border border-white/[0.06] hover:bg-white/[0.03] transition-colors">
+                Cancel
+              </button>
+              <button onClick={handleDelete} disabled={deleteLoading}
+                className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-red-500/20 text-red-400 border border-red-500/30 hover:bg-red-500/30 transition-colors text-sm font-medium disabled:opacity-50">
+                {deleteLoading && <Loader2 size={14} className="animate-spin" />}
+                Delete Permanently
+              </button>
+            </div>
           </div>
         </div>
       )}

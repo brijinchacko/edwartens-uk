@@ -101,6 +101,24 @@ async function main() {
     },
   });
 
+  // HR Manager
+  const hrPassword = await bcrypt.hash("hr2026!", 12);
+  const hrUser = await prisma.user.upsert({
+    where: { email: "karthika@wartens.com" },
+    update: {},
+    create: {
+      email: "karthika@wartens.com",
+      password: hrPassword,
+      name: "Karthika",
+      role: "HR_MANAGER",
+      phone: "+44 7700 000001",
+      isActive: true,
+      onboarded: true,
+      termsAccepted: true,
+      termsAcceptedAt: new Date(),
+    },
+  });
+
   const demoUser = await prisma.user.upsert({
     where: { email: "demo@edwartens.co.uk" },
     update: {},
@@ -178,6 +196,17 @@ async function main() {
       department: "Training",
       specialization: "PLC & AI Automation",
       bio: "Lead trainer and instructor for PLC and AI modules.",
+    },
+  });
+
+  const hrEmployee = await prisma.employee.upsert({
+    where: { userId: hrUser.id },
+    update: {},
+    create: {
+      userId: hrUser.id,
+      department: "Human Resources",
+      specialization: "HR Management",
+      bio: "HR Manager — monitors employee activities and manages personnel records.",
     },
   });
 

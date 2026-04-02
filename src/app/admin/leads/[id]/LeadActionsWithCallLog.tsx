@@ -12,6 +12,9 @@ interface LeadActionsWithCallLogProps {
   courseInterest: string | null;
   phone: string | null;
   email: string;
+  alternatePhone: string | null;
+  qualification: string | null;
+  source: string;
   followUpDate: string | null;
   assignedToId: string | null;
   assignedToName: string | null;
@@ -28,6 +31,9 @@ export default function LeadActionsWithCallLog({
   courseInterest,
   phone,
   email,
+  alternatePhone,
+  qualification,
+  source,
   followUpDate,
   assignedToId,
   assignedToName,
@@ -41,11 +47,15 @@ export default function LeadActionsWithCallLog({
     <>
       <LeadActions
         leadId={leadId}
+        leadName={leadName}
         currentStatus={currentStatus}
         isConverted={isConverted}
         courseInterest={courseInterest}
         phone={phone}
         email={email}
+        alternatePhone={alternatePhone}
+        qualification={qualification}
+        source={source}
         followUpDate={followUpDate}
         onLogCall={() => setShowCallLog(true)}
         assignedToId={assignedToId}
