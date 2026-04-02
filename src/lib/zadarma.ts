@@ -6,9 +6,10 @@ const BASE_URL = "https://api.zadarma.com";
 
 function generateSignature(method: string, params: Record<string, string> = {}): string {
   const sorted = Object.keys(params).sort();
-  const paramStr = sorted.map((k) => `${k}=${params[k]}`).join("&");
+  const paramStr = sorted.map((k) => `${encodeURIComponent(k)}=${encodeURIComponent(params[k])}`).join("&");
   const signStr = `${method}${paramStr}${crypto.createHash("md5").update(paramStr).digest("hex")}`;
-  return crypto.createHmac("sha1", API_SECRET).update(signStr).digest("base64");
+  const sha1hex = crypto.createHmac("sha1", API_SECRET).update(signStr).digest("hex");
+  return Buffer.from(sha1hex).toString("base64");
 }
 
 async function apiRequest(method: string, endpoint: string, params: Record<string, string> = {}) {
@@ -17,9 +18,10 @@ async function apiRequest(method: string, endpoint: string, params: Record<strin
   }
 
   const signature = generateSignature(endpoint, params);
-  const queryString = new URLSearchParams(params).toString();
-  const url = method === "GET" && queryString
-    ? `${BASE_URL}${endpoint}?${queryString}`
+  const sorted = Object.keys(params).sort();
+  const paramsString = sorted.map((k) => `${encodeURIComponent(k)}=${encodeURIComponent(params[k])}`).join("&");
+  const url = method === "GET" && paramsString
+    ? `${BASE_URL}${endpoint}?${paramsString}`
     : `${BASE_URL}${endpoint}`;
 
   const headers: Record<string, string> = {
@@ -30,14 +32,15 @@ async function apiRequest(method: string, endpoint: string, params: Record<strin
 
   if (method === "POST") {
     headers["Content-Type"] = "application/x-www-form-urlencoded";
-    options.body = queryString;
+    options.body = paramsString;
   }
 
   const res = await fetch(url, options);
-  if (!res.ok) {
-    throw new Error(`Zadarma API error: ${res.status} ${res.statusText}`);
+  const data = await res.json();
+  if (data.status === "error") {
+    throw new Error(`Zadarma API error: ${data.message}`);
   }
-  return res.json();
+  return data;
 }
 
 // ──────────────────────────────────────────────
