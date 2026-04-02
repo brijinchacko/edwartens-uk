@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { isCrmRole } from "@/lib/rbac";
 import { notifyByRole } from "@/lib/notifications";
 
-const IDLE_THRESHOLD_MINUTES = 20;
+const IDLE_THRESHOLD_MINUTES = 15;
 
 export async function POST(req: NextRequest) {
   try {
@@ -104,7 +104,7 @@ export async function POST(req: NextRequest) {
         await notifyByRole(
           ["SUPER_ADMIN", "ADMIN"],
           "Employee Idle Alert",
-          `${employeeName} has been idle for ${IDLE_THRESHOLD_MINUTES}+ minutes`,
+          `${employeeName} has been idle for 15+ minutes`,
           "IDLE_ALERT",
           "/admin/employees"
         );

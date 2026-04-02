@@ -74,7 +74,7 @@ export function TeamTargetWidget() {
           <div className="w-20 h-1.5 bg-dark-primary rounded-full overflow-hidden">
             <div className="h-full rounded-full" style={{
               width: `${Math.min(data.hardTargetPercent, 100)}%`,
-              background: data.hardTargetMet ? "#92E02C" : data.hardTargetPercent >= 75 ? "#F59E0B" : "#EF4444",
+              background: data.hardTargetMet ? "#7BC142" : data.hardTargetPercent >= 75 ? "#F59E0B" : "#EF4444",
             }} />
           </div>
           {isCritical && <AlertTriangle size={12} className="text-red-400" />}
@@ -177,7 +177,7 @@ export function TeamTargetWidget() {
               className="h-full rounded-full transition-all duration-700"
               style={{
                 width: `${Math.min(data.hardTargetPercent, 100)}%`,
-                background: data.hardTargetMet ? "#92E02C" : data.hardTargetPercent >= 75 ? "#F59E0B" : "#EF4444",
+                background: data.hardTargetMet ? "#7BC142" : data.hardTargetPercent >= 75 ? "#F59E0B" : "#EF4444",
               }}
             />
           </div>
@@ -197,7 +197,7 @@ export function TeamTargetWidget() {
               className="h-full rounded-full transition-all duration-700"
               style={{
                 width: `${Math.min(data.progressPercent, 100)}%`,
-                background: data.fullTargetMet ? "#92E02C" : "linear-gradient(90deg, #2891FF, #92E02C)",
+                background: data.fullTargetMet ? "#7BC142" : "linear-gradient(90deg, #2891FF, #7BC142)",
               }}
             />
           </div>

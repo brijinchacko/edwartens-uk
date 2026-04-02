@@ -46,7 +46,7 @@ The convergence of AI, IoT, and edge computing is creating a new generation of a
     readTime: "7 min read",
     publishedAt: "2025-06-10",
     author: "EDWartens UK Team",
-    image: "https://images.unsplash.com/photo-1677442136019-21780ecad995?w=1200&h=630&fit=crop",
+    image: "/images/blog/photo-1677442136019-21780ecad995.jpg",
     seoKeywords: ["AI in manufacturing", "artificial intelligence factory", "smart manufacturing UK", "AI production line", "industrial AI applications"],
   },
   {
@@ -102,7 +102,7 @@ EDWartens offers training programmes that cover practical ML implementation for 
     readTime: "8 min read",
     publishedAt: "2025-06-28",
     author: "Vaisakh Sankar",
-    image: "https://images.unsplash.com/photo-1620712943543-bcc4688e7485?w=1200&h=630&fit=crop",
+    image: "/images/blog/photo-1620712943543-bcc4688e7485.jpg",
     seoKeywords: ["machine learning quality control", "ML defect detection", "AI quality inspection", "manufacturing quality AI", "automated inspection", "computer vision QC"],
   },
   {
@@ -166,7 +166,7 @@ Implementing computer vision in a factory setting requires a blend of AI knowled
     readTime: "9 min read",
     publishedAt: "2025-07-15",
     author: "EDWartens UK Team",
-    image: "https://images.unsplash.com/photo-1555255707-c07966088b7b?w=1200&h=630&fit=crop",
+    image: "/images/blog/photo-1555255707-c07966088b7b.jpg",
     seoKeywords: ["computer vision factory", "automated visual inspection", "deep learning manufacturing", "industrial image processing", "AI defect detection", "machine vision systems"],
   },
   {
@@ -228,7 +228,7 @@ EDWartens training programmes include hands-on modules on implementing predictiv
     readTime: "8 min read",
     publishedAt: "2025-08-05",
     author: "Vaisakh Sankar",
-    image: "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=1200&h=630&fit=crop",
+    image: "/images/blog/photo-1526374965328-7f61d4dc18c5.jpg",
     seoKeywords: ["predictive maintenance AI", "AI reduce downtime", "machine learning maintenance", "condition monitoring", "equipment failure prediction", "industrial IoT maintenance"],
   },
   {
@@ -282,7 +282,7 @@ EDWartens training programmes are designed for the Industry 4.0 era. Our courses
     readTime: "7 min read",
     publishedAt: "2025-08-22",
     author: "EDWartens UK Team",
-    image: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=1200&h=630&fit=crop",
+    image: "/images/blog/photo-1551288049-bebda4e38f71.jpg",
     seoKeywords: ["Industry 4.0 explained", "fourth industrial revolution", "smart manufacturing", "cyber-physical systems", "IIoT manufacturing", "digital transformation factory"],
   },
   {
@@ -344,7 +344,7 @@ Technology alone does not make a factory smart. Skilled engineers who understand
     readTime: "8 min read",
     publishedAt: "2025-09-10",
     author: "Vaisakh Sankar",
-    image: "https://images.unsplash.com/photo-1485827404703-89b55fcc595e?w=1200&h=630&fit=crop",
+    image: "/images/blog/photo-1485827404703-89b55fcc595e.jpg",
     seoKeywords: ["smart factory guide", "connected manufacturing", "factory IoT architecture", "smart manufacturing UK", "Industry 4.0 implementation", "intelligent factory"],
   },
   {
@@ -406,7 +406,7 @@ EDWartens offers training that covers the practical aspects of digital twin crea
     readTime: "8 min read",
     publishedAt: "2025-09-28",
     author: "EDWartens UK Team",
-    image: "https://images.unsplash.com/photo-1518770660439-4636190af475?w=1200&h=630&fit=crop",
+    image: "/images/blog/photo-1518770660439-4636190af475.jpg",
     seoKeywords: ["digital twins manufacturing", "virtual factory simulation", "process optimisation digital twin", "Industry 4.0 digital twin", "manufacturing simulation", "predictive digital twin"],
   },
   {
@@ -470,7 +470,7 @@ EDWartens training covers IIoT implementation from sensor selection and protocol
     readTime: "8 min read",
     publishedAt: "2025-10-12",
     author: "Vaisakh Sankar",
-    image: "https://images.unsplash.com/photo-1504384308090-c894fdcc538d?w=1200&h=630&fit=crop",
+    image: "/images/blog/photo-1504384308090-c894fdcc538d.jpg",
     seoKeywords: ["IoT industrial automation", "IIoT factory", "MQTT manufacturing", "OPC UA protocol", "industrial IoT architecture", "connected factory", "IIoT deployment"],
   },
   {
@@ -536,7 +536,7 @@ EDWartens courses include practical training on deploying AI models to edge devi
     readTime: "8 min read",
     publishedAt: "2025-10-30",
     author: "EDWartens UK Team",
-    image: "https://images.unsplash.com/photo-1555949963-aa79dcee981c?w=1200&h=630&fit=crop",
+    image: "/images/blog/photo-1555949963-aa79dcee981c.jpg",
     seoKeywords: ["edge computing manufacturing", "real-time AI factory", "NVIDIA Jetson industrial", "edge AI deployment", "factory edge computing", "industrial edge devices"],
   },
   {
@@ -617,7 +617,7 @@ For automation engineers new to Python, start with data analysis and visualisati
     readTime: "8 min read",
     publishedAt: "2025-11-14",
     author: "Vaisakh Sankar",
-    image: "https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=1200&h=630&fit=crop",
+    image: "/images/blog/photo-1454165804606-c3d57bc86b40.jpg",
     seoKeywords: ["Python industrial applications", "Python automation engineer", "Python manufacturing", "industrial data analysis Python", "PLC Python communication", "Python factory"],
   },
   {
@@ -693,7 +693,7 @@ EDWartens courses cover the full TensorFlow workflow for industrial applications
     readTime: "9 min read",
     publishedAt: "2025-12-02",
     author: "EDWartens UK Team",
-    image: "https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=1200&h=630&fit=crop",
+    image: "/images/blog/photo-1555066931-4365d14bab8c.jpg",
     seoKeywords: ["TensorFlow manufacturing", "deep learning production deployment", "TensorFlow Lite edge", "industrial AI model", "manufacturing deep learning", "TensorFlow factory"],
   },
   {
@@ -757,7 +757,7 @@ Implementing AI-powered SCADA requires professionals who understand both traditi
     readTime: "8 min read",
     publishedAt: "2025-12-20",
     author: "Vaisakh Sankar",
-    image: "https://images.unsplash.com/photo-1535378917042-10a22c95931a?w=1200&h=630&fit=crop",
+    image: "/images/blog/photo-1535378917042-10a22c95931a.jpg",
     seoKeywords: ["AI SCADA systems", "intelligent process control", "AI-powered SCADA", "SCADA machine learning", "industrial AI analytics", "smart SCADA"],
   },
   {
@@ -829,7 +829,7 @@ EDWartens training covers the practical aspects of implementing neural network-b
     readTime: "9 min read",
     publishedAt: "2026-01-08",
     author: "EDWartens UK Team",
-    image: "https://images.unsplash.com/photo-1581090464777-f3220bbe1b8b?w=1200&h=630&fit=crop",
+    image: "/images/blog/photo-1581090464777-f3220bbe1b8b.jpg",
     seoKeywords: ["neural networks process control", "AI PID controller", "deep learning control systems", "reinforcement learning manufacturing", "AI process optimisation", "neural network industrial control"],
   },
   {
@@ -901,7 +901,7 @@ LLMs should augment, not replace, engineering judgement. They are tools for acce
     readTime: "8 min read",
     publishedAt: "2026-01-25",
     author: "Vaisakh Sankar",
-    image: "https://images.unsplash.com/photo-1550751827-4bd374c3f58b?w=1200&h=630&fit=crop",
+    image: "/images/blog/photo-1550751827-4bd374c3f58b.jpg",
     seoKeywords: ["ChatGPT engineering documentation", "LLM technical writing", "AI documentation automation", "engineering SOP generator", "large language models manufacturing", "AI compliance documentation"],
   },
   {
@@ -975,7 +975,7 @@ EDWartens digital AI training includes modules on generative design principles a
     readTime: "8 min read",
     publishedAt: "2026-02-10",
     author: "EDWartens UK Team",
-    image: "https://images.unsplash.com/photo-1581092160562-40aa08e78837?w=1200&h=630&fit=crop",
+    image: "/images/blog/photo-1581092160562-40aa08e78837.jpg",
     seoKeywords: ["generative AI product design", "generative design manufacturing", "AI topology optimisation", "AI product development", "generative design tools", "AI-driven engineering design"],
   },
   {
@@ -1049,7 +1049,7 @@ EDWartens includes RPA in its digital automation curriculum, recognising that mo
     readTime: "8 min read",
     publishedAt: "2026-02-25",
     author: "Vaisakh Sankar",
-    image: "https://images.unsplash.com/photo-1537462715879-360eeb61a0ad?w=1200&h=630&fit=crop",
+    image: "/images/blog/photo-1537462715879-360eeb61a0ad.jpg",
     seoKeywords: ["RPA manufacturing", "robotic process automation factory", "manufacturing digital automation", "RPA production reporting", "software automation manufacturing", "RPA industrial applications"],
   },
   {
@@ -1123,7 +1123,7 @@ Begin with a comprehensive energy audit to identify the largest opportunities. I
     readTime: "8 min read",
     publishedAt: "2026-03-05",
     author: "EDWartens UK Team",
-    image: "https://images.unsplash.com/photo-1531482615713-2afd69097998?w=1200&h=630&fit=crop",
+    image: "/images/blog/photo-1531482615713-2afd69097998.jpg",
     seoKeywords: ["AI energy optimisation manufacturing", "sustainable manufacturing AI", "energy efficiency machine learning", "factory energy management", "carbon reduction AI", "industrial energy AI", "green manufacturing"],
   },
   {
@@ -1197,7 +1197,7 @@ The shortage of professionals with both cybersecurity and industrial control sys
     readTime: "9 min read",
     publishedAt: "2026-03-20",
     author: "Vaisakh Sankar",
-    image: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=1200&h=630&fit=crop",
+    image: "/images/blog/photo-1460925895917-afdab827c52f.jpg",
     seoKeywords: ["AI cybersecurity industrial", "industrial control system security", "SCADA cybersecurity", "smart factory security", "OT cybersecurity AI", "ICS threat detection", "industrial network security"],
   },
 ];

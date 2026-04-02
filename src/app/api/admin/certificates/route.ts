@@ -5,6 +5,8 @@ import { generateCertificateNo, formatDate } from "@/lib/utils";
 import { hasPermission } from "@/lib/rbac";
 import { generateCertificateImage } from "@/lib/certificate-generator";
 import { logAudit } from "@/lib/audit";
+import { notifyStudent, notifyAdmins } from "@/lib/notify";
+import { autoCompleteOnCertificate } from "@/lib/batch-automation";
 
 export async function GET(req: NextRequest) {
   try {
@@ -156,6 +158,13 @@ export async function POST(req: NextRequest) {
         },
       },
     });
+
+    // Auto-update student status on certificate issuance
+    await autoCompleteOnCertificate(studentId);
+
+    // Notifications
+    await notifyStudent(studentId, "Certificate Issued!", `Your ${type} certificate (${certificateNo}) has been generated. Download it from your Certificates page.`, "/student/certificates");
+    await notifyAdmins("Certificate Issued", `${type} certificate issued for ${student.user.name} (${certificateNo}).`, `/admin/certificates`);
 
     // Audit log
     await logAudit({

@@ -152,6 +152,7 @@ export default function StudentPracticalPage() {
                           day: "numeric",
                           month: "short",
                           year: "numeric",
+                          timeZone: "Europe/London",
                         })}
                       </span>
                     </div>
@@ -181,6 +182,7 @@ export default function StudentPracticalPage() {
                         day: "numeric",
                         month: "short",
                         year: "numeric",
+                        timeZone: "Europe/London",
                       })}
                       {deadlinePassed && " (EXPIRED)"}
                     </div>

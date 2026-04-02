@@ -226,11 +226,12 @@ export default function EmailClient() {
   const formatDateTime = (dateStr: string) => {
     const date = new Date(dateStr);
     const now = new Date();
-    const isToday = date.toDateString() === now.toDateString();
+    const isToday = date.toLocaleDateString("en-GB", { timeZone: "Europe/London" }) === now.toLocaleDateString("en-GB", { timeZone: "Europe/London" });
     if (isToday) {
       return date.toLocaleTimeString("en-GB", {
         hour: "2-digit",
         minute: "2-digit",
+        timeZone: "Europe/London",
       });
     }
     return date.toLocaleDateString("en-GB", {
@@ -239,6 +240,7 @@ export default function EmailClient() {
       year: date.getFullYear() !== now.getFullYear() ? "numeric" : undefined,
       hour: "2-digit",
       minute: "2-digit",
+      timeZone: "Europe/London",
     });
   };
 

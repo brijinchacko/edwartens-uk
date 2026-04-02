@@ -113,6 +113,7 @@ export default async function CertificatesPage() {
                         day: "numeric",
                         month: "short",
                         year: "numeric",
+                        timeZone: "Europe/London",
                       })}
                     </p>
                   </div>
@@ -124,6 +125,7 @@ export default async function CertificatesPage() {
                             day: "numeric",
                             month: "short",
                             year: "numeric",
+                            timeZone: "Europe/London",
                           })
                         : "No Expiry"}
                     </p>

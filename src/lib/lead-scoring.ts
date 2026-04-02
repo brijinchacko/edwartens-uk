@@ -50,7 +50,7 @@ export async function calculateLeadScore(leadId: string): Promise<{ score: numbe
     callsCompleted: 0,
     emailsSent: 0,
     followUpSet: lead.followUpDate ? 5 : 0,
-    qualifiedStatus: lead.status === "QUALIFIED" ? 15 : 0,
+    qualifiedStatus: ["QUALIFIED", "CONSULTATION_COMPLETED", "REGISTERED"].includes(lead.status) ? 15 : 0,
     enrolledStatus: lead.status === "ENROLLED" ? 25 : 0,
     multipleInteractions: 0,
     recentActivity: 0,

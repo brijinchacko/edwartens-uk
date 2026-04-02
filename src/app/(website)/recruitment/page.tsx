@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import {
   Users,
   Briefcase,
@@ -97,7 +98,7 @@ export default function RecruitmentPage() {
   return (
     <div className="pt-20">
       {/* Hero */}
-      <section className="mesh-gradient-hero py-24 sm:py-32 relative">
+      <section className="mesh-gradient-hero py-24 sm:py-32 relative overflow-hidden">
         <div className="dot-grid absolute inset-0 opacity-20" />
         <div className="max-w-7xl mx-auto px-3 sm:px-5 lg:px-6 relative z-10">
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/5 border border-white/[0.08] mb-8">
@@ -119,6 +120,18 @@ export default function RecruitmentPage() {
             automation and engineering employers across the UK.
           </p>
         </div>
+
+        {/* Hero Background Image */}
+        <div className="absolute inset-0 z-0">
+          <Image
+            src="/images/stock/recruitment.jpg"
+            alt="Recruitment and career services"
+            fill
+            className="object-cover opacity-10"
+            priority
+          />
+          <div className="absolute inset-0 bg-gradient-to-r from-[#0a0a14] via-[#0a0a14]/90 to-[#0a0a14]/70" />
+        </div>
       </section>
 
       {/* About Oscabe */}
@@ -126,6 +139,16 @@ export default function RecruitmentPage() {
         <div className="max-w-7xl mx-auto px-3 sm:px-5 lg:px-6">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div>
+              {/* Partner Image */}
+              <div className="relative h-48 rounded-xl overflow-hidden mb-6 border border-white/[0.06]">
+                <Image
+                  src="/images/stock/team-meeting.jpg"
+                  alt="Oscabe recruitment team meeting"
+                  fill
+                  className="object-cover"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a14]/70 to-transparent" />
+              </div>
               <p className="text-[11px] uppercase tracking-widest text-neon-blue mb-3">
                 Our Partner
               </p>

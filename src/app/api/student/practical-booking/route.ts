@@ -167,7 +167,7 @@ export async function POST(req: NextRequest) {
     const userName = session.user.name || "A student";
     const sessionDate = booking.practicalSession.date.toLocaleDateString(
       "en-GB",
-      { day: "numeric", month: "short", year: "numeric" }
+      { day: "numeric", month: "short", year: "numeric", timeZone: "Europe/London" }
     );
 
     await Promise.all(

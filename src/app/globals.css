@@ -7,7 +7,7 @@
   --color-surface: #141C26;
   --color-surface-hover: #1A2535;
   --color-neon-blue: #2891FF;
-  --color-neon-green: #92E02C;
+  --color-neon-green: #7BC142;
   --color-purple: #7C3AED;
   --color-cyan: #06B6D4;
   --color-text-primary: #FFFFFF;
@@ -16,7 +16,7 @@
   --color-border: rgba(255, 255, 255, 0.06);
   --color-border-hover: rgba(255, 255, 255, 0.12);
   --color-glow-blue: rgba(40, 145, 255, 0.15);
-  --color-glow-green: rgba(146, 224, 44, 0.15);
+  --color-glow-green: rgba(123, 193, 66, 0.15);
 
   --font-sans: var(--font-geist-sans), system-ui, -apple-system, sans-serif;
   --font-mono: var(--font-geist-mono), monospace;
@@ -63,10 +63,10 @@ body {
   -webkit-backdrop-filter: blur(12px);
   border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: 12px;
+  transition: border-color 0.15s ease;
 }
 .glass-card:hover {
-  background: rgba(255, 255, 255, 0.05);
-  border-color: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.12);
 }
 
 /* Gradient Border */
@@ -81,7 +81,7 @@ body {
   padding: 1px;
   background: linear-gradient(135deg,
     rgba(40, 145, 255, 0.4),
-    rgba(146, 224, 44, 0.4),
+    rgba(123, 193, 66, 0.4),
     rgba(124, 58, 237, 0.4)
   );
   mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
@@ -92,7 +92,7 @@ body {
 
 /* Gradient Text */
 .gradient-text {
-  background: linear-gradient(135deg, #2891FF, #92E02C);
+  background: linear-gradient(135deg, #2891FF, #7BC142);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -276,7 +276,7 @@ body.theme-light [style*="background"] { color: #0f172a !important; }
 
 /* Fix neon-blue/neon-green text to be darker in light mode for readability */
 body.theme-light .text-neon-blue { color: #1a6fd4 !important; }
-body.theme-light .text-neon-green { color: #3d8b0e !important; }
+body.theme-light .text-neon-green { color: #2d6b0e !important; }
 body.theme-light .text-purple { color: #7c3aed !important; }
 
 /* Student portal specific fixes */
@@ -295,9 +295,9 @@ body.theme-light .sidebar-link:hover {
   background: rgba(0, 0, 0, 0.04) !important;
 }
 body.theme-light .sidebar-link.active {
-  color: #1a6fd4 !important;
-  background: rgba(26, 111, 212, 0.08) !important;
-  border-color: rgba(26, 111, 212, 0.2) !important;
+  color: #1e293b !important;
+  background: rgba(0, 0, 0, 0.04) !important;
+  border-left-color: #2d6b0e !important;
 }
 
 /* Dot grid */
@@ -315,14 +315,14 @@ html[data-theme="light"] .sidebar-logo {
 .mesh-gradient-hero {
   background:
     radial-gradient(ellipse at 50% 0%, rgba(40, 145, 255, 0.12), transparent 60%),
-    radial-gradient(ellipse at 80% 20%, rgba(146, 224, 44, 0.08), transparent 50%),
+    radial-gradient(ellipse at 80% 20%, rgba(123, 193, 66, 0.08), transparent 50%),
     #0A0F14;
 }
 
 .mesh-gradient-alt {
   background:
     radial-gradient(ellipse at 30% 50%, rgba(40, 145, 255, 0.06), transparent 60%),
-    radial-gradient(ellipse at 70% 60%, rgba(146, 224, 44, 0.04), transparent 50%),
+    radial-gradient(ellipse at 70% 60%, rgba(123, 193, 66, 0.04), transparent 50%),
     #0A0F14;
 }
 
@@ -419,10 +419,6 @@ html[data-theme="light"] .sidebar-logo {
 .glow-blue {
   box-shadow: 0 0 30px rgba(40, 145, 255, 0.15);
 }
-.glow-green {
-  box-shadow: 0 0 30px rgba(146, 224, 44, 0.15);
-}
-
 /* Collapsible sections */
 details > summary { list-style: none; }
 details > summary::-webkit-details-marker { display: none; }
@@ -439,10 +435,10 @@ input:focus, textarea:focus, select:focus {
 .sidebar-link {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 10px 16px;
-  border-radius: 8px;
-  font-size: 14px;
+  gap: 10px;
+  padding: 7px 12px;
+  border-radius: 6px;
+  font-size: 12px;
   color: rgba(255, 255, 255, 0.5);
   transition: all 0.2s;
 }
@@ -452,8 +448,11 @@ input:focus, textarea:focus, select:focus {
 }
 .sidebar-link.active {
   color: #fff;
-  background: rgba(40, 145, 255, 0.1);
-  border: 1px solid rgba(40, 145, 255, 0.2);
+  background: rgba(255, 255, 255, 0.04);
+  border: none;
+  border-left: 2px solid #7BC142;
+  border-radius: 0 6px 6px 0;
+  padding-left: 14px;
 }
 
 /* Custom accent color override */
@@ -473,6 +472,54 @@ body[data-accent="true"] .bg-neon-blue {
 }
 
 
+/* Compact card variant */
+.card-compact {
+  padding: 12px 16px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+/* Stat card for KPI widgets */
+.stat-card {
+  padding: 16px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  transition: all 0.15s ease;
+}
+.stat-card:hover {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Mount animations */
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes slideUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes slideIn { from { opacity: 0; transform: translateX(-8px); } to { opacity: 1; transform: translateX(0); } }
+
+.animate-fadeIn { animation: fadeIn 0.3s ease-out; }
+.animate-slideUp { animation: slideUp 0.3s ease-out; }
+.animate-slideIn { animation: slideIn 0.3s ease-out; }
+
+/* Light-mode overrides for compact/stat cards */
+body.theme-light .card-compact {
+  background: #ffffff !important;
+  border-color: #e2e8f0 !important;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04) !important;
+}
+
+body.theme-light .stat-card {
+  background: #ffffff !important;
+  border-color: #e2e8f0 !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06) !important;
+}
+body.theme-light .stat-card:hover {
+  background: #f8fafc !important;
+  border-color: #cbd5e1 !important;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.06) !important;
+}
+
 /* Print styles for invoices */
 @media print {
   body { background: white !important; color: black !important; }
@@ -485,4 +532,248 @@ body[data-accent="true"] .bg-neon-blue {
   .text-neon-green { color: #15803d !important; }
   main { margin: 0 !important; padding: 0 !important; }
   .border-white\/\[0\.06\] { border-color: #e5e7eb !important; }
+}
+
+/* =========================================================================
+   HOVER & INTERACTION ANIMATIONS (GPU-accelerated, transform-only)
+   ========================================================================= */
+
+/* Button hover: subtle scale + shadow lift */
+.btn-hover,
+a[class*="bg-gradient-to-r"],
+a[class*="bg-neon-blue"],
+button[class*="bg-neon-blue"] {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.btn-hover:hover,
+a[class*="bg-gradient-to-r"]:hover,
+a[class*="bg-neon-blue"]:hover,
+button[class*="bg-neon-blue"]:hover {
+  transform: translateY(-1px) scale(1.02);
+  box-shadow: 0 8px 25px rgba(40, 145, 255, 0.2);
+}
+.btn-hover:active,
+a[class*="bg-gradient-to-r"]:active {
+  transform: translateY(0) scale(0.98);
+}
+
+/* Card hover: glow border + lift */
+.card-hover-glow {
+  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+}
+.card-hover-glow:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 0 20px rgba(40, 145, 255, 0.08), 0 8px 30px rgba(0, 0, 0, 0.15);
+  border-color: rgba(40, 145, 255, 0.15);
+}
+
+/* Animated gradient text on headings */
+.gradient-text-animated {
+  background: linear-gradient(90deg, #2891FF, #7BC142, #7C3AED, #2891FF);
+  background-size: 300% 100%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: gradient-text-flow 6s ease infinite;
+}
+@keyframes gradient-text-flow {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* Link underline animation */
+.link-underline {
+  position: relative;
+}
+.link-underline::after {
+  content: "";
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 0;
+  height: 1px;
+  background: currentColor;
+  transition: width 0.3s ease;
+}
+.link-underline:hover::after {
+  width: 100%;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   FUTURISTIC UI EFFECTS
+   ═══════════════════════════════════════════════════════════ */
+
+/* Neon glow on cards — stronger, with color */
+.glass-card-neon {
+  background: rgba(10, 15, 20, 0.8);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(40, 145, 255, 0.12);
+  border-radius: 16px;
+  box-shadow:
+    0 0 15px rgba(40, 145, 255, 0.05),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.glass-card-neon:hover {
+  border-color: rgba(40, 145, 255, 0.25);
+  box-shadow:
+    0 0 30px rgba(40, 145, 255, 0.1),
+    0 8px 32px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  transform: translateY(-2px);
+}
+
+/* Scanning line effect (horizontal light sweep) */
+.scan-line {
+  position: relative;
+  overflow: hidden;
+}
+.scan-line::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(40, 145, 255, 0.03), transparent);
+  animation: scan 4s ease-in-out infinite;
+  pointer-events: none;
+  z-index: 1;
+}
+@keyframes scan {
+  0% { left: -100%; }
+  100% { left: 100%; }
+}
+
+/* Holographic shimmer border */
+.holo-border {
+  position: relative;
+}
+.holo-border::before {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  background: linear-gradient(
+    45deg,
+    transparent,
+    rgba(40, 145, 255, 0.3),
+    transparent,
+    rgba(123, 193, 66, 0.3),
+    transparent,
+    rgba(124, 58, 237, 0.3),
+    transparent
+  );
+  background-size: 400% 400%;
+  animation: holo-shimmer 8s ease infinite;
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+  -webkit-mask-composite: xor;
+  padding: 1px;
+  pointer-events: none;
+  z-index: 1;
+}
+@keyframes holo-shimmer {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* Cyber grid background */
+.cyber-grid {
+  background-image:
+    linear-gradient(rgba(40, 145, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(40, 145, 255, 0.03) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+/* Futuristic text glow */
+.text-glow-blue {
+  text-shadow: 0 0 10px rgba(40, 145, 255, 0.5), 0 0 20px rgba(40, 145, 255, 0.2);
+}
+/* Corner brackets decoration (tech/HUD style) */
+.corner-brackets {
+  position: relative;
+}
+.corner-brackets::before,
+.corner-brackets::after {
+  content: "";
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  border-color: rgba(40, 145, 255, 0.3);
+  pointer-events: none;
+  z-index: 2;
+}
+.corner-brackets::before {
+  top: 0; left: 0;
+  border-top: 2px solid;
+  border-left: 2px solid;
+}
+.corner-brackets::after {
+  bottom: 0; right: 0;
+  border-bottom: 2px solid;
+  border-right: 2px solid;
+}
+
+/* Data number display (monospace, tabular) */
+.data-display {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+
+/* ═══ Light-mode overrides for futuristic effects ═══ */
+body.theme-light .glass-card-neon {
+  background: #ffffff !important;
+  border-color: #e2e8f0 !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04) !important;
+  backdrop-filter: none !important;
+}
+body.theme-light .glass-card-neon:hover {
+  background: #ffffff !important;
+  border-color: #cbd5e1 !important;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.06), 0 2px 4px rgba(0, 0, 0, 0.04) !important;
+}
+
+body.theme-light .scan-line::after {
+  background: linear-gradient(90deg, transparent, rgba(40, 145, 255, 0.02), transparent) !important;
+}
+
+body.theme-light .holo-border::before {
+  background: linear-gradient(
+    45deg,
+    transparent,
+    rgba(40, 145, 255, 0.1),
+    transparent,
+    rgba(123, 193, 66, 0.1),
+    transparent,
+    rgba(124, 58, 237, 0.1),
+    transparent
+  ) !important;
+  background-size: 400% 400% !important;
+}
+
+body.theme-light .cyber-grid {
+  background-image:
+    linear-gradient(rgba(0, 0, 0, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 0, 0, 0.03) 1px, transparent 1px) !important;
+}
+
+body.theme-light .text-glow-blue {
+  text-shadow: none !important;
+}
+
+body.theme-light .corner-brackets::before,
+body.theme-light .corner-brackets::after {
+  border-color: rgba(26, 111, 212, 0.2) !important;
+}
+
+body.theme-light .sidebar-link.active {
+  box-shadow: none !important;
+}
+
+body.theme-light .cyber-grid {
+  background-image: none !important;
 }

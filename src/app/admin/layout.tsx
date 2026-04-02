@@ -3,7 +3,9 @@ import { auth } from "@/lib/auth";
 import { isCrmRole } from "@/lib/rbac";
 import { AdminSidebar } from "@/components/AdminSidebar";
 import { StickyHeader } from "@/components/StickyHeader";
+// WorkTracker removed from layout — header handles timer, dashboard has its own check-in UI
 import { WhatsAppTaskPopup } from "@/components/WhatsAppTaskPopup";
+import { NewLeadPopup } from "@/components/NewLeadPopup";
 import { ThemeProvider } from "@/components/ThemeProvider";
 
 export default async function AdminLayout({
@@ -38,12 +40,13 @@ export default async function AdminLayout({
           userImage={user.image || undefined}
         />
         <main className="flex-1 overflow-y-auto">
-          <div className="p-6 lg:p-8">
-            <StickyHeader userRole={userRole} />
+          <StickyHeader userRole={userRole} />
+          <div className="px-6 lg:px-8 pb-6 lg:pb-8">
             <WhatsAppTaskPopup />
             {children}
           </div>
         </main>
+        <NewLeadPopup userRole={userRole} />
       </div>
     </ThemeProvider>
   );

@@ -140,19 +140,19 @@ export function getNavItemsForRole(role: string): string[] {
       return [
         "dashboard", "leads", "pipeline", "students", "batches", "sessions",
         "assessments", "question-bank", "career", "certificates", "invoices", "jobs", "alumni", "alumni-network", "referrals", "team-activity", "employees",
-        "reports", "feedback", "users", "emails", "drip-campaigns", "calendar", "notifications", "import", "audit", "settings",
+        "kpi", "reports", "feedback", "users", "emails", "drip-campaigns", "calendar", "notifications", "import", "audit", "monitoring", "settings",
       ];
     case "ADMIN":
       return [
         "dashboard", "leads", "pipeline", "students", "batches", "sessions",
         "assessments", "question-bank", "career", "certificates", "invoices", "jobs", "alumni", "alumni-network", "referrals", "team-activity", "employees",
-        "reports", "feedback", "emails", "drip-campaigns", "calendar", "notifications", "import", "settings",
+        "kpi", "reports", "feedback", "emails", "drip-campaigns", "calendar", "notifications", "import", "settings",
       ];
     case "SALES_LEAD":
-      return ["dashboard", "leads", "pipeline", "emails", "calendar", "notifications", "settings"];
+      return ["dashboard", "leads", "pipeline", "kpi", "emails", "calendar", "notifications", "settings"];
     case "ADMISSION_COUNSELLOR":
       return [
-        "dashboard", "leads", "pipeline", "students", "career", "alumni", "emails", "calendar", "notifications", "settings",
+        "dashboard", "leads", "pipeline", "students", "career", "alumni", "kpi", "emails", "calendar", "notifications", "settings",
       ];
     case "TRAINER":
       return ["dashboard", "batches", "sessions", "assessments", "question-bank", "students", "notifications", "settings"];

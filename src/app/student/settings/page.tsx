@@ -117,8 +117,8 @@ export default function StudentSettingsPage() {
   };
 
   const handleLogout = async () => {
-    await fetch("/api/auth/signout", { method: "POST" });
-    router.push("/login");
+    await fetch("/api/logout", { method: "POST" });
+    window.location.href = "/login";
   };
 
   const tabs = [

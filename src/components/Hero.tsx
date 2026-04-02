@@ -1,10 +1,22 @@
 import Link from "next/link";
+import Image from "next/image";
 import FuturisticGrid from "./FuturisticGrid";
 
 export default function Hero() {
   return (
     <section className="px-3 sm:px-5 lg:px-6 pt-3">
-      <div className="relative rounded-2xl sm:rounded-3xl overflow-hidden border border-white/[0.06] mesh-gradient-hero min-h-[85vh] flex items-center">
+      <div className="relative rounded-2xl sm:rounded-3xl overflow-hidden border border-white/[0.06] mesh-gradient-hero cyber-grid min-h-[85vh] flex items-center">
+        {/* Hero Background Image */}
+        <Image
+          src="/images/stock/hero-automation.jpg"
+          alt="Industrial automation and PLC training facility"
+          fill
+          priority
+          className="object-cover opacity-20"
+          sizes="100vw"
+        />
+        {/* Dark gradient overlay for text readability */}
+        <div className="absolute inset-0 bg-gradient-to-b from-[#0a0a14]/60 via-[#0a0a14]/40 to-[#0a0a14]/80 z-[1]" />
         <FuturisticGrid />
 
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-8 py-32 sm:py-40 w-full text-center flex flex-col items-center">
@@ -19,9 +31,9 @@ export default function Hero() {
 
           {/* H1 */}
           <h1 className="text-4xl sm:text-5xl lg:text-7xl font-bold tracking-tight leading-[1.05] mb-6">
-            <span className="text-white">Launch Your Career in</span>
+            <span className="text-white text-glow-blue">Launch Your Career in</span>
             <br />
-            <span className="gradient-text">Industrial Automation</span>
+            <span className="gradient-text gradient-text-animated">Industrial Automation</span>
           </h1>
 
           {/* Subtitle */}
@@ -52,13 +64,13 @@ export default function Hero() {
           <div className="flex flex-wrap justify-center gap-4">
             <Link
               href="/courses"
-              className="inline-flex items-center px-8 py-3.5 rounded-lg bg-gradient-to-r from-neon-blue to-neon-blue/80 text-white font-semibold text-sm hover:shadow-lg hover:shadow-neon-blue/25 active:scale-[0.98] transition-all"
+              className="inline-flex items-center px-8 py-3.5 rounded-lg bg-gradient-to-r from-neon-blue to-neon-blue/80 text-white font-semibold text-sm hover:shadow-lg hover:shadow-neon-blue/25 active:scale-[0.98] transition-all holo-border"
             >
               Explore Courses
             </Link>
             <Link
               href="/contact"
-              className="inline-flex items-center px-8 py-3.5 rounded-lg border border-white/10 text-text-secondary font-semibold text-sm hover:border-white/20 hover:bg-white/[0.03] transition-colors"
+              className="inline-flex items-center px-8 py-3.5 rounded-lg border border-white/10 text-text-secondary font-semibold text-sm hover:border-white/20 hover:bg-white/[0.03] transition-colors holo-border"
             >
               Book a Consultation
             </Link>

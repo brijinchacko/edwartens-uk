@@ -181,8 +181,8 @@ export default async function PaymentsPage() {
                 width: `${courseFee > 0 ? Math.min((paidAmount / courseFee) * 100, 100) : 0}%`,
                 background:
                   paymentStatus === "PAID"
-                    ? "#92E02C"
-                    : "linear-gradient(90deg, #2891FF, #92E02C)",
+                    ? "#7BC142"
+                    : "linear-gradient(90deg, #2891FF, #7BC142)",
               }}
             />
           </div>

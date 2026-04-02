@@ -113,6 +113,7 @@ export default async function JobsPage() {
                   {job.sentAt.toLocaleDateString("en-GB", {
                     day: "numeric",
                     month: "short",
+                    timeZone: "Europe/London",
                   })}
                 </div>
               </div>

@@ -298,7 +298,7 @@ export default function SignDocumentsPage() {
                     <div className="flex items-center gap-3 mt-1.5">
                       <span className="text-xs text-emerald-400 flex items-center gap-1">
                         <CheckCircle2 size={12} />
-                        Signed {doc.signedAt ? new Date(doc.signedAt).toLocaleDateString("en-GB") : ""}
+                        Signed {doc.signedAt ? new Date(doc.signedAt).toLocaleDateString("en-GB", { timeZone: "Europe/London" }) : ""}
                       </span>
                       <span className="text-xs text-text-muted">
                         {doc.signatureType === "DRAWN" ? "Hand-drawn" : "Typed"} signature

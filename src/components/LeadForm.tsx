@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Send, CheckCircle } from "lucide-react";
+import { ScrollReveal } from "./ScrollReveal";
 
 export default function LeadForm() {
   const [submitted, setSubmitted] = useState(false);
@@ -60,16 +61,19 @@ export default function LeadForm() {
   return (
     <section id="consultation" className="py-24 mesh-gradient-alt relative">
       <div className="max-w-7xl mx-auto px-3 sm:px-5 lg:px-6">
-        <div className="text-center mb-12">
-          <p className="text-[11px] uppercase tracking-widest text-neon-blue mb-3">Get Started</p>
-          <h2 className="text-3xl sm:text-5xl font-bold tracking-tight text-white mb-4">
-            Book a Free <span className="gradient-text">Consultation</span>
-          </h2>
-          <p className="text-text-secondary max-w-2xl mx-auto">
-            Fill in the form below and our team will reach out to help you choose the right program.
-          </p>
-        </div>
+        <ScrollReveal>
+          <div className="text-center mb-12">
+            <p className="text-[11px] uppercase tracking-widest text-neon-blue mb-3">Get Started</p>
+            <h2 className="text-3xl sm:text-5xl font-bold tracking-tight text-white mb-4">
+              Book a Free <span className="gradient-text">Consultation</span>
+            </h2>
+            <p className="text-text-secondary max-w-2xl mx-auto">
+              Fill in the form below and our team will reach out to help you choose the right program.
+            </p>
+          </div>
+        </ScrollReveal>
 
+        <ScrollReveal delay={200}>
         <form onSubmit={handleSubmit} className="glass-card rounded-2xl p-6 sm:p-10 max-w-2xl mx-auto">
           <div className="grid sm:grid-cols-2 gap-4 mb-4">
             <div>
@@ -145,6 +149,7 @@ export default function LeadForm() {
             {loading ? "Submitting..." : "Book Free Consultation"}
           </button>
         </form>
+        </ScrollReveal>
       </div>
     </section>
   );

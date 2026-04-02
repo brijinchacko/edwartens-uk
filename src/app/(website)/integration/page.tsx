@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import {
   Cpu,
   Monitor,
@@ -83,8 +84,18 @@ export default function IntegrationPage() {
   return (
     <div className="pt-20">
       {/* Hero */}
-      <section className="mesh-gradient-hero py-24 sm:py-32 relative">
+      <section className="mesh-gradient-hero py-24 sm:py-32 relative overflow-hidden">
         <div className="dot-grid absolute inset-0 opacity-20" />
+        <div className="absolute inset-0 z-0">
+          <Image
+            src="/images/stock/industrial-panel.jpg"
+            alt="Industrial control panel engineering"
+            fill
+            className="object-cover opacity-15"
+            priority
+          />
+          <div className="absolute inset-0 bg-gradient-to-r from-[#0a0a14] via-[#0a0a14]/90 to-[#0a0a14]/70" />
+        </div>
         <div className="max-w-7xl mx-auto px-3 sm:px-5 lg:px-6 relative z-10">
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/5 border border-white/[0.08] mb-8">
             <span className="relative flex h-2 w-2">
@@ -162,6 +173,27 @@ export default function IntegrationPage() {
               >
                 {industry}
               </span>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Engineering Image Strip */}
+      <section className="py-12 relative">
+        <div className="max-w-7xl mx-auto px-3 sm:px-5 lg:px-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {[
+              { src: "/images/stock/control-system.jpg", alt: "Industrial control system", label: "Control Systems" },
+              { src: "/images/stock/engineering-work.jpg", alt: "Engineering work on automation systems", label: "Engineering Services" },
+              { src: "/images/stock/data-dashboard.jpg", alt: "SCADA data dashboard", label: "SCADA & IIoT" },
+            ].map((img) => (
+              <div key={img.src} className="relative h-52 rounded-xl overflow-hidden border border-white/[0.06] group">
+                <Image src={img.src} alt={img.alt} fill className="object-cover group-hover:scale-105 transition-transform duration-500" />
+                <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a14]/90 via-[#0a0a14]/30 to-transparent" />
+                <div className="absolute bottom-4 left-4">
+                  <p className="text-white font-semibold text-sm">{img.label}</p>
+                </div>
+              </div>
             ))}
           </div>
         </div>

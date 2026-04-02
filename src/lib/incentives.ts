@@ -196,7 +196,7 @@ export async function getTeamTargetSummary(month?: number, year?: number) {
   return {
     month: m,
     year: y,
-    monthName: new Date(y, m - 1).toLocaleString("en-GB", { month: "long", year: "numeric" }),
+    monthName: new Date(y, m - 1).toLocaleString("en-GB", { month: "long", year: "numeric", timeZone: "Europe/London" }),
     totalTarget,
     hardTarget,
     totalAchieved,

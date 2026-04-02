@@ -251,6 +251,7 @@ export default function AdminReferralsPage() {
                             day: "numeric",
                             month: "short",
                             year: "numeric",
+                            timeZone: "Europe/London",
                           })}
                         </span>
                       </td>
@@ -303,6 +304,7 @@ export default function AdminReferralsPage() {
                               ? new Date(r.rewardGivenAt).toLocaleDateString("en-GB", {
                                   day: "numeric",
                                   month: "short",
+                                  timeZone: "Europe/London",
                                 })
                               : "Done"}
                           </span>

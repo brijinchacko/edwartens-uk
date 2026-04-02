@@ -202,6 +202,7 @@ function PreCourseTab({
                   day: "numeric",
                   month: "short",
                   year: "numeric",
+                  timeZone: "Europe/London",
                 })
               : ""}
           </span>
@@ -364,6 +365,7 @@ function TheoryTab({
                                 day: "numeric",
                                 month: "short",
                                 year: "numeric",
+                                timeZone: "Europe/London",
                               }
                             )
                           : "-"}
@@ -450,6 +452,7 @@ function PracticalTab({
                   day: "numeric",
                   month: "short",
                   year: "numeric",
+                  timeZone: "Europe/London",
                 })}
               </span>
               {sub.score !== null && (

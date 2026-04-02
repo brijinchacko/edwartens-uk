@@ -48,7 +48,7 @@ export default async function StudentLayout({
               {userName}
             </span>
             <a
-              href="/api/auth/signout"
+              href="/api/logout"
               className="flex items-center gap-2 text-sm text-text-muted hover:text-red-400 transition-colors"
             >
               <LogOut size={16} />

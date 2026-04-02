@@ -96,6 +96,13 @@ export function WorkTracker() {
   const [breakReason, setBreakReason] = useState<BreakReason>("Tea/Coffee");
   const [checkOutSummary, setCheckOutSummary] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [checkoutResult, setCheckoutResult] = useState<{
+    totalMinutes: number;
+    activeMinutes: number;
+    idleMinutes: number;
+    breakMinutes: number;
+    summary: string;
+  } | null>(null);
 
   // Activity tracking refs
   const lastActivity = useRef(Date.now());
@@ -197,14 +204,48 @@ export function WorkTracker() {
     const events = ["mousemove", "keypress", "click", "scroll"];
     events.forEach((e) => document.addEventListener(e, onActivity));
 
+    // Handle browser close / tab close — send final idle heartbeat
+    function onBeforeUnload() {
+      // Use sendBeacon for reliability (works even as page unloads)
+      navigator.sendBeacon(
+        "/api/admin/work-session/heartbeat",
+        new Blob([JSON.stringify({ isActive: false })], { type: "application/json" })
+      );
+    }
+
+    // Handle laptop lid close / tab switch
+    function onVisibilityChange() {
+      if (document.hidden) {
+        // Tab is hidden — send inactive heartbeat
+        fetch("/api/admin/work-session/heartbeat", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ isActive: false }),
+          keepalive: true, // ensures request completes even if page unloads
+        }).catch(() => {});
+      } else {
+        // Tab is visible again — send active heartbeat
+        lastActivity.current = Date.now();
+        isUserActive.current = true;
+        fetch("/api/admin/work-session/heartbeat", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ isActive: true }),
+        }).catch(() => {});
+      }
+    }
+
+    window.addEventListener("beforeunload", onBeforeUnload);
+    document.addEventListener("visibilitychange", onVisibilityChange);
+
     // Heartbeat every 60s — detect idle and auto-pause timer
     const heartbeat = setInterval(async () => {
       const idleMs = Date.now() - lastActivity.current;
-      const active = idleMs < 5 * 60 * 1000; // 5 min threshold
+      const active = idleMs < 2 * 60 * 1000; // 2 min threshold
       isUserActive.current = active;
 
-      // If idle for 20+ minutes, mark as uninformed break and pause timer
-      if (idleMs >= 20 * 60 * 1000 && session?.status === "ACTIVE") {
+      // If idle for 15+ minutes, mark as uninformed break and pause timer
+      if (idleMs >= 15 * 60 * 1000 && session?.status === "ACTIVE") {
         setSession((prev) =>
           prev ? { ...prev, status: "IDLE" } : prev
         );
@@ -231,6 +272,8 @@ export function WorkTracker() {
     return () => {
       events.forEach((e) => document.removeEventListener(e, onActivity));
       clearInterval(heartbeat);
+      window.removeEventListener("beforeunload", onBeforeUnload);
+      document.removeEventListener("visibilitychange", onVisibilityChange);
     };
   }, [session]);
 
@@ -343,6 +386,14 @@ export function WorkTracker() {
         body: JSON.stringify({ summary: checkOutSummary }),
       });
       if (res.ok) {
+        const data = await res.json();
+        setCheckoutResult({
+          totalMinutes: data.stats?.totalMinutes || 0,
+          activeMinutes: data.stats?.activeMinutes || 0,
+          idleMinutes: data.stats?.idleMinutes || 0,
+          breakMinutes: data.stats?.breakMinutes || 0,
+          summary: checkOutSummary,
+        });
         setSession(null);
         setShowCheckOut(false);
         setCheckOutSummary("");
@@ -645,6 +696,53 @@ export function WorkTracker() {
             >
               <Coffee size={16} />
               {submitting ? "Starting break..." : "Start Break"}
+            </button>
+          </div>
+        </ModalOverlay>
+      )}
+
+      {/* ─── Checkout Summary Modal ─── */}
+      {checkoutResult && (
+        <ModalOverlay onClose={() => setCheckoutResult(null)}>
+          <div className="glass-card rounded-2xl p-6 w-full max-w-md border border-white/[0.08]">
+            <h3 className="text-lg font-semibold text-text-primary mb-4">
+              Session Complete
+            </h3>
+            <div className="grid grid-cols-2 gap-3 mb-4">
+              <div className="p-3 rounded-lg bg-white/[0.03] text-center">
+                <p className="text-[10px] text-text-muted mb-1">Total Time</p>
+                <p className="text-lg font-mono font-bold text-text-primary">
+                  {formatDuration(checkoutResult.totalMinutes * 60)}
+                </p>
+              </div>
+              <div className="p-3 rounded-lg bg-green-500/5 text-center">
+                <p className="text-[10px] text-text-muted mb-1">Active Time</p>
+                <p className="text-lg font-mono font-bold text-green-400">
+                  {formatDuration(checkoutResult.activeMinutes * 60)}
+                </p>
+              </div>
+              <div className="p-3 rounded-lg bg-red-500/5 text-center">
+                <p className="text-[10px] text-text-muted mb-1">Idle Time</p>
+                <p className="text-lg font-mono font-bold text-red-400">
+                  {formatDuration(checkoutResult.idleMinutes * 60)}
+                </p>
+              </div>
+              <div className="p-3 rounded-lg bg-yellow-500/5 text-center">
+                <p className="text-[10px] text-text-muted mb-1">Break Time</p>
+                <p className="text-lg font-mono font-bold text-yellow-400">
+                  {formatDuration(checkoutResult.breakMinutes * 60)}
+                </p>
+              </div>
+            </div>
+            <div className="p-3 rounded-lg bg-white/[0.02] border border-white/[0.06] mb-4">
+              <p className="text-[10px] text-text-muted mb-1">Summary</p>
+              <p className="text-sm text-text-secondary">{checkoutResult.summary}</p>
+            </div>
+            <button
+              onClick={() => setCheckoutResult(null)}
+              className="w-full py-2.5 rounded-lg bg-neon-blue/10 text-neon-blue border border-neon-blue/20 text-sm font-medium hover:bg-neon-blue/20 transition-colors"
+            >
+              Done
             </button>
           </div>
         </ModalOverlay>

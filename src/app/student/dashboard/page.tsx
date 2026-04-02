@@ -247,7 +247,7 @@ export default async function StudentDashboardPage() {
             className="h-full rounded-full transition-all duration-500"
             style={{
               width: `${overallProgress}%`,
-              background: "linear-gradient(90deg, #2891FF, #92E02C)",
+              background: "linear-gradient(90deg, #2891FF, #7BC142)",
             }}
           />
         </div>
@@ -359,7 +359,7 @@ export default async function StudentDashboardPage() {
                   </div>
                   <div className="flex items-center gap-1 text-xs text-text-muted">
                     <Clock size={12} />
-                    {a.assessedAt.toLocaleDateString("en-GB")}
+                    {a.assessedAt.toLocaleDateString("en-GB", { timeZone: "Europe/London" })}
                   </div>
                 </div>
               ))}

@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { logJourneyEvent } from "@/lib/journey";
 import { notifyByRole } from "@/lib/notifications";
 import { checkAndGenerateCertificate } from "@/lib/assessment-certification";
+import { notifyUser } from "@/lib/notify";
 
 export async function POST(req: Request) {
   try {
@@ -161,6 +162,11 @@ export async function POST(req: Request) {
         await checkAndGenerateCertificate(student.id);
       }
     }
+
+    // Notify the student of their results
+    const score = percentage;
+    const resultMsg = passed ? `Congratulations! You scored ${score}% and passed.` : `You scored ${score}%. You need 80% to pass. You can retake the assessment.`;
+    await notifyUser(session.user.id, passed ? "Assessment Passed!" : "Assessment Results", resultMsg, "ASSESSMENT", "/student/assessments");
 
     // Update attempt
     await prisma.assessmentAttempt.update({

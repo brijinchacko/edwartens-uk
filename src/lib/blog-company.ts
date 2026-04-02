@@ -63,7 +63,7 @@ From a startup in 2015 to a global training provider a decade later, the journey
     readTime: "7 min read",
     publishedAt: "2025-06-15",
     author: "Brijin Chacko",
-    image: "https://images.unsplash.com/photo-1497366216548-37526070297c?w=1200&h=630&fit=crop",
+    image: "/images/blog/photo-1497366216548-37526070297c.jpg",
     seoKeywords: ["Wartens story", "EDWartens history", "engineering training provider UK", "automation training company", "Wartens Ltd"]
   },
   {
@@ -122,7 +122,7 @@ We invite engineers at every stage of their career to experience the training th
     readTime: "6 min read",
     publishedAt: "2025-07-10",
     author: "Brijin Chacko",
-    image: "https://images.unsplash.com/photo-1497366811353-6870744d04b2?w=1200&h=630&fit=crop",
+    image: "/images/blog/photo-1497366811353-6870744d04b2.jpg",
     seoKeywords: ["EDWartens UK StartUp Awards", "UK StartUp Awards 2025 winner", "EDWartens award", "engineering training award", "best startup UK"]
   },
   {
@@ -195,7 +195,7 @@ Explore our accredited courses at [edwartens.co.uk](https://edwartens.co.uk) and
     readTime: "7 min read",
     publishedAt: "2025-08-05",
     author: "EDWartens UK Team",
-    image: "https://images.unsplash.com/photo-1504384764586-bb4cdc1707b0?w=1200&h=630&fit=crop",
+    image: "/images/blog/photo-1504384764586-bb4cdc1707b0.jpg",
     seoKeywords: ["EDWartens CPD accreditation", "CPD accredited PLC training", "accredited automation training UK", "CPD engineering courses", "EDWartens quality"]
   },
   {
@@ -263,7 +263,7 @@ If you want to learn automation from people who have done the job, not just stud
     readTime: "7 min read",
     publishedAt: "2025-08-28",
     author: "Vaisakh Sankar",
-    image: "https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=1200&h=630&fit=crop",
+    image: "/images/blog/photo-1522071820081-009f0129c71c.jpg",
     seoKeywords: ["EDWartens training team", "automation instructors", "PLC training teachers", "engineering educators UK", "EDWartens engineers"]
   },
   {
@@ -346,7 +346,7 @@ At [EDWartens](https://edwartens.com), we believe that the best training uses ev
     readTime: "7 min read",
     publishedAt: "2025-09-12",
     author: "EDWartens UK Team",
-    image: "https://images.unsplash.com/photo-1592478411213-6153e4ebc07d?w=1200&h=630&fit=crop",
+    image: "/images/blog/photo-1592478411213-6153e4ebc07d.jpg",
     seoKeywords: ["VR industrial training", "Meta Quest engineering training", "virtual reality PLC training", "immersive automation training", "EDWartens VR"]
   },
   {
@@ -413,7 +413,7 @@ Visit [edwartens.com](https://edwartens.com) to explore our UAE training program
     readTime: "6 min read",
     publishedAt: "2025-09-30",
     author: "Brijin Chacko",
-    image: "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=1200&h=630&fit=crop",
+    image: "/images/blog/photo-1526374965328-7f61d4dc18c5.jpg",
     seoKeywords: ["EDWartens UAE", "automation training UAE", "PLC training Middle East", "EDWartens expansion", "engineering training Dubai"]
   },
   {
@@ -475,7 +475,7 @@ Visit [edwartens.com](https://edwartens.com) to explore our US training programm
     readTime: "6 min read",
     publishedAt: "2025-10-18",
     author: "Brijin Chacko",
-    image: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=1200&h=630&fit=crop",
+    image: "/images/blog/photo-1551288049-bebda4e38f71.jpg",
     seoKeywords: ["EDWartens US launch", "PLC training USA", "automation training America", "EDWartens United States", "Allen-Bradley training US"]
   },
   {
@@ -549,7 +549,7 @@ If you are considering making the switch, visit [edwartens.co.uk](https://edwart
     readTime: "7 min read",
     publishedAt: "2025-11-05",
     author: "Vaisakh Sankar",
-    image: "https://images.unsplash.com/photo-1521737604893-d14cc237f11d?w=1200&h=630&fit=crop",
+    image: "/images/blog/photo-1521737604893-d14cc237f11d.jpg",
     seoKeywords: ["EDWartens student success", "career change to PLC engineer", "automation career changer", "EDWartens review", "PLC training success story"]
   },
   {
@@ -627,7 +627,7 @@ Visit [oforo.ai](https://oforo.ai) to create your profile and discover opportuni
     readTime: "7 min read",
     publishedAt: "2025-11-22",
     author: "Brijin Chacko",
-    image: "https://images.unsplash.com/photo-1504639725590-34d0984388bd?w=1200&h=630&fit=crop",
+    image: "/images/blog/photo-1504639725590-34d0984388bd.jpg",
     seoKeywords: ["OFORO AI recruitment", "AI recruitment platform engineers", "automation engineer hiring", "OFORO Wartens", "engineering recruitment AI"]
   },
   {
@@ -714,7 +714,7 @@ Visit [nxted.ai](https://nxted.ai) to start your microlearning journey and make 
     readTime: "7 min read",
     publishedAt: "2025-12-08",
     author: "Vaisakh Sankar",
-    image: "https://images.unsplash.com/photo-1581092160562-40aa08e78837?w=1200&h=630&fit=crop",
+    image: "/images/blog/photo-1581092160562-40aa08e78837.jpg",
     seoKeywords: ["nxtED AI microlearning", "AI engineering education", "microlearning platform engineers", "continuous learning automation", "nxtED Wartens"]
   },
   {
@@ -803,7 +803,7 @@ Visit [oscabe.ai](https://oscabe.ai) to learn how computer vision can transform 
     readTime: "7 min read",
     publishedAt: "2025-12-22",
     author: "EDWartens UK Team",
-    image: "https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=1200&h=630&fit=crop",
+    image: "/images/blog/photo-1555066931-4365d14bab8c.jpg",
     seoKeywords: ["OSCABE AI computer vision", "industrial quality control AI", "visual inspection automation", "manufacturing defect detection", "OSCABE Wartens"]
   },
   {
@@ -884,7 +884,7 @@ Visit [3box.ai](https://3box.ai) to explore how our platform can support your AI
     readTime: "7 min read",
     publishedAt: "2026-01-05",
     author: "Brijin Chacko",
-    image: "https://images.unsplash.com/photo-1535378917042-10a22c95931a?w=1200&h=630&fit=crop",
+    image: "/images/blog/photo-1535378917042-10a22c95931a.jpg",
     seoKeywords: ["3BOX AI infrastructure", "AI platform engineering", "MLOps platform", "machine learning infrastructure", "3BOX Wartens"]
   },
   {
@@ -968,7 +968,7 @@ Visit [seekof.com](https://seekof.com) to create your profile and start explorin
     readTime: "7 min read",
     publishedAt: "2026-01-18",
     author: "EDWartens UK Team",
-    image: "https://images.unsplash.com/photo-1581090464777-f3220bbe1b8b?w=1200&h=630&fit=crop",
+    image: "/images/blog/photo-1581090464777-f3220bbe1b8b.jpg",
     seoKeywords: ["SEEKOF job platform", "engineering job search", "automation jobs platform", "PLC engineer jobs", "SEEKOF Wartens"]
   },
   {
@@ -1052,7 +1052,7 @@ Visit [roboted.ai](https://roboted.ai) to learn more about our programmes and ho
     readTime: "7 min read",
     publishedAt: "2026-01-28",
     author: "Vaisakh Sankar",
-    image: "https://images.unsplash.com/photo-1581092335397-9583eb92d232?w=1200&h=630&fit=crop",
+    image: "/images/blog/photo-1581092335397-9583eb92d232.jpg",
     seoKeywords: ["roboTED robotics education", "robotics for schools UK", "STEM education initiative", "engineering education youth", "roboTED Wartens"]
   },
   {
@@ -1133,7 +1133,7 @@ Visit [wartens.com](https://wartens.com) to learn more about our company and exp
     readTime: "7 min read",
     publishedAt: "2026-02-05",
     author: "Brijin Chacko",
-    image: "https://images.unsplash.com/photo-1581094794329-c8112a89af12?w=1200&h=630&fit=crop",
+    image: "/images/blog/photo-1581094794329-c8112a89af12.jpg",
     seoKeywords: ["Wartens Ltd", "parent company EDWartens", "Wartens ecosystem", "engineering technology company", "Wartens UK"]
   },
   {
@@ -1240,7 +1240,7 @@ Our goal is not just to reach more engineers, but to deepen the support we provi
     readTime: "8 min read",
     publishedAt: "2026-02-20",
     author: "EDWartens UK Team",
-    image: "https://images.unsplash.com/photo-1555949963-aa79dcee981c?w=1200&h=630&fit=crop",
+    image: "/images/blog/photo-1555949963-aa79dcee981c.jpg",
     seoKeywords: ["EDWartens global engineers", "30000 engineers training", "EDWartens impact", "automation training worldwide", "EDWartens student community"]
   },
   {
@@ -1334,7 +1334,7 @@ Visit [edwartens.co.uk](https://edwartens.co.uk) to explore our course calendar 
     readTime: "7 min read",
     publishedAt: "2026-03-05",
     author: "Vaisakh Sankar",
-    image: "https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=1200&h=630&fit=crop",
+    image: "/images/blog/photo-1517694712202-14dd9538aa97.jpg",
     seoKeywords: ["EDWartens Milton Keynes", "PLC training centre UK", "automation training facilities", "EDWartens centre", "Milton Keynes training"]
   },
   {
@@ -1437,7 +1437,7 @@ Our hiring network is one of the most tangible ways we support the engineers who
     readTime: "7 min read",
     publishedAt: "2026-03-18",
     author: "Brijin Chacko",
-    image: "https://images.unsplash.com/photo-1473341304170-971dccb5ac1e?w=1200&h=630&fit=crop",
+    image: "/images/blog/photo-1473341304170-971dccb5ac1e.jpg",
     seoKeywords: ["EDWartens hiring network", "automation employer partners", "PLC engineer hiring", "EDWartens career support", "automation recruitment network"]
   }
 ];

@@ -3,6 +3,7 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { hasPermission } from "@/lib/rbac";
 import { logAudit } from "@/lib/audit";
+import { notifyStudent, notifyEmployee } from "@/lib/notify";
 
 export async function PATCH(
   req: NextRequest,
@@ -36,6 +37,34 @@ export async function PATCH(
       data: updateData,
       include: { user: { select: { name: true, email: true } } },
     });
+
+    // Create a journey note for status changes when statusNote is provided
+    if (body.statusNote && body.status !== undefined && body.status !== existing.status) {
+      const noteContent = `[Status changed: ${existing.status} \u2192 ${body.status}] ${body.statusNote}`;
+      await prisma.studentJourney.create({
+        data: {
+          studentId: id,
+          eventType: "STATUS_CHANGE",
+          title: "Status Change",
+          description: noteContent,
+          createdBy: session.user.name || session.user.email || "Admin",
+          metadata: {
+            agentId: session.user.id as string,
+            agentName: session.user.name || "Unknown",
+            agentRole: session.user.role,
+            previousStatus: existing.status,
+            newStatus: body.status,
+          },
+        },
+      });
+    }
+
+    // Notifications for batch assignment
+    if (body.batchId && body.batchId !== existing.batchId) {
+      const batch = await prisma.batch.findUnique({ where: { id: body.batchId }, select: { name: true, instructorId: true } });
+      await notifyStudent(id, "Batch Assigned", `You have been assigned to batch ${batch?.name}. Check your dashboard for details.`, "/student/dashboard");
+      if (batch?.instructorId) await notifyEmployee(batch.instructorId, "New Batch Student", `A student has been assigned to ${batch.name}.`, `/admin/batches/${body.batchId}`);
+    }
 
     // Audit log
     await logAudit({

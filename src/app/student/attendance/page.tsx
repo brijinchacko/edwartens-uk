@@ -138,6 +138,7 @@ export default async function AttendancePage() {
     return new Date(date).toLocaleTimeString("en-GB", {
       hour: "2-digit",
       minute: "2-digit",
+      timeZone: "Europe/London",
     });
   }
 
@@ -147,6 +148,7 @@ export default async function AttendancePage() {
       day: "numeric",
       month: "short",
       year: "numeric",
+      timeZone: "Europe/London",
     });
   }
 
@@ -254,7 +256,7 @@ export default async function AttendancePage() {
               width: `${summary.attendancePercentage}%`,
               background:
                 summary.attendancePercentage >= 80
-                  ? "linear-gradient(90deg, #2891FF, #92E02C)"
+                  ? "linear-gradient(90deg, #2891FF, #7BC142)"
                   : summary.attendancePercentage >= 60
                     ? "linear-gradient(90deg, #2891FF, #EAB308)"
                     : "linear-gradient(90deg, #EF4444, #EAB308)",

@@ -38,5 +38,14 @@ export default async function BatchesPage() {
     trainerAcceptedAt: b.trainerAcceptedAt?.toISOString() || null,
   }));
 
-  return <BatchListClient initialBatches={serialized} />;
+  // Collect unique trainer names for filter dropdown
+  const trainerNames = Array.from(
+    new Set(
+      batches
+        .map((b) => b.instructor?.user?.name)
+        .filter((n): n is string => !!n)
+    )
+  ).sort();
+
+  return <BatchListClient initialBatches={serialized} trainerNames={trainerNames} />;
 }

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import {
   TrendingUp,
   Users,
@@ -109,8 +110,18 @@ export default function PlacementsPage() {
   return (
     <div className="pt-20">
       {/* Hero */}
-      <section className="mesh-gradient-hero py-24 sm:py-32 relative">
+      <section className="mesh-gradient-hero py-24 sm:py-32 relative overflow-hidden">
         <div className="dot-grid absolute inset-0 opacity-20" />
+        <div className="absolute inset-0 z-0">
+          <Image
+            src="/images/stock/career-success.jpg"
+            alt="Successful automation engineering career"
+            fill
+            className="object-cover opacity-15"
+            priority
+          />
+          <div className="absolute inset-0 bg-gradient-to-r from-[#0a0a14] via-[#0a0a14]/90 to-[#0a0a14]/70" />
+        </div>
         <div className="max-w-7xl mx-auto px-3 sm:px-5 lg:px-6 relative z-10">
           <p className="text-[11px] uppercase tracking-widest text-neon-blue mb-3">
             Career Support
@@ -221,6 +232,27 @@ export default function PlacementsPage() {
                 <p className="text-sm text-text-secondary leading-relaxed">
                   {s.description}
                 </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Career Images */}
+      <section className="py-12 relative">
+        <div className="max-w-7xl mx-auto px-3 sm:px-5 lg:px-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {[
+              { src: "/images/stock/job-interview.jpg", alt: "Job interview preparation", label: "Interview Coaching" },
+              { src: "/images/stock/team-meeting.jpg", alt: "Team meeting at engineering firm", label: "Employer Matching" },
+              { src: "/images/stock/factory-automation.jpg", alt: "Factory automation career", label: "Industry Careers" },
+            ].map((img) => (
+              <div key={img.src} className="relative h-52 rounded-xl overflow-hidden border border-white/[0.06] group">
+                <Image src={img.src} alt={img.alt} fill className="object-cover group-hover:scale-105 transition-transform duration-500" />
+                <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a14]/90 via-[#0a0a14]/30 to-transparent" />
+                <div className="absolute bottom-4 left-4">
+                  <p className="text-white font-semibold text-sm">{img.label}</p>
+                </div>
               </div>
             ))}
           </div>

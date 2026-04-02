@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { notifyStudent } from "@/lib/notify";
 import { unlink } from "fs/promises";
 import path from "path";
 
@@ -50,6 +51,14 @@ export async function PATCH(
         reviewedBy: session.user.id,
       },
     });
+
+    // Notifications for document status
+    if (status === "VERIFIED") {
+      await notifyStudent(document.studentId, "Document Verified", `Your ${document.type || "document"} "${document.name}" has been verified.`, "/student/documents");
+    }
+    if (status === "REJECTED") {
+      await notifyStudent(document.studentId, "Document Needs Attention", `Your ${document.type || "document"} "${document.name}" was rejected. Reason: ${reviewNote || "Please re-upload."}`, "/student/documents");
+    }
 
     // Log journey event
     await prisma.studentJourney.create({

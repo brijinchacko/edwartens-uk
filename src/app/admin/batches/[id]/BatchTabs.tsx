@@ -39,6 +39,7 @@ function formatDate(date: string | Date) {
     day: "numeric",
     month: "short",
     year: "numeric",
+    timeZone: "Europe/London",
   });
 }
 
@@ -47,6 +48,7 @@ function formatTime(date: string | Date | null) {
   return new Date(date).toLocaleTimeString("en-GB", {
     hour: "2-digit",
     minute: "2-digit",
+    timeZone: "Europe/London",
   });
 }
 

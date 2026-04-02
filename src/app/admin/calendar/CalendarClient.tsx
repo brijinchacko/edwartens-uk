@@ -73,11 +73,11 @@ function getWeekDates(baseDate: Date): Date[] {
 
 function formatTime(iso: string): string {
   const d = new Date(iso);
-  return d.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
+  return d.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", timeZone: "Europe/London" });
 }
 
 function formatDate(d: Date): string {
-  return d.toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" });
+  return d.toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short", timeZone: "Europe/London" });
 }
 
 const HOURS = Array.from({ length: 14 }, (_, i) => i + 7); // 7am to 8pm
@@ -333,9 +333,9 @@ export default function CalendarClient() {
         </button>
         <div className="flex items-center gap-3">
           <h2 className="text-lg font-semibold text-text-primary">
-            {weekDates[0].toLocaleDateString("en-GB", { day: "numeric", month: "short" })}
+            {weekDates[0].toLocaleDateString("en-GB", { day: "numeric", month: "short", timeZone: "Europe/London" })}
             {" - "}
-            {weekDates[6].toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}
+            {weekDates[6].toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: "Europe/London" })}
           </h2>
           <button
             onClick={goToToday}
@@ -369,7 +369,7 @@ export default function CalendarClient() {
                 }`}
               >
                 <p className="text-xs text-text-muted">
-                  {date.toLocaleDateString("en-GB", { weekday: "short" })}
+                  {date.toLocaleDateString("en-GB", { weekday: "short", timeZone: "Europe/London" })}
                 </p>
                 <p
                   className={`text-lg font-semibold mt-0.5 ${

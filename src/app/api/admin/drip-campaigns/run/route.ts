@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { runAllSequences } from "@/lib/drip-campaigns";
+import { notifyAdmins } from "@/lib/notify";
 
 export async function POST(req: NextRequest) {
   try {
@@ -29,6 +30,9 @@ export async function POST(req: NextRequest) {
     }
 
     const result = await runAllSequences(employeeId);
+
+    // Notify admins of campaign results
+    await notifyAdmins("Drip Campaign Complete", `Campaign sent to ${result.sent} leads. ${result.failed} failed. ${result.skipped} skipped.`, "/admin/drip-campaigns");
 
     return NextResponse.json({
       success: true,

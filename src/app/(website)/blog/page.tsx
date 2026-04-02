@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { Clock, ArrowRight, Tag } from "lucide-react";
 import { getAllPosts, categories, type BlogCategory } from "@/lib/blog-data";
+import { ScrollReveal } from "@/components/ScrollReveal";
 
 const allPosts = getAllPosts();
 
@@ -90,11 +91,11 @@ export default function BlogPage() {
             </div>
           ) : (
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filtered.map((post) => (
+              {filtered.map((post, idx) => (
+                <ScrollReveal key={post.slug} delay={(idx % 3) * 100}>
                 <Link
-                  key={post.slug}
                   href={`/blog/${post.slug}`}
-                  className="glass-card rounded-xl overflow-hidden flex flex-col hover:border-white/[0.12] transition-all group"
+                  className="glass-card rounded-xl overflow-hidden flex flex-col hover:border-white/[0.12] transition-all group card-hover-glow"
                 >
                   {/* Image */}
                   {post.image && (
@@ -164,6 +165,7 @@ export default function BlogPage() {
                     </div>
                   </div>
                 </Link>
+                </ScrollReveal>
               ))}
             </div>
           )}

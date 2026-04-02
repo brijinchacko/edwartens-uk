@@ -75,7 +75,7 @@ export default function StudentJobBoardPage() {
     if (diff === 0) return "Today";
     if (diff === 1) return "Yesterday";
     if (diff < 7) return `${diff} days ago`;
-    return d.toLocaleDateString("en-GB", { day: "numeric", month: "short" });
+    return d.toLocaleDateString("en-GB", { day: "numeric", month: "short", timeZone: "Europe/London" });
   };
 
   if (loading) {

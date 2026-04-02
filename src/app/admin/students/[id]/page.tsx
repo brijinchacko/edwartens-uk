@@ -40,6 +40,7 @@ import {
 import StudentActions from "./StudentActions";
 import StudentQuickActions from "./StudentQuickActions";
 import StudentNotes from "./StudentNotes";
+import DocumentActions from "./DocumentActions";
 
 export const metadata: Metadata = {
   title: "Student Detail | EDWartens Admin",
@@ -634,6 +635,9 @@ export default async function StudentDetailPage({
               <h2 className="text-base font-semibold text-text-primary flex items-center gap-2">
                 <FileText size={16} className="text-neon-blue" />
                 Documents
+                <span className="text-xs font-normal text-text-muted ml-1">
+                  {student.documents.length} uploaded
+                </span>
               </h2>
               <ChevronDown size={16} className="text-text-muted group-open:rotate-180 transition-transform" />
             </summary>
@@ -647,9 +651,9 @@ export default async function StudentDetailPage({
                 {student.documents.map((doc: any) => (
                   <div
                     key={doc.id}
-                    className="flex items-center gap-3 py-2.5 border-b border-white/[0.04] last:border-0"
+                    className="flex items-start gap-3 py-2.5 border-b border-white/[0.04] last:border-0"
                   >
-                    <FileText size={16} className="text-text-muted shrink-0" />
+                    <FileText size={16} className="text-text-muted shrink-0 mt-0.5" />
                     <div className="flex-1 min-w-0">
                       <p className="text-sm text-text-secondary truncate">
                         {doc.name}
@@ -657,10 +661,16 @@ export default async function StudentDetailPage({
                       <p className="text-xs text-text-muted">
                         {doc.type} &middot; Uploaded{" "}
                         {formatDate(doc.uploadedAt)}
+                        {doc.fileSize ? ` \u00b7 ${(doc.fileSize / 1024).toFixed(0)} KB` : ""}
                       </p>
+                      {doc.reviewNote && (
+                        <p className="text-xs text-text-muted mt-0.5 italic">
+                          Note: {doc.reviewNote}
+                        </p>
+                      )}
                     </div>
                     <span
-                      className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${DOC_STATUS_COLORS[doc.status] || "bg-white/[0.06] text-text-muted"}`}
+                      className={`text-[10px] px-2 py-0.5 rounded-full font-medium shrink-0 ${DOC_STATUS_COLORS[doc.status] || "bg-white/[0.06] text-text-muted"}`}
                     >
                       {doc.status}
                     </span>
@@ -669,11 +679,13 @@ export default async function StudentDetailPage({
                         href={doc.fileUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-neon-blue hover:text-neon-blue/80 transition-colors"
+                        className="text-neon-blue hover:text-neon-blue/80 transition-colors shrink-0"
+                        title="Download / View"
                       >
-                        <ExternalLink size={14} />
+                        <Download size={14} />
                       </a>
                     )}
+                    <DocumentActions documentId={doc.id} currentStatus={doc.status} />
                   </div>
                 ))}
               </div>

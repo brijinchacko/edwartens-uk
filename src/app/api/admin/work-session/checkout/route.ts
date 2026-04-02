@@ -3,6 +3,9 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { isCrmRole } from "@/lib/rbac";
 import { logAudit } from "@/lib/audit";
+import { aggregateDailyKPI } from "@/lib/kpi";
+import { checkDailyAlerts } from "@/lib/performance-alerts";
+import { notifyRole } from "@/lib/notify";
 
 export async function POST(req: NextRequest) {
   try {
@@ -138,6 +141,34 @@ export async function POST(req: NextRequest) {
       entityName: `${session.user.name} - ${updatedSession.workLocation}`,
       details: JSON.stringify({ totalMinutes: updatedSession.totalMinutes, activeMinutes: updatedSession.activeMinutes, summary }),
     });
+
+    // Notify all admins about employee checkout with summary
+    const empName = session.user.name || "An employee";
+    const hours = Math.floor((updatedSession.totalMinutes || 0) / 60);
+    const mins = (updatedSession.totalMinutes || 0) % 60;
+    const activeH = Math.floor((updatedSession.activeMinutes || 0) / 60);
+    const activeMins = (updatedSession.activeMinutes || 0) % 60;
+    const idleH = Math.floor((updatedSession.idleMinutes || 0) / 60);
+    const idleMins = (updatedSession.idleMinutes || 0) % 60;
+    const breakH = Math.floor((updatedSession.breakMinutes || 0) / 60);
+    const breakMins = (updatedSession.breakMinutes || 0) % 60;
+
+    notifyRole(
+      ["SUPER_ADMIN", "ADMIN"],
+      `🔴 ${empName} checked out`,
+      `Total: ${hours}h ${mins}m | Active: ${activeH}h ${activeMins}m | Idle: ${idleH}h ${idleMins}m | Breaks: ${breakH}h ${breakMins}m\nSummary: ${summary}`,
+      `/admin/team-activity`
+    ).catch(() => {});
+
+    // Fire-and-forget: Aggregate daily KPI and check performance alerts
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    aggregateDailyKPI(employee.id, today).catch((err) =>
+      console.error("Post-checkout KPI aggregation error:", err)
+    );
+    checkDailyAlerts(employee.id).catch((err) =>
+      console.error("Post-checkout alert check error:", err)
+    );
 
     return NextResponse.json({
       session: updatedSession,

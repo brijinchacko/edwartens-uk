@@ -141,6 +141,51 @@ export async function POST(req: NextRequest) {
       details: JSON.stringify({ workLocation, note }),
     });
 
+    // Send follow-up reminder on check-in (fire-and-forget)
+    try {
+      const todayStart = new Date(); todayStart.setHours(0, 0, 0, 0);
+      const todayEnd = new Date(); todayEnd.setHours(23, 59, 59, 999);
+
+      const followUpCount = await prisma.lead.count({
+        where: {
+          assignedToId: employee.id,
+          followUpDate: { gte: todayStart, lte: todayEnd },
+          status: { notIn: ["ENROLLED", "LOST"] },
+        },
+      });
+
+      const overdueCount = await prisma.lead.count({
+        where: {
+          assignedToId: employee.id,
+          followUpDate: { lt: todayStart },
+          status: { notIn: ["ENROLLED", "LOST"] },
+        },
+      });
+
+      if (followUpCount > 0 || overdueCount > 0) {
+        const { notifyUser } = await import("@/lib/notify");
+        const parts: string[] = [];
+        if (followUpCount > 0) parts.push(`${followUpCount} follow-up${followUpCount > 1 ? "s" : ""} scheduled for today`);
+        if (overdueCount > 0) parts.push(`${overdueCount} overdue`);
+        await notifyUser(session.user.id as string, "\ud83d\udccb Today's Workload", `You have ${parts.join(" and ")}. Check your My Day dashboard.`, "REMINDER", "/admin/dashboard");
+      }
+    } catch {}
+
+    // Auto-create monthly sales target if not exists (fire-and-forget)
+    try {
+      const now = new Date();
+      const month = now.getMonth() + 1;
+      const year = now.getFullYear();
+      const existing = await prisma.salesTarget.findUnique({
+        where: { employeeId_month_year: { employeeId: employee.id, month, year } },
+      });
+      if (!existing) {
+        await prisma.salesTarget.create({
+          data: { employeeId: employee.id, month, year, salesTarget: 20, leadTarget: 50, hardTarget: 12 },
+        });
+      }
+    } catch {}
+
     return NextResponse.json({ session: workSession }, { status: 201 });
   } catch (error) {
     console.error("Work session check-in error:", error);

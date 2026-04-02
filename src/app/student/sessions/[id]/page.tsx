@@ -399,8 +399,8 @@ export default function SessionPlayerPage() {
               style={{
                 width: `${progressPercent}%`,
                 background: isCompleted
-                  ? "#92E02C"
-                  : "linear-gradient(90deg, #2891FF, #92E02C)",
+                  ? "#7BC142"
+                  : "linear-gradient(90deg, #2891FF, #7BC142)",
               }}
             />
           </div>
@@ -480,8 +480,8 @@ export default function SessionPlayerPage() {
                 style={{
                   width: `${progressPercent}%`,
                   background: isCompleted
-                    ? "#92E02C"
-                    : "linear-gradient(90deg, #2891FF, #92E02C)",
+                    ? "#7BC142"
+                    : "linear-gradient(90deg, #2891FF, #7BC142)",
                 }}
               />
             </div>

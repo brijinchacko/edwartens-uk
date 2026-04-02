@@ -54,8 +54,18 @@ export default function AboutPage() {
   return (
     <div className="pt-20">
       {/* Hero */}
-      <section className="mesh-gradient-hero py-24 sm:py-32 relative">
+      <section className="mesh-gradient-hero py-24 sm:py-32 relative overflow-hidden">
         <div className="dot-grid absolute inset-0 opacity-20" />
+        <div className="absolute inset-0 z-0">
+          <Image
+            src="/images/stock/uk-london.jpg"
+            alt="EDWartens UK operations"
+            fill
+            className="object-cover opacity-15"
+            priority
+          />
+          <div className="absolute inset-0 bg-gradient-to-r from-[#0a0a14] via-[#0a0a14]/90 to-[#0a0a14]/70" />
+        </div>
         <div className="max-w-7xl mx-auto px-3 sm:px-5 lg:px-6 relative z-10">
           <p className="text-[11px] uppercase tracking-widest text-neon-blue mb-3">About Us</p>
           <h1 className="text-4xl sm:text-6xl font-bold tracking-tight text-white mb-6">
@@ -150,6 +160,25 @@ export default function AboutPage() {
                 </div>
               );
             })}
+          </div>
+        </div>
+      </section>
+
+      {/* Facility & Team Images */}
+      <section className="py-12">
+        <div className="max-w-7xl mx-auto px-3 sm:px-5 lg:px-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {[
+              { src: "/images/stock/uk-business.jpg", alt: "EDWartens UK business operations" },
+              { src: "/images/stock/hero-automation.jpg", alt: "Industrial automation training" },
+              { src: "/images/stock/circuit-board.jpg", alt: "Engineering and electronics" },
+              { src: "/images/stock/professional-portrait.jpg", alt: "Professional engineering team" },
+            ].map((img) => (
+              <div key={img.src} className="relative h-44 rounded-xl overflow-hidden border border-white/[0.06]">
+                <Image src={img.src} alt={img.alt} fill className="object-cover" />
+                <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a14]/60 to-transparent" />
+              </div>
+            ))}
           </div>
         </div>
       </section>

@@ -48,7 +48,7 @@ The engineers who command the highest day rates in the UK are those proficient a
     readTime: "8 min read",
     publishedAt: "2025-06-10",
     author: "Vaisakh Sankar",
-    image: "https://images.unsplash.com/photo-1581092335397-9583eb92d232?w=1200&h=630&fit=crop",
+    image: "/images/blog/photo-1581092335397-9583eb92d232.jpg",
     seoKeywords: ["Siemens vs Allen Bradley", "ABB PLC", "PLC comparison UK", "best PLC platform", "Siemens TIA Portal", "Allen Bradley Studio 5000", "ABB AC500", "PLC market share UK"],
   },
   {
@@ -96,7 +96,7 @@ As we look towards 2026, expect continued acceleration of automation investment 
     readTime: "9 min read",
     publishedAt: "2025-07-05",
     author: "EDWartens UK Team",
-    image: "https://images.unsplash.com/photo-1504639725590-34d0984388bd?w=1200&h=630&fit=crop",
+    image: "/images/blog/photo-1504639725590-34d0984388bd.jpg",
     seoKeywords: ["UK manufacturing trends 2025", "UK manufacturing trends 2026", "smart factory UK", "Industry 4.0 UK", "manufacturing automation trends", "reshoring UK", "net zero manufacturing"],
   },
   {
@@ -146,7 +146,7 @@ Looking ahead, the adoption of AI and machine learning for process optimisation,
     readTime: "8 min read",
     publishedAt: "2025-07-22",
     author: "Vaisakh Sankar",
-    image: "https://images.unsplash.com/photo-1581094794329-c8112a89af12?w=1200&h=630&fit=crop",
+    image: "/images/blog/photo-1581094794329-c8112a89af12.jpg",
     seoKeywords: ["water treatment automation UK", "SCADA water industry", "Siemens PLC water treatment", "water automation engineer", "AMP8 automation", "wastewater automation", "telemetry engineer UK"],
   },
   {
@@ -200,7 +200,7 @@ The food and beverage sector is rapidly adopting collaborative robots for pick-a
     readTime: "8 min read",
     publishedAt: "2025-08-12",
     author: "EDWartens UK Team",
-    image: "https://images.unsplash.com/photo-1581093450021-4a7360e9a6b5?w=1200&h=630&fit=crop",
+    image: "/images/blog/photo-1581093450021-4a7360e9a6b5.jpg",
     seoKeywords: ["food and beverage automation UK", "food manufacturing PLC", "ISA-88 batch control", "food factory automation", "CIP automation", "packaging automation UK", "food traceability systems"],
   },
   {
@@ -254,7 +254,7 @@ The UK government's mandate to end new petrol and diesel car sales is driving ma
     readTime: "8 min read",
     publishedAt: "2025-08-28",
     author: "Vaisakh Sankar",
-    image: "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=1200&h=630&fit=crop",
+    image: "/images/blog/photo-1486406146926-c627a92ad1ab.jpg",
     seoKeywords: ["automotive automation UK", "Jaguar Land Rover automation", "Nissan Sunderland automation", "Ford Dagenham automation", "car manufacturing PLC", "automotive robotics UK", "EV manufacturing automation"],
   },
   {
@@ -310,7 +310,7 @@ Digitalisation initiatives including electronic batch records, Manufacturing Exe
     readTime: "9 min read",
     publishedAt: "2025-09-15",
     author: "EDWartens UK Team",
-    image: "https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=1200&h=630&fit=crop",
+    image: "/images/blog/photo-1517694712202-14dd9538aa97.jpg",
     seoKeywords: ["pharmaceutical automation UK", "GSK automation", "AstraZeneca automation", "GAMP 5 validation", "pharma PLC programming", "GMP automation", "pharmaceutical controls engineer", "DCS pharma"],
   },
   {
@@ -360,7 +360,7 @@ The UK's energy transition is creating new automation opportunities in hydrogen 
     readTime: "9 min read",
     publishedAt: "2025-09-30",
     author: "Vaisakh Sankar",
-    image: "https://images.unsplash.com/photo-1473341304170-971dccb5ac1e?w=1200&h=630&fit=crop",
+    image: "/images/blog/photo-1473341304170-971dccb5ac1e.jpg",
     seoKeywords: ["energy sector automation UK", "EDF automation", "BP automation engineer", "Shell controls engineer", "power station automation", "refinery automation UK", "safety instrumented systems", "SIL rated systems"],
   },
   {
@@ -410,7 +410,7 @@ The employment outlook is exceptionally positive, with the UK government's energ
     readTime: "8 min read",
     publishedAt: "2025-10-18",
     author: "EDWartens UK Team",
-    image: "https://images.unsplash.com/photo-1466611653911-95081537e5b7?w=1200&h=630&fit=crop",
+    image: "/images/blog/photo-1466611653911-95081537e5b7.jpg",
     seoKeywords: ["renewable energy automation", "wind farm SCADA", "battery storage automation", "solar farm control systems", "hydrogen automation", "IEC 61850 UK", "offshore wind careers", "green energy automation jobs"],
   },
   {
@@ -464,7 +464,7 @@ While traditional oil and gas production will gradually decline, many automation
     readTime: "9 min read",
     publishedAt: "2025-11-05",
     author: "Vaisakh Sankar",
-    image: "https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=1200&h=630&fit=crop",
+    image: "/images/blog/photo-1555066931-4365d14bab8c.jpg",
     seoKeywords: ["oil and gas automation careers", "control systems engineer oil gas", "DCS engineer salary UK", "safety systems engineer", "CompEx certification", "North Sea automation jobs", "refinery automation career"],
   },
   {
@@ -522,7 +522,7 @@ FMCG manufacturers are investing heavily in cobots for end-of-line packaging, AI
     readTime: "8 min read",
     publishedAt: "2025-11-20",
     author: "EDWartens UK Team",
-    image: "https://images.unsplash.com/photo-1581090464777-f3220bbe1b8b?w=1200&h=630&fit=crop",
+    image: "/images/blog/photo-1581090464777-f3220bbe1b8b.jpg",
     seoKeywords: ["FMCG automation UK", "Unilever automation", "Nestle manufacturing", "P&G automation engineer", "fast moving consumer goods PLC", "packaging automation", "high speed manufacturing"],
   },
   {
@@ -578,7 +578,7 @@ The logistics sector continues to innovate, with developments in fully autonomou
     readTime: "8 min read",
     publishedAt: "2025-12-08",
     author: "Vaisakh Sankar",
-    image: "https://images.unsplash.com/photo-1565008576549-57569a49371d?w=1200&h=630&fit=crop",
+    image: "/images/blog/photo-1565008576549-57569a49371d.jpg",
     seoKeywords: ["logistics automation UK", "Amazon warehouse automation", "Ocado robotics", "warehouse automation PLC", "AGV automation", "automated warehouse careers", "fulfilment centre automation"],
   },
   {
@@ -633,7 +633,7 @@ The sector offers excellent training and professional development opportunities,
     readTime: "8 min read",
     publishedAt: "2025-12-22",
     author: "EDWartens UK Team",
-    image: "https://images.unsplash.com/photo-1581092160562-40aa08e78837?w=1200&h=630&fit=crop",
+    image: "/images/blog/photo-1581092160562-40aa08e78837.jpg",
     seoKeywords: ["nuclear decommissioning automation", "Sellafield automation", "nuclear robotics UK", "remote handling systems", "NDA automation jobs", "nuclear controls engineer", "radiation tolerant automation"],
   },
   {
@@ -685,7 +685,7 @@ The rail industry offers apprenticeship programmes, graduate schemes, and welcom
     readTime: "8 min read",
     publishedAt: "2026-01-08",
     author: "Vaisakh Sankar",
-    image: "https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=1200&h=630&fit=crop",
+    image: "/images/blog/photo-1550745165-9bc0b252726f.jpg",
     seoKeywords: ["rail automation UK", "Network Rail signalling", "ETCS UK", "railway control systems", "rail SCADA", "signalling engineer career", "rail automation jobs UK"],
   },
   {
@@ -743,7 +743,7 @@ Aviation automation is evolving rapidly, with developments in autonomous airport
     readTime: "8 min read",
     publishedAt: "2026-01-22",
     author: "EDWartens UK Team",
-    image: "https://images.unsplash.com/photo-1553877522-43269d4ea984?w=1200&h=630&fit=crop",
+    image: "/images/blog/photo-1553877522-43269d4ea984.jpg",
     seoKeywords: ["aviation automation UK", "Heathrow baggage handling", "BAE Systems automation", "aerospace automation", "airport automation careers", "defence manufacturing automation", "Rolls-Royce automation"],
   },
   {
@@ -799,7 +799,7 @@ The growing emphasis on energy efficiency and net zero buildings is expanding th
     readTime: "8 min read",
     publishedAt: "2026-02-05",
     author: "Vaisakh Sankar",
-    image: "https://images.unsplash.com/photo-1497436072909-60f360e1d4b1?w=1200&h=630&fit=crop",
+    image: "/images/blog/photo-1497436072909-60f360e1d4b1.jpg",
     seoKeywords: ["building management systems", "BMS automation UK", "BACnet", "smart building technology", "HVAC automation", "building automation careers", "BMS engineer salary", "Trend controls"],
   },
   {
@@ -869,7 +869,7 @@ New automation engineers should consider their interests and working preferences
     readTime: "9 min read",
     publishedAt: "2026-02-18",
     author: "EDWartens UK Team",
-    image: "https://images.unsplash.com/photo-1581092918056-0c4c3acd3789?w=1200&h=630&fit=crop",
+    image: "/images/blog/photo-1581092918056-0c4c3acd3789.jpg",
     seoKeywords: ["process control vs discrete manufacturing", "DCS vs PLC", "process automation", "discrete automation", "PID control", "motion control automation", "automation career choice"],
   },
   {
@@ -927,7 +927,7 @@ The PLC market will continue growing through 2030, driven by manufacturing inves
     readTime: "9 min read",
     publishedAt: "2026-03-02",
     author: "Vaisakh Sankar",
-    image: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=1200&h=630&fit=crop",
+    image: "/images/blog/photo-1460925895917-afdab827c52f.jpg",
     seoKeywords: ["PLC market trends", "PLC market forecast", "PLC market 2025", "PLC market 2030", "edge computing PLC", "PLC cybersecurity", "Industry 4.0 PLC", "software defined automation"],
   },
   {
@@ -1046,7 +1046,7 @@ When negotiating automation salaries, research current market rates using multip
     readTime: "10 min read",
     publishedAt: "2026-03-18",
     author: "EDWartens UK Team",
-    image: "https://images.unsplash.com/photo-1531482615713-2afd69097998?w=1200&h=630&fit=crop",
+    image: "/images/blog/photo-1531482615713-2afd69097998.jpg",
     seoKeywords: ["automation engineer salary UK", "PLC programmer salary", "controls engineer salary UK", "automation contractor day rates", "SCADA engineer salary", "DCS engineer salary", "automation salary comparison", "UK automation salary 2025 2026"],
   },
 ];

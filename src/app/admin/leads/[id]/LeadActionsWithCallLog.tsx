@@ -13,6 +13,11 @@ interface LeadActionsWithCallLogProps {
   phone: string | null;
   email: string;
   followUpDate: string | null;
+  assignedToId: string | null;
+  assignedToName: string | null;
+  userRole: string;
+  employees: { id: string; name: string }[];
+  category: string | null;
 }
 
 export default function LeadActionsWithCallLog({
@@ -24,6 +29,11 @@ export default function LeadActionsWithCallLog({
   phone,
   email,
   followUpDate,
+  assignedToId,
+  assignedToName,
+  userRole,
+  employees,
+  category,
 }: LeadActionsWithCallLogProps) {
   const [showCallLog, setShowCallLog] = useState(false);
 
@@ -38,6 +48,11 @@ export default function LeadActionsWithCallLog({
         email={email}
         followUpDate={followUpDate}
         onLogCall={() => setShowCallLog(true)}
+        assignedToId={assignedToId}
+        assignedToName={assignedToName}
+        userRole={userRole}
+        employees={employees}
+        category={category}
       />
       <CallLogModal
         leadId={leadId}

@@ -286,7 +286,7 @@ export default function FreshsalesSync() {
               <CheckCircle size={16} className="text-green-400" />
               <span className="text-sm font-medium text-green-400">
                 Sync completed at{" "}
-                {new Date(result.syncedAt).toLocaleString("en-GB")}
+                {new Date(result.syncedAt).toLocaleString("en-GB", { timeZone: "Europe/London" })}
               </span>
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-3">

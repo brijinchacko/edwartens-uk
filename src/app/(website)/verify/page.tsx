@@ -295,6 +295,7 @@ export default function VerifyPage() {
                           day: "numeric",
                           month: "long",
                           year: "numeric",
+                          timeZone: "Europe/London",
                         })}
                       </p>
                     </div>

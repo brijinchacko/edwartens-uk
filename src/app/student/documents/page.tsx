@@ -222,7 +222,7 @@ export default function DocumentsPage() {
                               <div className="flex-1 min-w-0">
                                 <p className="text-xs text-text-primary truncate">{doc.name}</p>
                                 <p className="text-[10px] text-text-muted">
-                                  {formatFileSize(doc.fileSize)} · {new Date(doc.uploadedAt).toLocaleDateString("en-GB")}
+                                  {formatFileSize(doc.fileSize)} · {new Date(doc.uploadedAt).toLocaleDateString("en-GB", { timeZone: "Europe/London" })}
                                 </p>
                               </div>
                               <a

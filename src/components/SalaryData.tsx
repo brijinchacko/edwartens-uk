@@ -1,4 +1,8 @@
+"use client";
+
+import Image from "next/image";
 import { TrendingUp, ExternalLink } from "lucide-react";
+import { ScrollReveal } from "./ScrollReveal";
 
 const salaries = [
   {
@@ -57,28 +61,42 @@ export default function SalaryData() {
   return (
     <section className="py-24 relative">
       <div className="max-w-7xl mx-auto px-3 sm:px-5 lg:px-6">
-        <div className="text-center mb-16">
-          <p className="text-[11px] uppercase tracking-widest text-neon-green mb-3">
-            UK Salary Data 2025–2026
-          </p>
-          <h2 className="text-3xl sm:text-5xl font-bold tracking-tight text-white mb-4">
-            Automation Careers Pay{" "}
-            <span className="gradient-text">Top Salaries</span>
-          </h2>
-          <p className="text-text-secondary max-w-3xl mx-auto">
-            The UK faces a growing shortage of skilled automation professionals.
-            Companies across manufacturing, energy, food & beverage, utilities,
-            and infrastructure are actively recruiting — driving salaries upward
-            year on year.
-          </p>
+        <ScrollReveal>
+        <div className="grid lg:grid-cols-2 gap-10 items-center mb-16">
+          <div className="text-center lg:text-left">
+            <p className="text-[11px] uppercase tracking-widest text-neon-green mb-3">
+              UK Salary Data 2025–2026
+            </p>
+            <h2 className="text-3xl sm:text-5xl font-bold tracking-tight text-white mb-4">
+              Automation Careers Pay{" "}
+              <span className="gradient-text gradient-text-animated">Top Salaries</span>
+            </h2>
+            <p className="text-text-secondary max-w-3xl mx-auto lg:mx-0">
+              The UK faces a growing shortage of skilled automation professionals.
+              Companies across manufacturing, energy, food & beverage, utilities,
+              and infrastructure are actively recruiting — driving salaries upward
+              year on year.
+            </p>
+          </div>
+          <div className="relative h-56 sm:h-72 rounded-2xl overflow-hidden border border-white/[0.06]">
+            <Image
+              src="/images/stock/data-dashboard.jpg"
+              alt="Automation career salary data and industry growth"
+              fill
+              className="object-cover"
+              sizes="(max-width: 1024px) 100vw, 50vw"
+            />
+            <div className="absolute inset-0 bg-gradient-to-l from-[#0a0a14]/30 via-[#0a0a14]/50 to-[#0a0a14]/70" />
+          </div>
         </div>
+        </ScrollReveal>
 
         {/* Salary Cards */}
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {salaries.map((s) => (
+          {salaries.map((s, idx) => (
+            <ScrollReveal key={s.role} delay={idx * 100}>
             <div
-              key={s.role}
-              className="glass-card rounded-xl p-6 flex flex-col gap-3 hover:border-neon-green/20 transition-all"
+              className="glass-card rounded-xl p-6 flex flex-col gap-3 hover:border-neon-green/20 transition-all card-hover-glow h-full"
             >
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
@@ -99,11 +117,11 @@ export default function SalaryData() {
               </div>
               <div className="flex items-end justify-between">
                 <div>
-                  <p className="text-2xl font-bold text-white">{s.avg}</p>
+                  <p className="text-2xl font-bold text-white data-display">{s.avg}</p>
                   <p className="text-xs text-text-muted">UK average per year</p>
                 </div>
                 <div className="text-right">
-                  <p className="text-sm text-neon-green font-medium">
+                  <p className="text-sm text-neon-green font-medium data-display">
                     {s.range}
                   </p>
                   <p className="text-[10px] text-text-muted">full range</p>
@@ -113,6 +131,7 @@ export default function SalaryData() {
                 Sources: {s.source}
               </p>
             </div>
+            </ScrollReveal>
           ))}
         </div>
 

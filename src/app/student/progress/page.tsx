@@ -162,7 +162,7 @@ export default async function ProgressPage() {
             className="h-full rounded-full transition-all duration-700"
             style={{
               width: `${overallProgress}%`,
-              background: "linear-gradient(90deg, #2891FF, #92E02C)",
+              background: "linear-gradient(90deg, #2891FF, #7BC142)",
             }}
           />
         </div>
@@ -264,7 +264,7 @@ export default async function ProgressPage() {
                         style={{
                           width: `${sessionPercent}%`,
                           background:
-                            sessionPercent === 100 ? "#92E02C" : "#2891FF",
+                            sessionPercent === 100 ? "#7BC142" : "#2891FF",
                         }}
                       />
                     </div>

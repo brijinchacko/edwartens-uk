@@ -13,6 +13,8 @@ import {
   ChevronRight,
   CheckCircle2,
   ChevronLeft,
+  Search,
+  Filter,
 } from "lucide-react";
 import CreateBatchModal from "./CreateBatchModal";
 
@@ -66,12 +68,13 @@ const ITEMS_PER_PAGE = 12;
 function formatDateRange(start: string | Date, end?: string | Date | null) {
   const s = new Date(start);
   const fmt = (d: Date) =>
-    d.toLocaleDateString("en-GB", { day: "numeric", month: "short" });
+    d.toLocaleDateString("en-GB", { day: "numeric", month: "short", timeZone: "Europe/London" });
   const fmtYear = (d: Date) =>
     d.toLocaleDateString("en-GB", {
       day: "numeric",
       month: "short",
       year: "numeric",
+      timeZone: "Europe/London",
     });
 
   if (!end) return fmtYear(s);
@@ -84,14 +87,24 @@ function formatDateRange(start: string | Date, end?: string | Date | null) {
 
 export default function BatchListClient({
   initialBatches,
+  trainerNames = [],
 }: {
   initialBatches: any[];
+  trainerNames?: string[];
 }) {
   const [batches, setBatches] = useState<any[]>(initialBatches);
   const [activeTab, setActiveTab] = useState<FilterTab>("ALL");
   const [generating, setGenerating] = useState(false);
   const [cancellingId, setCancellingId] = useState<string | null>(null);
   const [page, setPage] = useState(1);
+
+  // Additional filters
+  const [searchQuery, setSearchQuery] = useState("");
+  const [courseFilter, setCourseFilter] = useState<string>("ALL");
+  const [trainerFilter, setTrainerFilter] = useState<string>("ALL");
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
+  const [showFilters, setShowFilters] = useState(false);
 
   const fetchBatches = async () => {
     try {
@@ -153,10 +166,38 @@ export default function BatchListClient({
     CANCELLED: batches.filter((b) => b.status === "CANCELLED").length,
   };
 
-  const filtered =
-    activeTab === "ALL"
-      ? batches
-      : batches.filter((b) => b.status === activeTab);
+  const filtered = batches.filter((b) => {
+    // Status filter
+    if (activeTab !== "ALL" && b.status !== activeTab) return false;
+    // Course filter
+    if (courseFilter !== "ALL" && b.course !== courseFilter) return false;
+    // Trainer filter
+    if (trainerFilter !== "ALL") {
+      const tName = b.instructor?.user?.name || "";
+      if (trainerFilter === "UNASSIGNED") {
+        if (tName) return false;
+      } else if (tName !== trainerFilter) {
+        return false;
+      }
+    }
+    // Date range filter
+    if (dateFrom) {
+      const batchStart = new Date(b.startDate);
+      if (batchStart < new Date(dateFrom)) return false;
+    }
+    if (dateTo) {
+      const batchStart = new Date(b.startDate);
+      if (batchStart > new Date(dateTo + "T23:59:59")) return false;
+    }
+    // Search filter
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      const name = (b.name || "").toLowerCase();
+      const trainer = (b.instructor?.user?.name || "").toLowerCase();
+      if (!name.includes(q) && !trainer.includes(q)) return false;
+    }
+    return true;
+  });
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / ITEMS_PER_PAGE));
   const currentPage = Math.min(page, totalPages);
@@ -188,33 +229,142 @@ export default function BatchListClient({
         </div>
       </div>
 
-      {/* Filter Tabs */}
-      <div className="flex items-center gap-1 p-1 rounded-lg bg-white/[0.02] border border-white/[0.06] w-fit">
-        {TABS.map((tab) => (
+      {/* Filter Tabs + Search + Filters */}
+      <div className="space-y-3">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+          {/* Status Tabs */}
+          <div className="flex items-center gap-1 p-1 rounded-lg bg-white/[0.02] border border-white/[0.06] w-fit">
+            {TABS.map((tab) => (
+              <button
+                key={tab.key}
+                onClick={() => {
+                  setActiveTab(tab.key);
+                  setPage(1);
+                }}
+                className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+                  activeTab === tab.key
+                    ? "bg-white/[0.08] text-text-primary"
+                    : "text-text-muted hover:text-text-secondary hover:bg-white/[0.04]"
+                }`}
+              >
+                {tab.label}
+                <span
+                  className={`ml-1.5 inline-flex px-1.5 py-0.5 rounded text-[10px] font-medium ${
+                    activeTab === tab.key
+                      ? "bg-neon-blue/10 text-neon-blue"
+                      : "bg-white/[0.04] text-text-muted"
+                  }`}
+                >
+                  {counts[tab.key]}
+                </span>
+              </button>
+            ))}
+          </div>
+
+          {/* Search */}
+          <div className="relative flex-1 max-w-xs">
+            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => { setSearchQuery(e.target.value); setPage(1); }}
+              placeholder="Search batches..."
+              className="w-full pl-8 pr-3 py-1.5 rounded-lg bg-white/[0.04] border border-white/[0.08] text-text-secondary text-sm placeholder:text-text-muted/50 focus:outline-none focus:border-neon-blue/40 transition-colors"
+            />
+          </div>
+
+          {/* Toggle more filters */}
           <button
-            key={tab.key}
-            onClick={() => {
-              setActiveTab(tab.key);
-              setPage(1);
-            }}
-            className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
-              activeTab === tab.key
-                ? "bg-white/[0.08] text-text-primary"
-                : "text-text-muted hover:text-text-secondary hover:bg-white/[0.04]"
+            onClick={() => setShowFilters(!showFilters)}
+            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-medium transition-colors ${
+              showFilters || courseFilter !== "ALL" || trainerFilter !== "ALL" || dateFrom || dateTo
+                ? "bg-neon-blue/10 text-neon-blue border-neon-blue/20"
+                : "bg-white/[0.04] text-text-muted border-white/[0.08] hover:text-text-secondary"
             }`}
           >
-            {tab.label}
-            <span
-              className={`ml-1.5 inline-flex px-1.5 py-0.5 rounded text-[10px] font-medium ${
-                activeTab === tab.key
-                  ? "bg-neon-blue/10 text-neon-blue"
-                  : "bg-white/[0.04] text-text-muted"
-              }`}
-            >
-              {counts[tab.key]}
-            </span>
+            <Filter size={12} />
+            Filters
+            {(courseFilter !== "ALL" || trainerFilter !== "ALL" || dateFrom || dateTo) && (
+              <span className="inline-flex w-4 h-4 rounded-full bg-neon-blue/20 text-neon-blue text-[10px] font-bold items-center justify-center">
+                {[courseFilter !== "ALL", trainerFilter !== "ALL", !!dateFrom || !!dateTo].filter(Boolean).length}
+              </span>
+            )}
           </button>
-        ))}
+        </div>
+
+        {/* Expanded filters */}
+        {showFilters && (
+          <div className="flex flex-wrap items-end gap-3 p-3 rounded-lg bg-white/[0.02] border border-white/[0.06]">
+            {/* Course */}
+            <div>
+              <label className="block text-[10px] text-text-muted uppercase tracking-wider mb-1">Course</label>
+              <select
+                value={courseFilter}
+                onChange={(e) => { setCourseFilter(e.target.value); setPage(1); }}
+                className="px-3 py-1.5 rounded-lg bg-white/[0.04] border border-white/[0.08] text-text-secondary text-sm focus:outline-none focus:border-neon-blue/40 transition-colors"
+              >
+                <option value="ALL" className="bg-dark-secondary">All Courses</option>
+                <option value="PROFESSIONAL_MODULE" className="bg-dark-secondary">Professional Module</option>
+                <option value="AI_MODULE" className="bg-dark-secondary">AI Module</option>
+              </select>
+            </div>
+
+            {/* Trainer */}
+            <div>
+              <label className="block text-[10px] text-text-muted uppercase tracking-wider mb-1">Trainer</label>
+              <select
+                value={trainerFilter}
+                onChange={(e) => { setTrainerFilter(e.target.value); setPage(1); }}
+                className="px-3 py-1.5 rounded-lg bg-white/[0.04] border border-white/[0.08] text-text-secondary text-sm focus:outline-none focus:border-neon-blue/40 transition-colors"
+              >
+                <option value="ALL" className="bg-dark-secondary">All Trainers</option>
+                <option value="UNASSIGNED" className="bg-dark-secondary">Unassigned</option>
+                {trainerNames.map((name) => (
+                  <option key={name} value={name} className="bg-dark-secondary">{name}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* Date From */}
+            <div>
+              <label className="block text-[10px] text-text-muted uppercase tracking-wider mb-1">Start Date From</label>
+              <input
+                type="date"
+                value={dateFrom}
+                onChange={(e) => { setDateFrom(e.target.value); setPage(1); }}
+                className="px-3 py-1.5 rounded-lg bg-white/[0.04] border border-white/[0.08] text-text-secondary text-sm focus:outline-none focus:border-neon-blue/40 transition-colors"
+              />
+            </div>
+
+            {/* Date To */}
+            <div>
+              <label className="block text-[10px] text-text-muted uppercase tracking-wider mb-1">Start Date To</label>
+              <input
+                type="date"
+                value={dateTo}
+                onChange={(e) => { setDateTo(e.target.value); setPage(1); }}
+                className="px-3 py-1.5 rounded-lg bg-white/[0.04] border border-white/[0.08] text-text-secondary text-sm focus:outline-none focus:border-neon-blue/40 transition-colors"
+              />
+            </div>
+
+            {/* Clear filters */}
+            {(courseFilter !== "ALL" || trainerFilter !== "ALL" || dateFrom || dateTo || searchQuery) && (
+              <button
+                onClick={() => {
+                  setCourseFilter("ALL");
+                  setTrainerFilter("ALL");
+                  setDateFrom("");
+                  setDateTo("");
+                  setSearchQuery("");
+                  setPage(1);
+                }}
+                className="px-3 py-1.5 rounded-lg text-xs font-medium text-red-400 hover:bg-red-500/10 border border-red-500/20 transition-colors"
+              >
+                Clear All
+              </button>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Batch Cards Grid */}

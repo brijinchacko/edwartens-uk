@@ -2,9 +2,11 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
+import { auth } from "@/lib/auth";
 import {
   COURSE_LABELS,
   LEAD_STATUS_LABELS,
+  LEAD_STATUS_COLORS,
   formatDate,
 } from "@/lib/utils";
 import {
@@ -26,14 +28,6 @@ import LeadEmails from "./LeadEmails";
 
 export const metadata: Metadata = {
   title: "Lead Detail | EDWartens Admin",
-};
-
-const STATUS_COLORS: Record<string, string> = {
-  NEW: "bg-blue-500/10 text-blue-400 border-blue-500/20",
-  CONTACTED: "bg-yellow-500/10 text-yellow-400 border-yellow-500/20",
-  QUALIFIED: "bg-green-500/10 text-green-400 border-green-500/20",
-  ENROLLED: "bg-purple-500/10 text-purple-400 border-purple-500/20",
-  LOST: "bg-red-500/10 text-red-400 border-red-500/20",
 };
 
 async function getLead(id: string) {
@@ -60,11 +54,22 @@ export default async function LeadDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const lead = await getLead(id);
+  const session = await auth();
+  const userRole = (session?.user as any)?.role || "ADMIN";
+
+  const [lead, employeeList] = await Promise.all([
+    getLead(id),
+    prisma.employee.findMany({
+      include: { user: { select: { name: true } } },
+      orderBy: { user: { name: "asc" } },
+    }),
+  ]);
 
   if (!lead) {
     notFound();
   }
+
+  const employees = employeeList.map((e) => ({ id: e.id, name: e.user.name }));
 
   return (
     <div className="space-y-6">
@@ -80,7 +85,7 @@ export default async function LeadDetailPage({
           <h1 className="text-2xl font-bold text-text-primary">{lead.name}</h1>
           <div className="flex items-center gap-3 mt-1">
             <span
-              className={`inline-flex px-2.5 py-0.5 rounded-full text-xs font-medium border ${STATUS_COLORS[lead.status]}`}
+              className={`inline-flex px-2.5 py-0.5 rounded-full text-xs font-medium border ${LEAD_STATUS_COLORS[lead.status] ? `${LEAD_STATUS_COLORS[lead.status].bg} ${LEAD_STATUS_COLORS[lead.status].text} ${LEAD_STATUS_COLORS[lead.status].border}` : "bg-white/[0.05] text-text-muted"}`}
             >
               {LEAD_STATUS_LABELS[lead.status] || lead.status}
             </span>
@@ -306,6 +311,11 @@ export default async function LeadDetailPage({
             phone={lead.phone}
             email={lead.email}
             followUpDate={lead.followUpDate ? lead.followUpDate.toISOString() : null}
+            assignedToId={lead.assignedToId}
+            assignedToName={lead.assignedTo?.user?.name || null}
+            userRole={userRole}
+            employees={employees}
+            category={lead.category || null}
           />
 
           {/* Notes List (server-rendered) */}

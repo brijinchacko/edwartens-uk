@@ -16,16 +16,9 @@ import {
   ChevronDown,
   XCircle,
   AlertTriangle,
+  Tag,
 } from "lucide-react";
-import { LEAD_STATUS_LABELS, COURSE_LABELS, formatDate } from "@/lib/utils";
-
-const STATUS_COLORS: Record<string, string> = {
-  NEW: "bg-blue-500/10 text-blue-400 border-blue-500/20",
-  CONTACTED: "bg-yellow-500/10 text-yellow-400 border-yellow-500/20",
-  QUALIFIED: "bg-green-500/10 text-green-400 border-green-500/20",
-  ENROLLED: "bg-purple-500/10 text-purple-400 border-purple-500/20",
-  LOST: "bg-red-500/10 text-red-400 border-red-500/20",
-};
+import { LEAD_STATUS_LABELS, LEAD_STATUS_COLORS, LEAD_CATEGORIES, COURSE_LABELS, formatDate } from "@/lib/utils";
 
 const NOTE_TYPES = [
   { value: "NOTE", label: "Note", emoji: "📝" },
@@ -55,6 +48,11 @@ interface LeadActionsProps {
   email: string;
   followUpDate: string | null;
   onLogCall?: () => void;
+  assignedToId: string | null;
+  assignedToName: string | null;
+  userRole: string;
+  employees: { id: string; name: string }[];
+  category: string | null;
 }
 
 export default function LeadActions({
@@ -66,8 +64,26 @@ export default function LeadActions({
   email,
   followUpDate: followUpDateProp,
   onLogCall,
+  assignedToId: initialAssignedToId,
+  assignedToName: initialAssignedToName,
+  userRole,
+  employees,
+  category: initialCategory,
 }: LeadActionsProps) {
   const router = useRouter();
+
+  // Assignment state
+  const [assignedToId, setAssignedToId] = useState(initialAssignedToId);
+  const [assignedToName, setAssignedToName] = useState(initialAssignedToName);
+  const [claimLoading, setClaimLoading] = useState(false);
+  const [assignLoading, setAssignLoading] = useState(false);
+
+  // Category state
+  const [category, setCategory] = useState<string | null>(initialCategory);
+  const [categoryLoading, setCategoryLoading] = useState(false);
+
+  // Can this user assign leads?
+  const canAssign = ["SUPER_ADMIN", "ADMIN", "SALES_LEAD", "ADMISSION_COUNSELLOR"].includes(userRole);
 
   // Status change state
   const [statusLoading, setStatusLoading] = useState<string | null>(null);
@@ -96,6 +112,12 @@ export default function LeadActions({
   const [callNote, setCallNote] = useState("");
   const [scheduleLoading, setScheduleLoading] = useState(false);
 
+  // Status change note modal state
+  const [showStatusNoteModal, setShowStatusNoteModal] = useState(false);
+  const [pendingStatus, setPendingStatus] = useState<string | null>(null);
+  const [statusNote, setStatusNote] = useState("");
+  const [statusNoteLoading, setStatusNoteLoading] = useState(false);
+
   // Convert modal state
   const [showConvertModal, setShowConvertModal] = useState(false);
   const [selectedCourse, setSelectedCourse] = useState(
@@ -107,20 +129,90 @@ export default function LeadActions({
     null
   );
 
-  const handleStatusChange = async (status: string) => {
-    if (status === currentStatus) return;
-    setStatusLoading(status);
+  // ── Claim lead (first come first serve) ──
+  const handleClaim = async () => {
+    setClaimLoading(true);
+    try {
+      const res = await fetch(`/api/admin/leads/${leadId}/claim`, { method: "POST" });
+      const data = await res.json();
+      if (res.ok) {
+        router.refresh();
+      } else {
+        alert(data.error || "Failed to claim lead");
+      }
+    } catch {
+      alert("Failed to claim lead");
+    }
+    setClaimLoading(false);
+  };
+
+  // ── Change category ──
+  const handleCategoryChange = async (newCategory: string) => {
+    const value = newCategory || null;
+    setCategoryLoading(true);
+    setCategory(value);
     try {
       const res = await fetch(`/api/admin/leads/${leadId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status }),
+        body: JSON.stringify({ category: value }),
+      });
+      if (!res.ok) throw new Error("Failed to update category");
+      router.refresh();
+    } catch {
+      setCategory(initialCategory); // Revert on error
+    }
+    setCategoryLoading(false);
+  };
+
+  // ── Assign lead (admin/sales only) ──
+  const handleAssign = async (employeeId: string) => {
+    setAssignLoading(true);
+    try {
+      const res = await fetch(`/api/admin/leads/${leadId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ assignedToId: employeeId || null }),
+      });
+      if (res.ok) {
+        const emp = employees.find((e) => e.id === employeeId);
+        setAssignedToId(employeeId || null);
+        setAssignedToName(emp?.name || null);
+        router.refresh();
+      }
+    } catch {}
+    setAssignLoading(false);
+  };
+
+  const handleStatusChange = (status: string) => {
+    if (status === currentStatus) return;
+    setPendingStatus(status);
+    setStatusNote("");
+    setShowStatusNoteModal(true);
+  };
+
+  const handleStatusNoteSubmit = async () => {
+    if (!pendingStatus || !statusNote.trim()) return;
+    setStatusNoteLoading(true);
+    setStatusLoading(pendingStatus);
+    try {
+      const res = await fetch(`/api/admin/leads/${leadId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          status: pendingStatus,
+          statusNote: statusNote.trim(),
+        }),
       });
       if (!res.ok) throw new Error("Failed to update status");
+      setShowStatusNoteModal(false);
+      setPendingStatus(null);
+      setStatusNote("");
       router.refresh();
     } catch (err) {
       console.error("Status update failed:", err);
     } finally {
+      setStatusNoteLoading(false);
       setStatusLoading(null);
     }
   };
@@ -269,10 +361,57 @@ export default function LeadActions({
     return cleaned.replace("+", "");
   };
 
-  const handleWhatsApp = () => {
+  // WhatsApp panel state
+  const [showWAPanel, setShowWAPanel] = useState(false);
+  const [waMessage, setWAMessage] = useState("");
+  const [waLogging, setWALogging] = useState(false);
+
+  const WA_TEMPLATES = [
+    { label: "Welcome", message: "Hi! Thank you for your interest in EDWartens UK industrial automation training! Would you like to book a free consultation to discuss the course? I can arrange a call at your convenience. Best regards, EDWartens UK Team" },
+    { label: "Follow-up", message: "Hi! Just following up on your enquiry about our PLC/SCADA training course. Are you still interested? I'd be happy to answer any questions or arrange a consultation. Best regards, EDWartens UK" },
+    { label: "Consultation Reminder", message: "Hi! Just a reminder about your upcoming consultation with EDWartens UK. Please let me know if the scheduled time still works for you. Best regards, EDWartens UK" },
+    { label: "Course Details", message: "Hi! Here are the details for our Professional PLC/SCADA Training: CPD Accredited, Siemens S7-1200/1500, WinCC SCADA, Hands-on Lab Training. Location: Milton Keynes, UK. Fee: 1,799 GBP (installment options available). New batches start every week. Would you like to enrol? Best regards, EDWartens UK" },
+    { label: "Payment Reminder", message: "Hi! Just a gentle reminder about your pending payment for the EDWartens UK training course. Please let me know if you need any help with the payment process. Best regards, EDWartens UK" },
+    { label: "Custom", message: "" },
+  ];
+
+  const handleWASend = async (message: string) => {
     if (!phone) return;
     const formatted = formatPhoneForWhatsApp(phone);
-    window.open(`https://wa.me/${formatted}`, "_blank");
+    const encoded = encodeURIComponent(message);
+    // Open WhatsApp Web with pre-filled message
+    window.open(`https://wa.me/${formatted}?text=${encoded}`, "_blank");
+
+    // Auto-log the message as a note
+    setWALogging(true);
+    try {
+      await fetch(`/api/admin/leads/${leadId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          statusNote: undefined,
+        }),
+      });
+      // Create note
+      const truncated = message.length > 100 ? message.slice(0, 100) + "..." : message;
+      await fetch(`/api/admin/leads/${leadId}/quick-action`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "note",
+          content: `💬 WhatsApp sent: ${truncated}`,
+        }),
+      });
+      router.refresh();
+    } catch {}
+    setWALogging(false);
+    setShowWAPanel(false);
+    setWAMessage("");
+  };
+
+  const handleWhatsApp = () => {
+    if (!phone) return;
+    setShowWAPanel(!showWAPanel);
   };
 
   const handleTeamsCall = () => {
@@ -325,7 +464,7 @@ export default function LeadActions({
             className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-green-500/10 text-green-400 border border-green-500/20 hover:bg-green-500/20 transition-colors text-xs font-medium disabled:opacity-40 disabled:cursor-not-allowed"
           >
             <MessageCircle size={14} />
-            WhatsApp Message
+            WhatsApp {showWAPanel ? "▲" : "▼"}
           </button>
 
           {/* Schedule Call */}
@@ -366,6 +505,63 @@ export default function LeadActions({
             </button>
           )}
         </div>
+
+        {/* WhatsApp Panel */}
+        {showWAPanel && phone && (
+          <div className="mt-4 p-4 rounded-lg bg-white/[0.02] border border-green-500/20 space-y-3">
+            <p className="text-xs font-semibold text-green-400 mb-2">Send WhatsApp Message</p>
+
+            {/* Template buttons */}
+            <div className="flex flex-wrap gap-1.5">
+              {WA_TEMPLATES.map((t) => (
+                <button
+                  key={t.label}
+                  onClick={() => setWAMessage(t.message)}
+                  className={`px-2.5 py-1 rounded-md text-[10px] font-medium transition-colors ${
+                    waMessage === t.message && t.message
+                      ? "bg-green-500/15 text-green-400 border border-green-500/25"
+                      : "bg-white/[0.03] text-text-muted border border-white/[0.06] hover:bg-white/[0.06]"
+                  }`}
+                >
+                  {t.label}
+                </button>
+              ))}
+            </div>
+
+            {/* Message textarea */}
+            <textarea
+              value={waMessage}
+              onChange={(e) => setWAMessage(e.target.value)}
+              placeholder="Type your message or select a template above..."
+              className="w-full p-3 rounded-lg bg-white/[0.03] border border-white/[0.06] text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:border-green-500/40 resize-none"
+              rows={5}
+            />
+
+            {/* Actions */}
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => handleWASend(waMessage)}
+                disabled={!waMessage.trim() || waLogging}
+                className="flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-green-500/15 border border-green-500/25 text-green-400 text-xs font-medium hover:bg-green-500/25 transition-colors disabled:opacity-40"
+              >
+                {waLogging ? (
+                  <><Loader2 size={12} className="animate-spin" /> Logging...</>
+                ) : (
+                  <>💬 Open WhatsApp & Log</>
+                )}
+              </button>
+              <button
+                onClick={() => { setShowWAPanel(false); setWAMessage(""); }}
+                className="px-3 py-2 rounded-lg bg-white/[0.03] border border-white/[0.06] text-text-muted text-xs hover:bg-white/[0.06] transition-colors"
+              >
+                Cancel
+              </button>
+            </div>
+            <p className="text-[10px] text-text-muted">
+              This opens WhatsApp Web with your message pre-filled. You just hit Send. The message is auto-logged as a note.
+            </p>
+          </div>
+        )}
 
         {/* Schedule Call Inline Form */}
         {showScheduleCall && (
@@ -440,22 +636,23 @@ export default function LeadActions({
         )}
       </div>
 
-      {/* Follow-up Display */}
-      {followUpInfo && (
-        <div className="glass-card p-5">
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="text-base font-semibold text-text-primary flex items-center gap-2">
-              <Calendar size={16} className="text-neon-blue" />
-              Follow-up
-            </h2>
-            <button
-              onClick={() => setShowReschedule(!showReschedule)}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-neon-blue/10 text-neon-blue border border-neon-blue/20 hover:bg-neon-blue/20 transition-colors text-xs font-medium"
-            >
-              <Calendar size={12} />
-              Reschedule
-            </button>
-          </div>
+      {/* Follow-up Display — ALWAYS shown */}
+      <div className="glass-card p-5">
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="text-base font-semibold text-text-primary flex items-center gap-2">
+            <Calendar size={16} className="text-neon-blue" />
+            Follow-up
+          </h2>
+          <button
+            onClick={() => setShowReschedule(!showReschedule)}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-neon-blue/10 text-neon-blue border border-neon-blue/20 hover:bg-neon-blue/20 transition-colors text-xs font-medium"
+          >
+            <Calendar size={12} />
+            {followUpInfo ? "Reschedule" : "Set Follow-up"}
+          </button>
+        </div>
+
+        {followUpInfo ? (
           <div
             className={`flex items-center gap-2 px-3 py-2 rounded-lg border text-sm font-medium ${
               followUpInfo.isOverdue
@@ -473,6 +670,12 @@ export default function LeadActions({
               {followUpInfo.isToday && " (today)"}
             </span>
           </div>
+        ) : (
+          <div className="flex items-center gap-2 px-3 py-2 rounded-lg border border-white/[0.06] bg-white/[0.02] text-sm text-text-muted">
+            <Calendar size={14} />
+            <span>No follow-up date set — click &quot;Set Follow-up&quot; to schedule one</span>
+          </div>
+        )}
 
           {/* Reschedule inline form */}
           {showReschedule && (
@@ -489,6 +692,7 @@ export default function LeadActions({
                     type="date"
                     value={rescheduleDate}
                     onChange={(e) => setRescheduleDate(e.target.value)}
+                    min={new Date().toISOString().split("T")[0]}
                     required
                     className="w-full rounded-lg bg-white/[0.03] border border-white/[0.06] px-3 py-2 text-sm text-text-secondary focus:outline-none focus:ring-1 focus:ring-neon-blue/50 focus:border-neon-blue/50 [color-scheme:dark]"
                   />
@@ -530,8 +734,109 @@ export default function LeadActions({
               </div>
             </form>
           )}
+      </div>
+
+      {/* Assignment Section */}
+      <div className="glass-card p-5">
+        <h2 className="text-base font-semibold text-text-primary mb-3">
+          Lead Assignment
+        </h2>
+
+        {assignedToId ? (
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-full bg-neon-blue/10 flex items-center justify-center text-neon-blue text-xs font-bold">
+                {assignedToName?.charAt(0) || "?"}
+              </div>
+              <div>
+                <p className="text-sm text-text-primary font-medium">{assignedToName}</p>
+                <p className="text-[10px] text-text-muted">Assigned counsellor</p>
+              </div>
+            </div>
+
+            {canAssign && (
+              <select
+                value={assignedToId}
+                onChange={(e) => handleAssign(e.target.value)}
+                disabled={assignLoading}
+                className="px-3 py-1.5 rounded-lg bg-white/[0.03] border border-white/[0.06] text-text-muted text-xs focus:border-neon-blue/40 disabled:opacity-50"
+              >
+                <option value="">Unassign</option>
+                {employees.map((emp) => (
+                  <option key={emp.id} value={emp.id}>{emp.name}</option>
+                ))}
+              </select>
+            )}
+          </div>
+        ) : (
+          <div className="space-y-3">
+            <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-yellow-500/5 border border-yellow-500/20">
+              <span className="text-yellow-400 text-xs font-medium">⚡ Unassigned — Available to claim</span>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <button
+                onClick={handleClaim}
+                disabled={claimLoading}
+                className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-neon-blue/15 border border-neon-blue/25 text-neon-blue text-sm font-medium hover:bg-neon-blue/25 transition-all disabled:opacity-50"
+              >
+                {claimLoading ? (
+                  <><Loader2 size={14} className="animate-spin" /> Claiming...</>
+                ) : (
+                  <>🤚 Claim This Lead</>
+                )}
+              </button>
+
+              {canAssign && (
+                <select
+                  value=""
+                  onChange={(e) => handleAssign(e.target.value)}
+                  disabled={assignLoading}
+                  className="px-3 py-2.5 rounded-lg bg-white/[0.03] border border-white/[0.06] text-text-muted text-xs focus:border-neon-blue/40 disabled:opacity-50"
+                >
+                  <option value="" disabled>Assign to...</option>
+                  {employees.map((emp) => (
+                    <option key={emp.id} value={emp.id}>{emp.name}</option>
+                  ))}
+                </select>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Category Section */}
+      <div className="glass-card p-5">
+        <h2 className="text-base font-semibold text-text-primary mb-3 flex items-center gap-2">
+          <Tag size={16} className="text-neon-blue" />
+          Category
+        </h2>
+        {category && (
+          <span className="inline-flex px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-500/10 text-purple-400 border border-purple-500/20 mb-3">
+            {category}
+          </span>
+        )}
+        <div className="relative">
+          <select
+            value={category || ""}
+            onChange={(e) => handleCategoryChange(e.target.value)}
+            disabled={categoryLoading}
+            className="w-full appearance-none rounded-lg bg-white/[0.03] border border-white/[0.06] px-3 py-2 pr-8 text-sm text-text-secondary focus:outline-none focus:ring-1 focus:ring-neon-blue/50 focus:border-neon-blue/50 disabled:opacity-50"
+          >
+            <option value="" className="bg-gray-900">None</option>
+            {LEAD_CATEGORIES.map((cat) => (
+              <option key={cat} value={cat} className="bg-gray-900">{cat}</option>
+            ))}
+          </select>
+          <ChevronDown
+            size={14}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none"
+          />
+          {categoryLoading && (
+            <Loader2 size={14} className="absolute right-8 top-1/2 -translate-y-1/2 animate-spin text-neon-blue" />
+          )}
         </div>
-      )}
+      </div>
 
       {/* Status Change Section */}
       <div className="glass-card p-5">
@@ -539,16 +844,18 @@ export default function LeadActions({
           Update Status
         </h2>
         <div className="flex flex-wrap gap-2">
-          {Object.entries(LEAD_STATUS_LABELS).map(([key, label]) => (
+          {Object.entries(LEAD_STATUS_LABELS).map(([key, label]) => {
+            const c = LEAD_STATUS_COLORS[key] || { bg: "bg-white/[0.05]", text: "text-text-muted", border: "border-white/[0.08]" };
+            const colorClass = `${c.bg} ${c.text} ${c.border}`;
+            return (
             <button
               key={key}
               disabled={currentStatus === key || statusLoading !== null}
               onClick={() => handleStatusChange(key)}
               className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
                 currentStatus === key
-                  ? "ring-2 ring-neon-blue ring-offset-1 ring-offset-transparent " +
-                    STATUS_COLORS[key]
-                  : STATUS_COLORS[key] + " hover:opacity-80 cursor-pointer"
+                  ? "ring-2 ring-neon-blue ring-offset-1 ring-offset-transparent " + colorClass
+                  : colorClass + " hover:opacity-80 cursor-pointer"
               } ${statusLoading === key ? "opacity-50" : ""}`}
             >
               {statusLoading === key ? (
@@ -560,7 +867,8 @@ export default function LeadActions({
                 label
               )}
             </button>
-          ))}
+          );
+          })}
         </div>
       </div>
 
@@ -726,6 +1034,68 @@ export default function LeadActions({
         )}
       </div>
 
+      {/* Status Change Note Modal */}
+      {showStatusNoteModal && pendingStatus && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+          <div className="glass-card p-6 w-full max-w-md mx-4 space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-semibold text-text-primary">
+                Status Change Note
+              </h3>
+              <button
+                onClick={() => {
+                  setShowStatusNoteModal(false);
+                  setPendingStatus(null);
+                  setStatusNote("");
+                }}
+                className="p-1 rounded-lg hover:bg-white/[0.03] text-text-muted hover:text-text-primary transition-colors"
+              >
+                <X size={18} />
+              </button>
+            </div>
+            <p className="text-sm text-text-secondary">
+              Why are you changing status to{" "}
+              <span className="font-semibold text-neon-blue">
+                {LEAD_STATUS_LABELS[pendingStatus] || pendingStatus}
+              </span>
+              ?
+            </p>
+            <textarea
+              value={statusNote}
+              onChange={(e) => setStatusNote(e.target.value)}
+              placeholder="Enter reason for status change (required)..."
+              rows={4}
+              autoFocus
+              className="w-full rounded-lg bg-white/[0.03] border border-white/[0.06] px-3 py-2 text-sm text-text-secondary placeholder:text-text-muted focus:outline-none focus:ring-1 focus:ring-neon-blue/50 focus:border-neon-blue/50 resize-none"
+            />
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={() => {
+                  setShowStatusNoteModal(false);
+                  setPendingStatus(null);
+                  setStatusNote("");
+                }}
+                className="flex-1 px-4 py-2.5 rounded-lg text-sm font-medium text-text-muted hover:text-text-secondary border border-white/[0.06] hover:bg-white/[0.03] transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleStatusNoteSubmit}
+                disabled={statusNoteLoading || !statusNote.trim()}
+                className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-neon-blue/10 text-neon-blue border border-neon-blue/20 hover:bg-neon-blue/20 transition-colors text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {statusNoteLoading && (
+                  <Loader2 size={14} className="animate-spin" />
+                )}
+                Save & Update Status
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Convert to Student Modal */}
       {showConvertModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
@@ -750,17 +1120,19 @@ export default function LeadActions({
               <div className="space-y-4">
                 <div className="bg-neon-green/10 border border-neon-green/20 rounded-lg p-4">
                   <p className="text-sm text-neon-green font-medium mb-2">
-                    Student created successfully!
+                    ✅ Student created successfully!
                   </p>
-                  <p className="text-xs text-text-secondary mb-1">
-                    Temporary Password:
+                  <p className="text-xs text-text-secondary">
+                    Login credentials have been emailed to the student automatically.
                   </p>
-                  <code className="block bg-black/30 rounded px-3 py-2 text-sm text-neon-green font-mono select-all">
-                    {tempPassword}
-                  </code>
-                  <p className="text-xs text-text-muted mt-2">
-                    Please save this password. It will not be shown again.
-                  </p>
+                  <details className="mt-3">
+                    <summary className="text-[10px] text-text-muted cursor-pointer hover:text-text-secondary">
+                      Show temporary password (backup)
+                    </summary>
+                    <code className="block bg-black/30 rounded px-3 py-2 text-sm text-neon-green font-mono select-all mt-1">
+                      {tempPassword}
+                    </code>
+                  </details>
                 </div>
                 <button
                   onClick={() => {

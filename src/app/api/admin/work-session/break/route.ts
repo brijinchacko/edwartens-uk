@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { isCrmRole } from "@/lib/rbac";
+import { notifyRole } from "@/lib/notify";
+import { KPI_CONFIG } from "@/lib/kpi";
 
 export async function POST(req: NextRequest) {
   try {
@@ -97,6 +99,68 @@ export async function POST(req: NextRequest) {
           },
         });
       });
+
+      // Break abuse detection (fire-and-forget, don't block response)
+      (async () => {
+        try {
+          const todayStart = new Date();
+          todayStart.setHours(0, 0, 0, 0);
+
+          // Get all of today's work sessions for this employee
+          const todaySessions = await prisma.employeeWorkSession.findMany({
+            where: {
+              employeeId: employee.id,
+              date: { gte: todayStart },
+            },
+            select: { id: true },
+          });
+          const sessionIds = todaySessions.map((s) => s.id);
+
+          if (sessionIds.length === 0) return;
+
+          // Count today's total breaks for this employee
+          const todayBreaks = await prisma.employeeBreak.findMany({
+            where: { sessionId: { in: sessionIds } },
+            select: { startedAt: true, endedAt: true },
+          });
+
+          const breakCount = todayBreaks.length;
+
+          // Calculate cumulative break minutes today (completed breaks only)
+          let cumulativeMinutes = 0;
+          for (const b of todayBreaks) {
+            if (b.endedAt) {
+              cumulativeMinutes += Math.round(
+                (b.endedAt.getTime() - b.startedAt.getTime()) / 60000
+              );
+            }
+          }
+
+          const empName = session.user.name || session.user.email || "Unknown";
+
+          // Alert if break count exceeds threshold
+          if (breakCount > KPI_CONFIG.maxBreakCount) {
+            await notifyRole(
+              ["SUPER_ADMIN", "ADMIN"],
+              "Break Alert: Excessive Count",
+              `${empName} has taken ${breakCount} breaks today (limit: ${KPI_CONFIG.maxBreakCount}).`,
+              `/admin/kpi`
+            );
+          }
+
+          // Alert if cumulative break time exceeds threshold
+          if (cumulativeMinutes > KPI_CONFIG.maxBreakMinutes) {
+            await notifyRole(
+              ["SUPER_ADMIN", "ADMIN"],
+              "Break Alert: Excessive Duration",
+              `${empName} has been on break for ${cumulativeMinutes} minutes today (limit: ${KPI_CONFIG.maxBreakMinutes} min).`,
+              `/admin/kpi`
+            );
+          }
+        } catch (err) {
+          console.error("Break abuse detection error:", err);
+        }
+      })();
 
       return NextResponse.json({ session: updatedSession });
     }

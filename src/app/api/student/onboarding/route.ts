@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { writeFile, mkdir } from "fs/promises";
 import path from "path";
 import { v4 as uuidv4 } from "uuid";
+import { notifyAdmins } from "@/lib/notify";
 
 const UPLOADS_DIR = path.join(process.cwd(), "uploads", "documents");
 
@@ -127,6 +128,10 @@ export async function POST(req: NextRequest) {
             data: { status: "ACTIVE" },
           });
         }
+
+        // Notify admins of onboarding completion
+        const user = await prisma.user.findUnique({ where: { id: userId }, select: { name: true } });
+        await notifyAdmins("Onboarding Completed", `${user?.name || "A student"} has completed their onboarding checklist.`, `/admin/students`);
 
         return NextResponse.json({
           message: "Onboarding completed successfully",

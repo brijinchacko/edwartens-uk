@@ -1,4 +1,7 @@
+"use client";
+
 import Image from "next/image";
+import { ScrollReveal } from "./ScrollReveal";
 
 const employers = [
   { name: "Siemens", logo: "/images/Company-Logos/Siemens-Logo-white.webp" },
@@ -46,13 +49,14 @@ export default function Employers() {
   return (
     <section className="py-24 mesh-gradient-alt relative overflow-hidden">
       <div className="max-w-7xl mx-auto px-3 sm:px-5 lg:px-6">
+        <ScrollReveal>
         <div className="text-center mb-6">
           <p className="text-[11px] uppercase tracking-widest text-neon-blue mb-3">
             Industry Demand
           </p>
           <h2 className="text-3xl sm:text-5xl font-bold tracking-tight text-white mb-4">
             These Companies Hire{" "}
-            <span className="gradient-text">Automation Engineers</span>
+            <span className="gradient-text gradient-text-animated">Automation Engineers</span>
           </h2>
           <p className="text-text-secondary max-w-3xl mx-auto leading-relaxed">
             The UK&apos;s largest manufacturers, energy companies, food & beverage
@@ -62,6 +66,7 @@ export default function Employers() {
             been higher.
           </p>
         </div>
+        </ScrollReveal>
       </div>
 
       {/* Scrolling Marquee Row 1 - Left to Right */}

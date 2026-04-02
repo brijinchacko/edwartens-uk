@@ -271,6 +271,7 @@ export default function JobTrackerPage() {
                     day: "numeric",
                     month: "short",
                     year: "numeric",
+                    timeZone: "Europe/London",
                   })}
                 </p>
                 <div className="space-y-1">
@@ -324,6 +325,7 @@ export default function JobTrackerPage() {
                     {new Date(log.date).toLocaleDateString("en-GB", {
                       day: "numeric",
                       month: "short",
+                      timeZone: "Europe/London",
                     })}
                   </p>
                 </div>

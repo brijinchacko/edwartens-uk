@@ -58,18 +58,33 @@ export async function GET(
     }
     const { employee } = result;
 
-    // Parse ?days query param (default 7)
+    // Parse date range params: ?from=YYYY-MM-DD&to=YYYY-MM-DD or ?days=N
+    const fromParam = req.nextUrl.searchParams.get("from");
+    const toParam = req.nextUrl.searchParams.get("to");
     const daysParam = req.nextUrl.searchParams.get("days");
-    const days = Math.min(Math.max(parseInt(daysParam || "7", 10) || 7, 1), 90);
 
     const todayStart = new Date();
     todayStart.setHours(0, 0, 0, 0);
     const todayEnd = new Date();
     todayEnd.setHours(23, 59, 59, 999);
 
-    // Range start for history
-    const rangeStart = new Date(todayStart);
-    rangeStart.setDate(rangeStart.getDate() - (days - 1));
+    let rangeStart: Date;
+    let rangeEnd: Date;
+    let days: number;
+
+    if (fromParam && toParam) {
+      // Use explicit from/to date range
+      rangeStart = new Date(fromParam + "T00:00:00");
+      rangeEnd = new Date(toParam + "T23:59:59.999");
+      // Cap rangeEnd to today if it's in the future
+      if (rangeEnd > todayEnd) rangeEnd = todayEnd;
+      days = Math.ceil((rangeEnd.getTime() - rangeStart.getTime()) / (1000 * 60 * 60 * 24));
+    } else {
+      days = Math.min(Math.max(parseInt(daysParam || "7", 10) || 7, 1), 90);
+      rangeStart = new Date(todayStart);
+      rangeStart.setDate(rangeStart.getDate() - (days - 1));
+      rangeEnd = todayEnd;
+    }
 
     // ── Today's sessions (for timeline) ─────────────────────────
     const todaySessions = await prisma.employeeWorkSession.findMany({
@@ -88,7 +103,7 @@ export async function GET(
     const rangeSessions = await prisma.employeeWorkSession.findMany({
       where: {
         employeeId,
-        checkInAt: { gte: rangeStart, lte: todayEnd },
+        checkInAt: { gte: rangeStart, lte: rangeEnd },
       },
       include: {
         activities: { orderBy: { startedAt: "asc" } },
@@ -254,12 +269,19 @@ export async function GET(
         (a, b) => new Date(b.startedAt).getTime() - new Date(a.startedAt).getTime()
       );
 
-    // ── Lead interactions (today only) ──────────────────────────
+    // ── Lead interactions (today, after check-in) ────────────────
     const employeeName = employee.user.name;
-    const leadNotes = await prisma.leadNote.findMany({
+    // Only count notes created after the first check-in of the day
+    const firstCheckIn = todaySessions.length > 0
+      ? todaySessions.reduce((earliest, s) =>
+          new Date(s.checkInAt) < new Date(earliest.checkInAt) ? s : earliest
+        ).checkInAt
+      : todayStart;
+
+    const allLeadNotes = await prisma.leadNote.findMany({
       where: {
         createdBy: employeeName,
-        createdAt: { gte: todayStart, lte: todayEnd },
+        createdAt: { gte: firstCheckIn, lte: todayEnd },
       },
       include: {
         lead: { select: { id: true, name: true, email: true, status: true } },
@@ -267,8 +289,20 @@ export async function GET(
       orderBy: { createdAt: "desc" },
     });
 
+    // Filter out system-generated / bulk-imported notes
+    const SYSTEM_NOTE_PREFIXES = [
+      "[Quality Lead Detail]",
+      "[Admission Result]",
+      "[Status changed",
+      "[Bulk Import]",
+      "[Data Migration]",
+    ];
+    const leadNotes = allLeadNotes.filter(
+      (n) => !SYSTEM_NOTE_PREFIXES.some((prefix) => n.content.startsWith(prefix))
+    );
+
     const totalCallsMade = leadNotes.filter((n) =>
-      n.content.includes("Call Log")
+      n.content.includes("Call Log") || n.content.includes("📞 Call")
     ).length;
     const uniqueLeadsContacted = new Set(leadNotes.map((n) => n.leadId)).size;
     const totalNotesAdded = leadNotes.length;

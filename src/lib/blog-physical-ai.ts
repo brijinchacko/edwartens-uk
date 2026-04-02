@@ -52,7 +52,7 @@ At EDWartens UK, our Siemens TIA Portal training courses provide hands-on experi
     readTime: "7 min read",
     publishedAt: "2025-06-10",
     author: "Vaisakh Sankar",
-    image: "https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=1200&h=630&fit=crop",
+    image: "/images/blog/photo-1555066931-4365d14bab8c.jpg",
     seoKeywords: ["Siemens TIA Portal", "PLC programming beginners", "TIA Portal tutorial", "S7-1500 programming", "industrial automation UK", "Siemens PLC training"],
   },
   {
@@ -104,7 +104,7 @@ EDWartens UK offers comprehensive SCADA training that covers system design, conf
     readTime: "8 min read",
     publishedAt: "2025-07-05",
     author: "EDWartens UK Team",
-    image: "https://images.unsplash.com/photo-1485827404703-89b55fcc595e?w=1200&h=630&fit=crop",
+    image: "/images/blog/photo-1485827404703-89b55fcc595e.jpg",
     seoKeywords: ["SCADA systems", "SCADA training UK", "industrial automation engineer", "SCADA architecture", "process control systems", "HMI development", "SCADA career UK"],
   },
   {
@@ -165,7 +165,7 @@ If you are starting from scratch, begin with Ladder Logic to build a solid found
     readTime: "7 min read",
     publishedAt: "2025-07-22",
     author: "Vaisakh Sankar",
-    image: "https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=1200&h=630&fit=crop",
+    image: "/images/blog/photo-1454165804606-c3d57bc86b40.jpg",
     seoKeywords: ["PLC programming languages", "ladder logic vs structured text", "IEC 61131-3", "PLC programming tutorial", "learn PLC programming UK", "Siemens structured text"],
   },
   {
@@ -227,7 +227,7 @@ Our HMI development courses at EDWartens UK cover the complete design lifecycle 
     readTime: "8 min read",
     publishedAt: "2025-08-12",
     author: "EDWartens UK Team",
-    image: "https://images.unsplash.com/photo-1565008576549-57569a49371d?w=1200&h=630&fit=crop",
+    image: "/images/blog/photo-1565008576549-57569a49371d.jpg",
     seoKeywords: ["HMI development", "HMI best practices", "industrial HMI design", "SCADA HMI", "high performance HMI", "Siemens WinCC", "HMI training UK"],
   },
   {
@@ -299,7 +299,7 @@ At EDWartens UK, our industrial automation courses include practical sensor sele
     readTime: "9 min read",
     publishedAt: "2025-08-28",
     author: "EDWartens UK Team",
-    image: "https://images.unsplash.com/photo-1518770660439-4636190af475?w=1200&h=630&fit=crop",
+    image: "/images/blog/photo-1518770660439-4636190af475.jpg",
     seoKeywords: ["industrial sensors", "automation sensors", "proximity sensors", "temperature sensors industrial", "sensor selection guide", "industrial instrumentation UK"],
   },
   {
@@ -362,7 +362,7 @@ Our motor drives and VFD training at EDWartens UK includes hands-on configuratio
     readTime: "8 min read",
     publishedAt: "2025-09-15",
     author: "Vaisakh Sankar",
-    image: "https://images.unsplash.com/photo-1581092160562-40aa08e78837?w=1200&h=630&fit=crop",
+    image: "/images/blog/photo-1581092160562-40aa08e78837.jpg",
     seoKeywords: ["variable frequency drives", "VFD motor control", "industrial motor drives", "Siemens SINAMICS", "VFD configuration", "motor control UK", "energy efficiency automation"],
   },
   {
@@ -423,7 +423,7 @@ Our industrial networking courses at EDWartens UK provide practical experience w
     readTime: "8 min read",
     publishedAt: "2025-10-02",
     author: "EDWartens UK Team",
-    image: "https://images.unsplash.com/photo-1537462715879-360eeb61a0ad?w=1200&h=630&fit=crop",
+    image: "/images/blog/photo-1537462715879-360eeb61a0ad.jpg",
     seoKeywords: ["PROFINET", "industrial Ethernet", "industrial networking", "PROFINET configuration", "automation networking UK", "Siemens PROFINET"],
   },
   {
@@ -491,7 +491,7 @@ Electrical safety is integrated into every course at EDWartens UK. Our students 
     readTime: "8 min read",
     publishedAt: "2025-10-20",
     author: "EDWartens UK Team",
-    image: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=1200&h=630&fit=crop",
+    image: "/images/blog/photo-1460925895917-afdab827c52f.jpg",
     seoKeywords: ["electrical safety UK", "industrial automation safety", "LOTO procedures", "BS EN 61439", "machine safety standards", "automation safety regulations UK"],
   },
   {
@@ -560,7 +560,7 @@ Our PLC training programmes at EDWartens UK cover both S7-1200 and S7-1500 platf
     readTime: "8 min read",
     publishedAt: "2025-11-05",
     author: "Vaisakh Sankar",
-    image: "https://images.unsplash.com/photo-1581092918056-0c4c3acd3789?w=1200&h=630&fit=crop",
+    image: "/images/blog/photo-1581092918056-0c4c3acd3789.jpg",
     seoKeywords: ["Siemens S7-1500", "Siemens S7-1200", "PLC comparison", "Siemens PLC selection", "industrial PLC UK", "TIA Portal PLC"],
   },
   {
@@ -638,7 +638,7 @@ EDWartens UK courses provide hands-on experience with electric, pneumatic, and h
     readTime: "9 min read",
     publishedAt: "2025-11-22",
     author: "EDWartens UK Team",
-    image: "https://images.unsplash.com/photo-1581094794329-c8112a89af12?w=1200&h=630&fit=crop",
+    image: "/images/blog/photo-1581094794329-c8112a89af12.jpg",
     seoKeywords: ["industrial actuators", "electric actuators", "pneumatic cylinders", "motor control automation", "PLC actuator control", "industrial pneumatics UK"],
   },
   {
@@ -709,7 +709,7 @@ Our process control training at EDWartens UK includes hands-on PID tuning exerci
     readTime: "9 min read",
     publishedAt: "2025-12-08",
     author: "Vaisakh Sankar",
-    image: "https://images.unsplash.com/photo-1504639725590-34d0984388bd?w=1200&h=630&fit=crop",
+    image: "/images/blog/photo-1504639725590-34d0984388bd.jpg",
     seoKeywords: ["PID control", "PID tuning", "process control automation", "PID controller fundamentals", "Siemens PID Compact", "process automation UK"],
   },
   {
@@ -787,7 +787,7 @@ EDWartens UK training includes practical control panel building exercises where 
     readTime: "8 min read",
     publishedAt: "2025-12-22",
     author: "EDWartens UK Team",
-    image: "https://images.unsplash.com/photo-1581093450021-4a7360e9a6b5?w=1200&h=630&fit=crop",
+    image: "/images/blog/photo-1581093450021-4a7360e9a6b5.jpg",
     seoKeywords: ["control panel design", "control panel manufacturing UK", "BS EN 61439", "electrical panel wiring", "industrial control panels", "panel building best practices"],
   },
   {
@@ -860,7 +860,7 @@ Our Industry 4.0 and IIoT training at EDWartens UK covers OPC UA configuration, 
     readTime: "8 min read",
     publishedAt: "2026-01-10",
     author: "EDWartens UK Team",
-    image: "https://images.unsplash.com/photo-1535378917042-10a22c95931a?w=1200&h=630&fit=crop",
+    image: "/images/blog/photo-1535378917042-10a22c95931a.jpg",
     seoKeywords: ["OPC UA", "industrial IoT", "Industry 4.0", "factory connectivity", "Siemens OPC UA", "IIoT UK", "smart manufacturing"],
   },
   {
@@ -927,7 +927,7 @@ Functional safety training at EDWartens UK covers risk assessment, safety system
     readTime: "9 min read",
     publishedAt: "2026-01-25",
     author: "Vaisakh Sankar",
-    image: "https://images.unsplash.com/photo-1581092335397-9583eb92d232?w=1200&h=630&fit=crop",
+    image: "/images/blog/photo-1581092335397-9583eb92d232.jpg",
     seoKeywords: ["functional safety", "SIL rating", "performance level", "machine safety UK", "safety PLC", "IEC 62061", "ISO 13849", "Siemens safety"],
   },
   {
@@ -1013,7 +1013,7 @@ Our PLC maintenance and troubleshooting courses at EDWartens UK use fault-inject
     readTime: "9 min read",
     publishedAt: "2026-02-05",
     author: "EDWartens UK Team",
-    image: "https://images.unsplash.com/photo-1550751827-4bd374c3f58b?w=1200&h=630&fit=crop",
+    image: "/images/blog/photo-1550751827-4bd374c3f58b.jpg",
     seoKeywords: ["PLC troubleshooting", "industrial maintenance", "PLC fault finding", "automation troubleshooting", "Siemens PLC diagnostics", "maintenance engineer UK"],
   },
   {
@@ -1086,7 +1086,7 @@ Our advanced automation courses at EDWartens UK include IO-Link configuration an
     readTime: "8 min read",
     publishedAt: "2026-02-18",
     author: "EDWartens UK Team",
-    image: "https://images.unsplash.com/photo-1529400971008-f566de0e6dfc?w=1200&h=630&fit=crop",
+    image: "/images/blog/photo-1529400971008-f566de0e6dfc.jpg",
     seoKeywords: ["IO-Link", "smart sensors", "Industry 4.0 sensors", "IO-Link Siemens", "sensor integration", "predictive maintenance sensors", "industrial IoT UK"],
   },
   {
@@ -1172,7 +1172,7 @@ At EDWartens UK, our advanced PLC programming courses emphasise programme struct
     readTime: "9 min read",
     publishedAt: "2026-02-28",
     author: "Vaisakh Sankar",
-    image: "https://images.unsplash.com/photo-1581090464777-f3220bbe1b8b?w=1200&h=630&fit=crop",
+    image: "/images/blog/photo-1581090464777-f3220bbe1b8b.jpg",
     seoKeywords: ["PLC programme structure", "modular PLC design", "PLC programming best practices", "TIA Portal programming", "reusable function blocks", "PLC code standards"],
   },
   {
@@ -1242,7 +1242,7 @@ EDWartens UK offers robotics integration training that covers PLC-robot communic
     readTime: "9 min read",
     publishedAt: "2026-03-05",
     author: "EDWartens UK Team",
-    image: "https://images.unsplash.com/photo-1531482615713-2afd69097998?w=1200&h=630&fit=crop",
+    image: "/images/blog/photo-1531482615713-2afd69097998.jpg",
     seoKeywords: ["industrial robotics", "PLC robot integration", "robotic workcell design", "KUKA Siemens integration", "collaborative robots UK", "automation robotics"],
   },
   {
@@ -1316,7 +1316,7 @@ EDWartens UK offers training on energy monitoring and management using industria
     readTime: "8 min read",
     publishedAt: "2026-03-15",
     author: "EDWartens UK Team",
-    image: "https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=1200&h=630&fit=crop",
+    image: "/images/blog/photo-1555066931-4365d14bab8c.jpg",
     seoKeywords: ["energy management automation", "ISO 50001", "industrial energy monitoring", "VFD energy savings", "smart metering industrial", "energy efficiency UK manufacturing"],
   },
   {
@@ -1396,7 +1396,7 @@ EDWartens UK offers specialised courses relevant to the water industry, includin
     readTime: "9 min read",
     publishedAt: "2026-03-25",
     author: "Vaisakh Sankar",
-    image: "https://images.unsplash.com/photo-1504639725590-34d0984388bd?w=1200&h=630&fit=crop",
+    image: "/images/blog/photo-1504639725590-34d0984388bd.jpg",
     seoKeywords: ["water industry automation", "wastewater SCADA", "PLC water treatment", "UK water industry careers", "telemetry engineer", "water SCADA UK"],
   },
 ];

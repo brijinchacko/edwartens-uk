@@ -142,6 +142,16 @@ export default function RootLayout({
         <link rel="alternate" hrefLang="en-ae" href="https://edwartens.com/uae" />
         <link rel="alternate" hrefLang="en-us" href="https://edwartens.com/us" />
         <link rel="alternate" hrefLang="x-default" href="https://edwartens.co.uk" />
+        {/* Google Analytics */}
+        <script async src="https://www.googletagmanager.com/gtag/js?id=G-3NJTPRY5QX" />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+gtag('js', new Date());
+gtag('config', 'G-3NJTPRY5QX');`,
+          }}
+        />
       </head>
       <body className="min-h-full flex flex-col">
         <script

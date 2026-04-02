@@ -122,7 +122,7 @@ export default function AuditLogPage() {
   const exportCSV = () => {
     const headers = ["Timestamp", "User", "Role", "Action", "Entity", "Entity Name", "Details", "IP Address"];
     const rows = logs.map((log) => [
-      new Date(log.createdAt).toLocaleString(),
+      new Date(log.createdAt).toLocaleString("en-GB", { timeZone: "Europe/London" }),
       log.userName,
       log.userRole,
       log.action,
@@ -150,6 +150,7 @@ export default function AuditLogPage() {
       year: "numeric",
       hour: "2-digit",
       minute: "2-digit",
+      timeZone: "Europe/London",
     });
   };
 

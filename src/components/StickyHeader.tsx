@@ -2,25 +2,9 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import { usePathname } from "next/navigation";
-import {
-  Bell,
-  Target,
-  Clock,
-  LogIn,
-  Coffee,
-  LogOut,
-  AlertTriangle,
-  CheckCircle2,
-  X,
-  Home,
-  Building2,
-  Globe,
-  ChevronDown,
-} from "lucide-react";
-
-// ═══════════════════════════════════════════════════
-// TYPES
-// ═══════════════════════════════════════════════════
+import { Bell, Clock, LogIn, LogOut, Coffee, Play, Pause, Home, Building2, Globe, X, Send } from "lucide-react";
+import GlobalSearch from "./GlobalSearch";
+import StickyNotes from "./StickyNotes";
 
 interface Notification {
   id: string;
@@ -32,49 +16,47 @@ interface Notification {
   createdAt: string;
 }
 
-interface TargetData {
-  totalAchieved: number;
-  totalTarget: number;
-  hardTarget: number;
-  hardTargetPercent: number;
-  daysRemaining: number;
-  hardTargetMet: boolean;
-  rollover: number;
-}
-
 interface WorkSession {
   status: string;
   checkInAt: string;
   workLocation: string;
 }
 
-// ═══════════════════════════════════════════════════
-// COMPONENT
-// ═══════════════════════════════════════════════════
-
 export function StickyHeader({ userRole }: { userRole: string }) {
   const pathname = usePathname();
   const isSuperAdmin = userRole === "SUPER_ADMIN";
 
-  // Notification state
+  // UK Clock
+  const [ukTime, setUkTime] = useState("");
+  useEffect(() => {
+    const tick = () => {
+      setUkTime(new Date().toLocaleString("en-GB", {
+        weekday: "short", day: "numeric", month: "short",
+        hour: "2-digit", minute: "2-digit", second: "2-digit",
+        timeZone: "Europe/London",
+      }));
+    };
+    tick();
+    const i = setInterval(tick, 1000);
+    return () => clearInterval(i);
+  }, []);
+
+  // Notifications
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [showNotifs, setShowNotifs] = useState(false);
   const notifRef = useRef<HTMLDivElement>(null);
 
-  // Target state
-  const [target, setTarget] = useState<TargetData | null>(null);
-
-  // Work session state
+  // Work session
   const [work, setWork] = useState<WorkSession | null>(null);
   const [elapsed, setElapsed] = useState(0);
-
-  // Check-in modal
+  const [showWorkPopup, setShowWorkPopup] = useState(false);
   const [showCheckIn, setShowCheckIn] = useState(false);
-  const [checkInLocation, setCheckInLocation] = useState("HOME");
-  const [checkingIn, setCheckingIn] = useState(false);
+  const [checkInLocation, setCheckInLocation] = useState<string>("HOME");
+  const [checkOutSummary, setCheckOutSummary] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const workRef = useRef<HTMLDivElement>(null);
 
-  // Fetch notifications
   const fetchNotifications = useCallback(async () => {
     try {
       const res = await fetch("/api/admin/notifications");
@@ -87,18 +69,6 @@ export function StickyHeader({ userRole }: { userRole: string }) {
     } catch {}
   }, []);
 
-  // Fetch target
-  const fetchTarget = useCallback(async () => {
-    try {
-      const res = await fetch("/api/admin/team-targets");
-      if (res.ok) {
-        const data = await res.json();
-        setTarget(data);
-      }
-    } catch {}
-  }, []);
-
-  // Fetch work session
   const fetchWork = useCallback(async () => {
     if (isSuperAdmin) return;
     try {
@@ -117,39 +87,32 @@ export function StickyHeader({ userRole }: { userRole: string }) {
 
   useEffect(() => {
     fetchNotifications();
-    fetchTarget();
     fetchWork();
-    // Poll notifications every 60s
-    const interval = setInterval(fetchNotifications, 60000);
-    return () => clearInterval(interval);
-  }, [fetchNotifications, fetchTarget, fetchWork]);
+    const i1 = setInterval(fetchNotifications, 60000);
+    const i2 = setInterval(fetchWork, 30000); // Refresh session every 30s
+    return () => { clearInterval(i1); clearInterval(i2); };
+  }, [fetchNotifications, fetchWork]);
 
   // Timer
   useEffect(() => {
     if (!work) return;
     const checkIn = new Date(work.checkInAt).getTime();
-    const tick = () => {
-      if (work.status === "CHECKED_IN") {
-        setElapsed(Math.floor((Date.now() - checkIn) / 1000));
-      }
-    };
+    const tick = () => setElapsed(Math.floor((Date.now() - checkIn) / 1000));
     tick();
-    const interval = setInterval(tick, 1000);
-    return () => clearInterval(interval);
+    const i = setInterval(tick, 1000);
+    return () => clearInterval(i);
   }, [work]);
 
-  // Close notif dropdown on outside click
+  // Close dropdowns on outside click
   useEffect(() => {
     const handler = (e: MouseEvent) => {
-      if (notifRef.current && !notifRef.current.contains(e.target as Node)) {
-        setShowNotifs(false);
-      }
+      if (notifRef.current && !notifRef.current.contains(e.target as Node)) setShowNotifs(false);
+      if (workRef.current && !workRef.current.contains(e.target as Node)) setShowWorkPopup(false);
     };
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
   }, []);
 
-  // Mark notification as read
   const markRead = async (id: string) => {
     try {
       await fetch(`/api/admin/notifications?id=${id}`, { method: "PATCH" });
@@ -158,9 +121,16 @@ export function StickyHeader({ userRole }: { userRole: string }) {
     } catch {}
   };
 
+  const fmt = (s: number) => {
+    const h = Math.floor(s / 3600);
+    const m = Math.floor((s % 3600) / 60);
+    const sec = s % 60;
+    return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}:${String(sec).padStart(2, "0")}`;
+  };
+
   // Check in
   const handleCheckIn = async () => {
-    setCheckingIn(true);
+    setSubmitting(true);
     try {
       const res = await fetch("/api/admin/work-session", {
         method: "POST",
@@ -174,22 +144,27 @@ export function StickyHeader({ userRole }: { userRole: string }) {
         setShowCheckIn(false);
       }
     } catch {}
-    setCheckingIn(false);
+    setSubmitting(false);
   };
 
   // Check out
   const handleCheckOut = async () => {
-    const summary = prompt("What did you accomplish today?");
-    if (!summary) return;
+    if (!checkOutSummary.trim()) return;
+    setSubmitting(true);
     try {
-      await fetch("/api/admin/work-session/checkout", {
+      const res = await fetch("/api/admin/work-session/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ summary }),
+        body: JSON.stringify({ summary: checkOutSummary }),
       });
-      setWork(null);
-      setElapsed(0);
+      if (res.ok) {
+        setWork(null);
+        setElapsed(0);
+        setShowWorkPopup(false);
+        setCheckOutSummary("");
+      }
     } catch {}
+    setSubmitting(false);
   };
 
   // Break
@@ -204,112 +179,164 @@ export function StickyHeader({ userRole }: { userRole: string }) {
     } catch {}
   };
 
-  const formatTime = (s: number) => {
-    const h = Math.floor(s / 3600);
-    const m = Math.floor((s % 3600) / 60);
-    const sec = s % 60;
-    return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}:${String(sec).padStart(2, "0")}`;
-  };
-
-  const targetColor = target?.hardTargetMet ? "text-neon-green" : (target?.hardTargetPercent || 0) < 50 ? "text-red-400" : "text-yellow-400";
-  const locationIcons: Record<string, string> = { HOME: "🏠", OFFICE: "🏢", REMOTE: "🌐" };
-  const statusEmoji = work?.status === "CHECKED_IN" ? "🟢" : work?.status === "ON_BREAK" ? "🟡" : "🔴";
+  const locEmoji: Record<string, string> = { HOME: "🏠", OFFICE: "🏢", REMOTE: "🌐" };
+  const statusDot = work?.status === "CHECKED_IN" ? "bg-green-400" : work?.status === "ON_BREAK" ? "bg-yellow-400" : "bg-red-400";
 
   return (
     <>
-      <div className="sticky top-0 z-20 flex items-center justify-between px-4 py-2 mb-4 rounded-lg border border-white/[0.06] bg-[#0a0a14]/95 backdrop-blur-xl shadow-lg">
-        {/* Left: Work session */}
-        <div className="flex items-center gap-4 text-xs">
+      <div className="sticky top-0 z-20 flex items-center justify-between px-4 lg:px-6 py-2 bg-[#111921] border-b border-white/[0.08]">
+        {/* Left: Search + Quick Add */}
+        <div className="flex items-center gap-2 flex-1 max-w-2xl">
+          <div className="flex-1 max-w-xl">
+            <GlobalSearch />
+          </div>
+          <a
+            href="/admin/leads?addLead=true"
+            className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-[#7BC142]/10 border border-[#7BC142]/20 text-[#7BC142] text-[11px] font-medium hover:bg-[#7BC142]/20 transition-colors"
+          >
+            <span className="text-sm">+</span> Lead
+          </a>
+          <a
+            href="/admin/students"
+            className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-neon-blue/10 border border-neon-blue/20 text-neon-blue text-[11px] font-medium hover:bg-neon-blue/20 transition-colors"
+          >
+            <span className="text-sm">+</span> Student
+          </a>
+        </div>
+
+        {/* Right: UK Clock + Timer + StickyNotes + Bell */}
+        <div className="flex items-center gap-3 ml-4">
+          {/* UK Clock */}
+          {ukTime && (
+            <span className="hidden lg:flex items-center gap-1 text-[11px] text-text-muted font-mono">
+              🇬🇧 {ukTime}
+            </span>
+          )}
+
+          {/* Work Timer (clickable → popup) */}
           {!isSuperAdmin && (
-            <>
+            <div className="relative" ref={workRef}>
               {work ? (
-                <div className="flex items-center gap-3">
-                  <span>{statusEmoji}</span>
-                  <span className="font-mono font-semibold text-text-primary">{formatTime(elapsed)}</span>
-                  <span className="text-text-muted">{locationIcons[work.workLocation] || ""}</span>
-                  <button onClick={handleBreak} className={`px-2 py-0.5 rounded text-[10px] ${work.status === "ON_BREAK" ? "bg-neon-green/10 text-neon-green" : "bg-yellow-500/10 text-yellow-400"}`}>
-                    {work.status === "ON_BREAK" ? "End Break" : "Break"}
-                  </button>
-                  <button onClick={handleCheckOut} className="px-2 py-0.5 rounded text-[10px] bg-red-500/10 text-red-400">
-                    Out
-                  </button>
-                </div>
+                <button
+                  onClick={() => setShowWorkPopup(!showWorkPopup)}
+                  className="flex items-center gap-2 px-3 py-1.5 rounded-md bg-white/[0.04] border border-white/[0.06] text-xs hover:bg-white/[0.06] transition-colors"
+                >
+                  <span className={`w-1.5 h-1.5 rounded-full ${statusDot} animate-pulse`} />
+                  <span className="font-mono font-semibold text-text-primary">{fmt(elapsed)}</span>
+                  <span className="text-text-muted text-[10px]">{locEmoji[work.workLocation] || ""}</span>
+                  {work.status === "ON_BREAK" && <span className="text-yellow-400 text-[10px]">Break</span>}
+                </button>
               ) : (
-                <button onClick={() => setShowCheckIn(true)} className="flex items-center gap-1.5 px-3 py-1 rounded-lg bg-neon-blue/10 text-neon-blue text-[11px] font-medium hover:bg-neon-blue/20 transition-colors">
+                <button
+                  onClick={() => setShowCheckIn(true)}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-[#7BC142]/10 border border-[#7BC142]/20 text-[#7BC142] text-[11px] font-medium hover:bg-[#7BC142]/20 transition-colors"
+                >
                   <LogIn size={12} /> Check In
                 </button>
               )}
-            </>
-          )}
 
-          {/* Center: Target */}
-          {target && (
-            <div className="flex items-center gap-2 text-text-muted">
-              <span className="hidden sm:inline">|</span>
-              <Target size={12} className={targetColor} />
-              <span>
-                <span className={`font-semibold ${targetColor}`}>{target.totalAchieved}/{target.totalTarget}</span>
-                <span className="hidden sm:inline"> · Hard: {target.totalAchieved}/{target.hardTarget}</span>
-              </span>
-              <span className="hidden md:inline text-text-muted">{target.daysRemaining}d left</span>
-              {target.rollover > 0 && <span className="text-[10px] text-red-400">+{target.rollover}</span>}
-              <div className="w-16 h-1.5 bg-dark-primary rounded-full overflow-hidden hidden sm:block">
-                <div className="h-full rounded-full" style={{
-                  width: `${Math.min(target.hardTargetPercent, 100)}%`,
-                  background: target.hardTargetMet ? "#92E02C" : target.hardTargetPercent >= 75 ? "#F59E0B" : "#EF4444",
-                }} />
-              </div>
-            </div>
-          )}
-        </div>
+              {/* Work Popup — Break / Check Out */}
+              {showWorkPopup && work && (
+                <div className="absolute right-0 top-full mt-2 w-72 rounded-xl border border-white/[0.08] bg-[#0a0a14] shadow-2xl z-50 p-4 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-sm font-semibold text-text-primary">Work Session</h3>
+                    <button onClick={() => setShowWorkPopup(false)} className="text-text-muted hover:text-text-primary"><X size={14} /></button>
+                  </div>
 
-        {/* Right: Notification bell */}
-        <div className="relative" ref={notifRef}>
-          <button
-            onClick={() => setShowNotifs(!showNotifs)}
-            className="relative p-2 rounded-lg hover:bg-white/[0.05] transition-colors"
-          >
-            <Bell size={18} className="text-text-muted" />
-            {unreadCount > 0 && (
-              <span className="absolute -top-0.5 -right-0.5 w-5 h-5 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center animate-pulse">
-                {unreadCount > 9 ? "9+" : unreadCount}
-              </span>
-            )}
-          </button>
+                  {/* Stats */}
+                  <div className="grid grid-cols-3 gap-2 text-center">
+                    <div className="p-2 rounded-lg bg-white/[0.03]">
+                      <p className="text-[10px] text-text-muted">Timer</p>
+                      <p className="text-sm font-mono font-bold text-text-primary">{fmt(elapsed)}</p>
+                    </div>
+                    <div className="p-2 rounded-lg bg-white/[0.03]">
+                      <p className="text-[10px] text-text-muted">Location</p>
+                      <p className="text-sm">{locEmoji[work.workLocation]} {work.workLocation}</p>
+                    </div>
+                    <div className="p-2 rounded-lg bg-white/[0.03]">
+                      <p className="text-[10px] text-text-muted">Status</p>
+                      <p className={`text-sm font-medium ${work.status === "CHECKED_IN" ? "text-green-400" : work.status === "ON_BREAK" ? "text-yellow-400" : "text-red-400"}`}>
+                        {work.status === "CHECKED_IN" ? "Active" : work.status === "ON_BREAK" ? "Break" : "Idle"}
+                      </p>
+                    </div>
+                  </div>
 
-          {/* Notification Dropdown */}
-          {showNotifs && (
-            <div className="absolute right-0 top-full mt-2 w-80 max-h-96 overflow-y-auto rounded-xl border border-white/[0.08] bg-[#0a0a14] shadow-2xl z-50">
-              <div className="p-3 border-b border-white/[0.06] flex items-center justify-between sticky top-0 bg-[#0a0a14]">
-                <h3 className="text-sm font-semibold text-text-primary">Notifications</h3>
-                {unreadCount > 0 && (
-                  <span className="text-[10px] text-neon-blue">{unreadCount} unread</span>
-                )}
-              </div>
-              {notifications.length === 0 ? (
-                <div className="p-6 text-center text-text-muted text-xs">No notifications</div>
-              ) : (
-                notifications.map((n) => (
-                  <div
-                    key={n.id}
-                    onClick={() => {
-                      if (!n.read) markRead(n.id);
-                      if (n.link) window.location.href = n.link;
-                    }}
-                    className={`p-3 border-b border-white/[0.04] cursor-pointer hover:bg-white/[0.03] transition-colors ${
-                      !n.read ? "bg-neon-blue/[0.03] border-l-2 border-l-neon-blue" : ""
+                  {/* Break button */}
+                  <button
+                    onClick={handleBreak}
+                    className={`w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-xs font-medium transition-colors ${
+                      work.status === "ON_BREAK"
+                        ? "bg-green-500/10 border border-green-500/20 text-green-400 hover:bg-green-500/20"
+                        : "bg-yellow-500/10 border border-yellow-500/20 text-yellow-400 hover:bg-yellow-500/20"
                     }`}
                   >
-                    <p className="text-xs text-text-primary font-medium">{n.title}</p>
-                    <p className="text-[11px] text-text-muted mt-0.5 line-clamp-2">{n.message}</p>
-                    <p className="text-[10px] text-text-muted mt-1">
-                      {new Date(n.createdAt).toLocaleString("en-GB", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}
-                    </p>
+                    {work.status === "ON_BREAK" ? <><Play size={12} /> End Break</> : <><Pause size={12} /> Take Break</>}
+                  </button>
+
+                  {/* Check Out */}
+                  <div className="space-y-2">
+                    <textarea
+                      value={checkOutSummary}
+                      onChange={(e) => setCheckOutSummary(e.target.value)}
+                      placeholder="What did you accomplish? (required)"
+                      className="w-full p-2.5 rounded-lg bg-white/[0.03] border border-white/[0.06] text-xs text-text-primary placeholder:text-text-muted focus:outline-none focus:border-red-500/30 resize-none"
+                      rows={2}
+                    />
+                    <button
+                      onClick={handleCheckOut}
+                      disabled={!checkOutSummary.trim() || submitting}
+                      className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-xs font-medium hover:bg-red-500/20 transition-colors disabled:opacity-40"
+                    >
+                      <LogOut size={12} /> {submitting ? "Checking out..." : "Check Out"}
+                    </button>
                   </div>
-                ))
+                </div>
               )}
             </div>
           )}
+
+          <StickyNotes />
+
+          {/* Notification bell */}
+          <div className="relative" ref={notifRef}>
+            <button
+              onClick={() => setShowNotifs(!showNotifs)}
+              className="relative p-2 rounded-lg hover:bg-white/[0.05] transition-colors"
+            >
+              <Bell size={18} className="text-text-muted" />
+              {unreadCount > 0 && (
+                <span className="absolute -top-0.5 -right-0.5 w-5 h-5 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center animate-pulse">
+                  {unreadCount > 9 ? "9+" : unreadCount}
+                </span>
+              )}
+            </button>
+
+            {showNotifs && (
+              <div className="absolute right-0 top-full mt-2 w-80 max-h-96 overflow-y-auto rounded-xl border border-white/[0.08] bg-[#0a0a14] shadow-2xl z-50">
+                <div className="p-3 border-b border-white/[0.06] flex items-center justify-between sticky top-0 bg-[#0a0a14]">
+                  <h3 className="text-sm font-semibold text-text-primary">Notifications</h3>
+                  {unreadCount > 0 && <span className="text-[10px] text-neon-blue">{unreadCount} unread</span>}
+                </div>
+                {notifications.length === 0 ? (
+                  <div className="p-6 text-center text-text-muted text-xs">No notifications</div>
+                ) : (
+                  notifications.map((n) => (
+                    <div
+                      key={n.id}
+                      onClick={() => { if (!n.read) markRead(n.id); if (n.link) window.location.href = n.link; }}
+                      className={`p-3 border-b border-white/[0.04] cursor-pointer hover:bg-white/[0.03] transition-colors ${!n.read ? "bg-neon-blue/[0.03] border-l-2 border-l-neon-blue" : ""}`}
+                    >
+                      <p className="text-xs text-text-primary font-medium">{n.title}</p>
+                      <p className="text-[11px] text-text-muted mt-0.5 line-clamp-2">{n.message}</p>
+                      <p className="text-[10px] text-text-muted mt-1">
+                        {new Date(n.createdAt).toLocaleString("en-GB", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit", timeZone: "Europe/London" })}
+                      </p>
+                    </div>
+                  ))
+                )}
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
@@ -321,30 +348,30 @@ export function StickyHeader({ userRole }: { userRole: string }) {
             <h2 className="text-sm font-semibold text-white">Where are you working from?</h2>
             <div className="grid grid-cols-3 gap-2">
               {[
-                { value: "HOME", label: "Home", icon: "🏠" },
-                { value: "OFFICE", label: "Office", icon: "🏢" },
-                { value: "REMOTE", label: "Remote", icon: "🌐" },
+                { value: "HOME", label: "Home", emoji: "🏠" },
+                { value: "OFFICE", label: "Office", emoji: "🏢" },
+                { value: "REMOTE", label: "Remote", emoji: "🌐" },
               ].map((loc) => (
                 <button
                   key={loc.value}
                   onClick={() => setCheckInLocation(loc.value)}
                   className={`p-3 rounded-lg text-center text-xs border transition-colors ${
                     checkInLocation === loc.value
-                      ? "border-neon-blue/30 bg-neon-blue/10 text-neon-blue"
+                      ? "border-[#7BC142]/30 bg-[#7BC142]/10 text-[#7BC142]"
                       : "border-white/[0.06] bg-white/[0.02] text-text-muted hover:bg-white/[0.04]"
                   }`}
                 >
-                  <span className="text-lg">{loc.icon}</span>
+                  <span className="text-lg">{loc.emoji}</span>
                   <p className="mt-1">{loc.label}</p>
                 </button>
               ))}
             </div>
             <button
               onClick={handleCheckIn}
-              disabled={checkingIn}
-              className="w-full py-2.5 rounded-lg bg-neon-blue/20 text-neon-blue text-sm font-medium hover:bg-neon-blue/30 transition-colors disabled:opacity-50"
+              disabled={submitting}
+              className="w-full py-2.5 rounded-lg bg-[#7BC142]/20 text-[#7BC142] text-sm font-medium hover:bg-[#7BC142]/30 transition-colors disabled:opacity-50"
             >
-              {checkingIn ? "Checking in..." : "Check In"}
+              {submitting ? "Checking in..." : "Check In"}
             </button>
           </div>
         </div>

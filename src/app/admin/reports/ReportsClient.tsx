@@ -105,9 +105,13 @@ function BarChart({
 
 // ─── Status Color Map ───
 const STATUS_COLORS: Record<string, string> = {
-  NEW: "#3b82f6",
-  CONTACTED: "#f59e0b",
-  QUALIFIED: "#8b5cf6",
+  NEW: "#64748b",
+  CONTACTED: "#3b82f6",
+  FIRST_CALL: "#06b6d4",
+  CONSULTATION_ARRANGED: "#a855f7",
+  CONSULTATION_COMPLETED: "#6366f1",
+  QUALIFIED: "#f59e0b",
+  REGISTERED: "#84cc16",
   ENROLLED: "#10b981",
   LOST: "#ef4444",
   ONBOARDING: "#f59e0b",

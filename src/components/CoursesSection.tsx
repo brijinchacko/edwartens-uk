@@ -1,5 +1,9 @@
+"use client";
+
 import Link from "next/link";
+import Image from "next/image";
 import { Clock, Award, Cpu, Zap } from "lucide-react";
+import { ScrollReveal } from "./ScrollReveal";
 
 const courses = [
   {
@@ -10,6 +14,8 @@ const courses = [
     icon: Award,
     color: "neon-blue",
     featured: true,
+    image: "/images/stock/plc-training.jpg",
+    imageAlt: "PLC and SCADA hands-on training session",
     points: [
       "Comprehensive program - £2,140 + VAT",
       "Siemens PLC, HMI, WinCC SCADA",
@@ -24,6 +30,8 @@ const courses = [
     href: "/courses/ai-module",
     icon: Cpu,
     color: "neon-green",
+    image: "/images/stock/programming.jpg",
+    imageAlt: "AI and programming for industrial automation",
     points: [
       "AI & ML in Industry",
       "Python for Engineers",
@@ -38,32 +46,46 @@ export default function CoursesSection() {
     <section className="py-24 mesh-gradient-alt relative">
       <div className="max-w-7xl mx-auto px-3 sm:px-5 lg:px-6">
         {/* Header */}
-        <div className="text-center mb-16">
-          <p className="text-[11px] uppercase tracking-widest text-neon-blue mb-3">Our Courses</p>
-          <h2 className="text-3xl sm:text-5xl font-bold tracking-tight text-white mb-4">
-            Industry-Leading <span className="gradient-text">Training Programs</span>
-          </h2>
-          <p className="text-text-secondary max-w-2xl mx-auto">
-            From beginner modules to comprehensive career-focused programs, we have the right course for your automation career.
-          </p>
-        </div>
+        <ScrollReveal>
+          <div className="text-center mb-16">
+            <p className="text-[11px] uppercase tracking-widest text-neon-blue mb-3">Our Courses</p>
+            <h2 className="text-3xl sm:text-5xl font-bold tracking-tight text-white mb-4">
+              Industry-Leading <span className="gradient-text gradient-text-animated">Training Programs</span>
+            </h2>
+            <p className="text-text-secondary max-w-2xl mx-auto">
+              From beginner modules to comprehensive career-focused programs, we have the right course for your automation career.
+            </p>
+          </div>
+        </ScrollReveal>
 
         {/* Cards */}
         <div className="grid md:grid-cols-2 gap-6">
-          {courses.map((course) => {
+          {courses.map((course, idx) => {
             const Icon = course.icon;
             return (
+              <ScrollReveal key={course.title} delay={idx * 150}>
               <div
-                key={course.title}
-                className={`glass-card rounded-xl p-6 sm:p-8 flex flex-col relative ${
+                className={`glass-card rounded-xl p-6 sm:p-8 flex flex-col relative card-hover-glow h-full holo-border ${
                   course.featured ? "gradient-border" : ""
                 }`}
               >
                 {course.featured && (
-                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full bg-gradient-to-r from-neon-blue to-neon-green text-[11px] font-semibold text-dark-primary">
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full bg-gradient-to-r from-neon-blue to-neon-green text-[11px] font-semibold text-dark-primary z-10">
                     Most Popular
                   </div>
                 )}
+
+                {/* Course Image */}
+                <div className="relative w-full h-40 sm:h-48 rounded-xl overflow-hidden border border-white/[0.06] mb-5 -mt-1">
+                  <Image
+                    src={course.image}
+                    alt={course.imageAlt}
+                    fill
+                    className="object-cover"
+                    sizes="(max-width: 768px) 100vw, 50vw"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a14] via-[#0a0a14]/40 to-transparent" />
+                </div>
 
                 <div className={`w-12 h-12 rounded-xl bg-${course.color}/10 flex items-center justify-center mb-4`}>
                   <Icon size={24} className={`text-${course.color}`} />
@@ -98,6 +120,7 @@ export default function CoursesSection() {
                   Learn More
                 </Link>
               </div>
+              </ScrollReveal>
             );
           })}
         </div>

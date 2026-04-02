@@ -264,6 +264,7 @@ export default function ResumePage() {
                           day: "numeric",
                           month: "short",
                           year: "numeric",
+                          timeZone: "Europe/London",
                         })}
                       </p>
                     )}

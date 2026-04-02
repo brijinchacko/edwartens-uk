@@ -55,17 +55,25 @@ interface LogEntry {
 const TRIGGER_LABELS: Record<string, string> = {
   NEW_LEAD: "New Lead",
   CONTACTED: "Contacted",
+  FIRST_CALL: "First Call",
+  CONSULTATION_ARRANGED: "Consultation Arranged",
+  CONSULTATION_COMPLETED: "Consultation Completed",
   QUALIFIED: "Qualified",
+  REGISTERED: "Registered",
   POST_CONSULTATION: "Post-Consultation",
   ENROLLED: "Enrolled",
 };
 
 const TRIGGER_COLORS: Record<string, string> = {
-  NEW_LEAD: "bg-blue-500/10 text-blue-400 border-blue-500/20",
-  CONTACTED: "bg-yellow-500/10 text-yellow-400 border-yellow-500/20",
-  QUALIFIED: "bg-green-500/10 text-green-400 border-green-500/20",
+  NEW_LEAD: "bg-slate-500/10 text-slate-400 border-slate-500/20",
+  CONTACTED: "bg-blue-500/10 text-blue-400 border-blue-500/20",
+  FIRST_CALL: "bg-cyan-500/10 text-cyan-400 border-cyan-500/20",
+  CONSULTATION_ARRANGED: "bg-purple-500/10 text-purple-400 border-purple-500/20",
+  CONSULTATION_COMPLETED: "bg-indigo-500/10 text-indigo-400 border-indigo-500/20",
+  QUALIFIED: "bg-amber-500/10 text-amber-400 border-amber-500/20",
+  REGISTERED: "bg-lime-500/10 text-lime-400 border-lime-500/20",
   POST_CONSULTATION: "bg-purple-500/10 text-purple-400 border-purple-500/20",
-  ENROLLED: "bg-cyan-500/10 text-cyan-400 border-cyan-500/20",
+  ENROLLED: "bg-green-500/10 text-green-400 border-green-500/20",
 };
 
 /* ─── Template name lookup ─────────────────────────────────────────── */
@@ -381,7 +389,7 @@ export default function DripCampaignsClient() {
                             <span className="text-text-muted">Step {log.stepNumber}</span>
                             <span className="text-text-secondary truncate">{log.leadId.slice(0, 8)}...</span>
                             <span className="text-text-muted ml-auto">
-                              {new Date(log.sentAt).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}
+                              {new Date(log.sentAt).toLocaleDateString("en-GB", { day: "numeric", month: "short", timeZone: "Europe/London" })}
                             </span>
                             {log.error && <span className="text-red-400 truncate max-w-[120px]">{log.error}</span>}
                           </div>

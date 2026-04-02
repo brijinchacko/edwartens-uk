@@ -371,14 +371,14 @@ export default function StudentReferralsPage() {
                             <div>
                               <span className="text-text-muted">Referred on:</span>
                               <span className="text-text-secondary ml-1">
-                                {new Date(ref.createdAt).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}
+                                {new Date(ref.createdAt).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: "Europe/London" })}
                               </span>
                             </div>
                             {ref.rewardGivenAt && (
                               <div>
                                 <span className="text-text-muted">Reward credited:</span>
                                 <span className="text-neon-green ml-1">
-                                  {new Date(ref.rewardGivenAt).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}
+                                  {new Date(ref.rewardGivenAt).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: "Europe/London" })}
                                 </span>
                               </div>
                             )}

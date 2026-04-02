@@ -42,6 +42,20 @@ export default function AddLeadModal() {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+
+  // Auto-open if URL has ?addLead=true
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get("addLead") === "true") {
+        setOpen(true);
+        // Clean up URL
+        params.delete("addLead");
+        const newUrl = params.toString() ? `${window.location.pathname}?${params}` : window.location.pathname;
+        window.history.replaceState({}, "", newUrl);
+      }
+    }
+  }, []);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [staff, setStaff] = useState<StaffOption[]>([]);
@@ -91,6 +105,10 @@ export default function AddLeadModal() {
     e.preventDefault();
     if (!form.name || !form.phone) {
       setError("Name and phone are required");
+      return;
+    }
+    if (!form.note.trim()) {
+      setError("Initial note is mandatory");
       return;
     }
     setLoading(true);
@@ -244,11 +262,13 @@ export default function AddLeadModal() {
                 <div>
                   <label className="block text-sm text-text-muted mb-1.5">Enquiry Date</label>
                   <input type="date" name="enquiryDate" value={form.enquiryDate} onChange={handleChange}
+                    max={new Date().toISOString().split("T")[0]}
                     className="w-full px-3 py-2 rounded-lg bg-white/[0.03] border border-white/[0.06] text-white text-sm focus:outline-none focus:border-neon-blue/40 [color-scheme:dark]" />
                 </div>
                 <div>
                   <label className="block text-sm text-text-muted mb-1.5">Follow-up Date</label>
                   <input type="date" name="followUpDate" value={form.followUpDate} onChange={handleChange}
+                    min={new Date().toISOString().split("T")[0]}
                     className="w-full px-3 py-2 rounded-lg bg-white/[0.03] border border-white/[0.06] text-white text-sm focus:outline-none focus:border-neon-blue/40 [color-scheme:dark]" />
                 </div>
               </div>
@@ -267,7 +287,7 @@ export default function AddLeadModal() {
 
               {/* Note */}
               <div>
-                <label className="block text-sm text-text-muted mb-1.5">Initial Note</label>
+                <label className="block text-sm text-text-muted mb-1.5">Initial Note <span className="text-red-400">*</span></label>
                 <textarea name="note" value={form.note} onChange={handleChange} rows={2}
                   placeholder="Any initial notes..."
                   className="w-full px-3 py-2 rounded-lg bg-white/[0.03] border border-white/[0.06] text-white placeholder:text-text-muted text-sm focus:outline-none focus:border-neon-blue/40 resize-none" />

@@ -22,10 +22,12 @@ export async function GET() {
     const lastMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59, 999);
 
     // Funnel counts for all time
+    // "contacted" = CONTACTED + FIRST_CALL (reached out)
+    // "qualified" = CONSULTATION_ARRANGED + CONSULTATION_COMPLETED + QUALIFIED + REGISTERED (progressing)
     const [totalLeads, contacted, qualified, enrolled, lost] = await Promise.all([
       prisma.lead.count(),
-      prisma.lead.count({ where: { status: "CONTACTED" } }),
-      prisma.lead.count({ where: { status: "QUALIFIED" } }),
+      prisma.lead.count({ where: { status: { in: ["CONTACTED", "FIRST_CALL"] } } }),
+      prisma.lead.count({ where: { status: { in: ["CONSULTATION_ARRANGED", "CONSULTATION_COMPLETED", "QUALIFIED", "REGISTERED"] } } }),
       prisma.lead.count({ where: { status: "ENROLLED" } }),
       prisma.lead.count({ where: { status: "LOST" } }),
     ]);
@@ -34,8 +36,8 @@ export async function GET() {
     const thisMonthFilter = { createdAt: { gte: thisMonthStart } };
     const [tmTotal, tmContacted, tmQualified, tmEnrolled] = await Promise.all([
       prisma.lead.count({ where: thisMonthFilter }),
-      prisma.lead.count({ where: { ...thisMonthFilter, status: "CONTACTED" } }),
-      prisma.lead.count({ where: { ...thisMonthFilter, status: "QUALIFIED" } }),
+      prisma.lead.count({ where: { ...thisMonthFilter, status: { in: ["CONTACTED", "FIRST_CALL"] } } }),
+      prisma.lead.count({ where: { ...thisMonthFilter, status: { in: ["CONSULTATION_ARRANGED", "CONSULTATION_COMPLETED", "QUALIFIED", "REGISTERED"] } } }),
       prisma.lead.count({ where: { ...thisMonthFilter, status: "ENROLLED" } }),
     ]);
 
@@ -43,8 +45,8 @@ export async function GET() {
     const lastMonthFilter = { createdAt: { gte: lastMonthStart, lte: lastMonthEnd } };
     const [lmTotal, lmContacted, lmQualified, lmEnrolled] = await Promise.all([
       prisma.lead.count({ where: lastMonthFilter }),
-      prisma.lead.count({ where: { ...lastMonthFilter, status: "CONTACTED" } }),
-      prisma.lead.count({ where: { ...lastMonthFilter, status: "QUALIFIED" } }),
+      prisma.lead.count({ where: { ...lastMonthFilter, status: { in: ["CONTACTED", "FIRST_CALL"] } } }),
+      prisma.lead.count({ where: { ...lastMonthFilter, status: { in: ["CONSULTATION_ARRANGED", "CONSULTATION_COMPLETED", "QUALIFIED", "REGISTERED"] } } }),
       prisma.lead.count({ where: { ...lastMonthFilter, status: "ENROLLED" } }),
     ]);
 
@@ -60,8 +62,8 @@ export async function GET() {
         sourceMap[src] = { total: 0, contacted: 0, qualified: 0, enrolled: 0 };
       }
       sourceMap[src].total++;
-      if (lead.status === "CONTACTED") sourceMap[src].contacted++;
-      if (lead.status === "QUALIFIED") sourceMap[src].qualified++;
+      if (["CONTACTED", "FIRST_CALL"].includes(lead.status)) sourceMap[src].contacted++;
+      if (["CONSULTATION_ARRANGED", "CONSULTATION_COMPLETED", "QUALIFIED", "REGISTERED"].includes(lead.status)) sourceMap[src].qualified++;
       if (lead.status === "ENROLLED") sourceMap[src].enrolled++;
     }
 

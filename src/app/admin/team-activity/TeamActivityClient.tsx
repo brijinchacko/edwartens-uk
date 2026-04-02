@@ -18,6 +18,7 @@ import {
   MessageSquare,
   FileText,
   ChevronRight,
+  ChevronLeft,
   Activity,
   User,
   Send,
@@ -25,6 +26,7 @@ import {
   BarChart3,
   CheckCircle2,
   Plus,
+  Download,
 } from "lucide-react";
 
 /* ────────────────────────────────────────────── Types */
@@ -202,6 +204,7 @@ function formatTime(iso: string): string {
   return new Date(iso).toLocaleTimeString("en-GB", {
     hour: "2-digit",
     minute: "2-digit",
+    timeZone: "Europe/London",
   });
 }
 
@@ -211,6 +214,7 @@ function formatDate(dateStr: string): string {
     weekday: "short",
     day: "numeric",
     month: "short",
+    timeZone: "Europe/London",
   });
 }
 
@@ -251,6 +255,12 @@ export default function TeamActivityClient() {
   // Panel active tab
   const [panelTab, setPanelTab] = useState<"today" | "history" | "logs">("today");
 
+  // History month picker state (YYYY-MM)
+  const [historyMonth, setHistoryMonth] = useState<string>(() => {
+    const now = new Date();
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+  });
+
   const fetchTeam = useCallback(async () => {
     try {
       const res = await fetch("/api/admin/work-session/team");
@@ -287,11 +297,17 @@ export default function TeamActivityClient() {
   }, [fetchTeam]);
 
   // Fetch employee detail when selected
-  const fetchEmployeeDetail = useCallback(async (employeeId: string) => {
+  const fetchEmployeeDetail = useCallback(async (employeeId: string, opts?: { from?: string; to?: string }) => {
     setDetailLoading(true);
     setDetail(null);
     try {
-      const res = await fetch(`/api/admin/work-session/${employeeId}?days=7`);
+      let url = `/api/admin/work-session/${employeeId}`;
+      if (opts?.from && opts?.to) {
+        url += `?from=${opts.from}&to=${opts.to}`;
+      } else {
+        url += `?days=7`;
+      }
+      const res = await fetch(url);
       if (res.ok) {
         const data = await res.json();
         setDetail(data);
@@ -702,13 +718,25 @@ export default function TeamActivityClient() {
                   {(
                     [
                       { key: "today", label: "Today", icon: <Clock size={13} /> },
-                      { key: "history", label: "Past 7 Days", icon: <CalendarDays size={13} /> },
+                      { key: "history", label: "History", icon: <CalendarDays size={13} /> },
                       { key: "logs", label: "Work Logs", icon: <FileText size={13} /> },
                     ] as const
                   ).map((tab) => (
                     <button
                       key={tab.key}
-                      onClick={() => setPanelTab(tab.key)}
+                      onClick={() => {
+                        setPanelTab(tab.key);
+                        if (tab.key === "history" && selectedMemberId) {
+                          // Fetch data for the selected month
+                          const [y, m] = historyMonth.split("-").map(Number);
+                          const from = `${y}-${String(m).padStart(2, "0")}-01`;
+                          const lastDay = new Date(y, m, 0).getDate();
+                          const to = `${y}-${String(m).padStart(2, "0")}-${String(lastDay).padStart(2, "0")}`;
+                          fetchEmployeeDetail(selectedMemberId, { from, to });
+                        } else if (tab.key === "today" && selectedMemberId) {
+                          fetchEmployeeDetail(selectedMemberId);
+                        }
+                      }}
                       className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-md text-xs font-medium transition-all ${
                         panelTab === tab.key
                           ? "bg-neon-blue/20 text-neon-blue"
@@ -815,98 +843,214 @@ export default function TeamActivityClient() {
                   </div>
                 )}
 
-                {/* ──── TAB: Past 7 Days ──── */}
-                {panelTab === "history" && (
-                  <div className="space-y-5">
-                    {/* Total stats summary */}
-                    {detail.totalStats && (
-                      <div className="grid grid-cols-3 gap-3">
-                        <div className="glass-card rounded-lg p-3 border border-white/[0.06] text-center">
-                          <p className="text-lg font-bold text-neon-blue">
-                            {detail.totalStats.avgHoursPerDay}h
-                          </p>
-                          <p className="text-[10px] text-text-muted mt-1">Avg Hours/Day</p>
-                        </div>
-                        <div className="glass-card rounded-lg p-3 border border-white/[0.06] text-center">
-                          <p className="text-lg font-bold text-neon-green">
-                            {detail.totalStats.totalDaysWorked}
-                          </p>
-                          <p className="text-[10px] text-text-muted mt-1">Days Worked</p>
-                        </div>
-                        <div className="glass-card rounded-lg p-3 border border-white/[0.06] text-center">
-                          <p className="text-lg font-bold text-purple-400">
-                            {detail.totalStats.onTimeRate}%
-                          </p>
-                          <p className="text-[10px] text-text-muted mt-1">On-Time Rate</p>
-                        </div>
-                      </div>
-                    )}
+                {/* ──── TAB: History (Month Picker) ──── */}
+                {panelTab === "history" && (() => {
+                  // Month navigation helpers
+                  const [hYear, hMonth] = historyMonth.split("-").map(Number);
+                  const monthLabel = new Date(hYear, hMonth - 1).toLocaleDateString("en-GB", { month: "long", year: "numeric", timeZone: "Europe/London" });
+                  const now = new Date();
+                  const currentYM = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+                  const isCurrentMonth = historyMonth === currentYM;
 
-                    {/* Per-day table */}
-                    <div>
-                      <h3 className="text-sm font-semibold text-text-primary mb-3 flex items-center gap-2">
-                        <CalendarDays size={14} className="text-neon-blue" />
-                        Daily Summary (Past {detail.totalStats?.rangeDays || 7} Days)
-                      </h3>
-                      {(!detail.daySummary || detail.daySummary.length === 0) ? (
-                        <p className="text-xs text-text-muted text-center py-4">
-                          No work history found for this period
-                        </p>
-                      ) : (
-                        <div className="overflow-x-auto">
-                          <table className="w-full text-xs">
-                            <thead>
-                              <tr className="border-b border-white/[0.06]">
-                                <th className="text-left py-2 px-2 text-text-muted font-medium">Date</th>
-                                <th className="text-left py-2 px-2 text-text-muted font-medium">Check In</th>
-                                <th className="text-left py-2 px-2 text-text-muted font-medium">Check Out</th>
-                                <th className="text-right py-2 px-2 text-text-muted font-medium">Active</th>
-                                <th className="text-right py-2 px-2 text-text-muted font-medium">Break</th>
-                                <th className="text-left py-2 px-2 text-text-muted font-medium">Location</th>
-                              </tr>
-                            </thead>
-                            <tbody>
-                              {detail.daySummary.map((day) => (
-                                <tr
-                                  key={day.date}
-                                  className="border-b border-white/[0.03] hover:bg-white/[0.02] transition-colors"
-                                >
-                                  <td className="py-2.5 px-2 text-text-primary font-medium">
-                                    {formatDate(day.date)}
-                                  </td>
-                                  <td className="py-2.5 px-2 text-text-muted">
-                                    {day.checkIn ? formatTime(day.checkIn) : "-"}
-                                  </td>
-                                  <td className="py-2.5 px-2 text-text-muted">
-                                    {day.checkOut ? formatTime(day.checkOut) : (
-                                      <span className="text-green-400 text-[10px] font-medium">Active</span>
-                                    )}
-                                  </td>
-                                  <td className="py-2.5 px-2 text-right text-green-400 font-medium">
-                                    {formatMinutes(day.activeMin)}
-                                  </td>
-                                  <td className="py-2.5 px-2 text-right text-yellow-400">
-                                    {formatMinutes(day.breakMin)}
-                                  </td>
-                                  <td className="py-2.5 px-2">
-                                    {day.location ? (
-                                      <span className="flex items-center gap-1 text-text-muted">
-                                        {LOCATION_CONFIG[day.location]?.icon}
-                                        {LOCATION_CONFIG[day.location]?.label || day.location}
-                                      </span>
-                                    ) : (
-                                      <span className="text-text-muted">-</span>
-                                    )}
-                                  </td>
-                                </tr>
-                              ))}
-                            </tbody>
-                          </table>
+                  const goToPrevMonth = () => {
+                    const d = new Date(hYear, hMonth - 2, 1);
+                    const ym = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+                    setHistoryMonth(ym);
+                    if (selectedMemberId) {
+                      const from = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-01`;
+                      const lastDay = new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate();
+                      const to = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(lastDay).padStart(2, "0")}`;
+                      fetchEmployeeDetail(selectedMemberId, { from, to });
+                    }
+                  };
+
+                  const goToNextMonth = () => {
+                    if (isCurrentMonth) return;
+                    const d = new Date(hYear, hMonth, 1);
+                    const ym = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+                    setHistoryMonth(ym);
+                    if (selectedMemberId) {
+                      const from = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-01`;
+                      const lastDay = new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate();
+                      const to = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(lastDay).padStart(2, "0")}`;
+                      fetchEmployeeDetail(selectedMemberId, { from, to });
+                    }
+                  };
+
+                  // Summary calculations
+                  const summaryDays = detail.daySummary || [];
+                  const totalActiveMin = summaryDays.reduce((s, d) => s + d.activeMin, 0);
+                  const totalBreakMin = summaryDays.reduce((s, d) => s + d.breakMin, 0);
+                  const daysWorked = summaryDays.filter((d) => d.activeMin > 0).length;
+                  const avgMinPerDay = daysWorked > 0 ? Math.round(totalActiveMin / daysWorked) : 0;
+
+                  // CSV download
+                  const handleDownloadCSV = () => {
+                    if (!detail.daySummary || detail.daySummary.length === 0) return;
+                    const header = "Date,Check In,Check Out,Active (min),Break (min),Idle (min),Location";
+                    const rows = detail.daySummary.map((d) => {
+                      const ci = d.checkIn ? new Date(d.checkIn).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", timeZone: "Europe/London" }) : "";
+                      const co = d.checkOut ? new Date(d.checkOut).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", timeZone: "Europe/London" }) : "";
+                      return `${d.date},${ci},${co},${d.activeMin},${d.breakMin},${d.idleMin},${d.location || ""}`;
+                    });
+                    // Add summary row
+                    rows.push("");
+                    rows.push(`TOTAL,,,"${totalActiveMin}","${totalBreakMin}",,`);
+                    rows.push(`Days Worked,${daysWorked},,Avg/Day,${formatMinutes(avgMinPerDay)},,`);
+
+                    const csv = [header, ...rows].join("\n");
+                    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement("a");
+                    a.href = url;
+                    a.download = `${detail.employee.name.replace(/\s+/g, "_")}_${historyMonth}.csv`;
+                    a.click();
+                    URL.revokeObjectURL(url);
+                  };
+
+                  return (
+                    <div className="space-y-5">
+                      {/* Month picker */}
+                      <div className="flex items-center justify-between">
+                        <button
+                          onClick={goToPrevMonth}
+                          className="p-2 rounded-lg hover:bg-white/[0.06] text-text-muted hover:text-text-primary transition-colors"
+                        >
+                          <ChevronLeft size={18} />
+                        </button>
+                        <h3 className="text-sm font-semibold text-text-primary flex items-center gap-2">
+                          <CalendarDays size={14} className="text-neon-blue" />
+                          {monthLabel}
+                        </h3>
+                        <button
+                          onClick={goToNextMonth}
+                          disabled={isCurrentMonth}
+                          className={`p-2 rounded-lg transition-colors ${
+                            isCurrentMonth
+                              ? "text-white/[0.15] cursor-not-allowed"
+                              : "hover:bg-white/[0.06] text-text-muted hover:text-text-primary"
+                          }`}
+                        >
+                          <ChevronRight size={18} />
+                        </button>
+                      </div>
+
+                      {/* Total stats summary */}
+                      {detail.totalStats && (
+                        <div className="grid grid-cols-3 gap-3">
+                          <div className="glass-card rounded-lg p-3 border border-white/[0.06] text-center">
+                            <p className="text-lg font-bold text-neon-blue">
+                              {detail.totalStats.avgHoursPerDay}h
+                            </p>
+                            <p className="text-[10px] text-text-muted mt-1">Avg Hours/Day</p>
+                          </div>
+                          <div className="glass-card rounded-lg p-3 border border-white/[0.06] text-center">
+                            <p className="text-lg font-bold text-neon-green">
+                              {detail.totalStats.totalDaysWorked}
+                            </p>
+                            <p className="text-[10px] text-text-muted mt-1">Days Worked</p>
+                          </div>
+                          <div className="glass-card rounded-lg p-3 border border-white/[0.06] text-center">
+                            <p className="text-lg font-bold text-purple-400">
+                              {detail.totalStats.onTimeRate}%
+                            </p>
+                            <p className="text-[10px] text-text-muted mt-1">On-Time Rate</p>
+                          </div>
                         </div>
                       )}
+
+                      {/* Per-day table */}
+                      <div>
+                        <div className="flex items-center justify-between mb-3">
+                          <h3 className="text-sm font-semibold text-text-primary flex items-center gap-2">
+                            <BarChart3 size={14} className="text-neon-blue" />
+                            Daily Summary
+                          </h3>
+                          {detail.daySummary && detail.daySummary.length > 0 && (
+                            <button
+                              onClick={handleDownloadCSV}
+                              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-neon-blue/10 text-neon-blue border border-neon-blue/20 hover:bg-neon-blue/20 transition-colors text-[11px] font-medium"
+                            >
+                              <Download size={12} />
+                              Download Report
+                            </button>
+                          )}
+                        </div>
+                        {(!detail.daySummary || detail.daySummary.length === 0) ? (
+                          <p className="text-xs text-text-muted text-center py-4">
+                            No work history found for this period
+                          </p>
+                        ) : (
+                          <div className="overflow-x-auto">
+                            <table className="w-full text-xs">
+                              <thead>
+                                <tr className="border-b border-white/[0.06]">
+                                  <th className="text-left py-2 px-2 text-text-muted font-medium">Date</th>
+                                  <th className="text-left py-2 px-2 text-text-muted font-medium">Check In</th>
+                                  <th className="text-left py-2 px-2 text-text-muted font-medium">Check Out</th>
+                                  <th className="text-right py-2 px-2 text-text-muted font-medium">Active</th>
+                                  <th className="text-right py-2 px-2 text-text-muted font-medium">Break</th>
+                                  <th className="text-left py-2 px-2 text-text-muted font-medium">Location</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {detail.daySummary.map((day) => (
+                                  <tr
+                                    key={day.date}
+                                    className="border-b border-white/[0.03] hover:bg-white/[0.02] transition-colors"
+                                  >
+                                    <td className="py-2.5 px-2 text-text-primary font-medium">
+                                      {formatDate(day.date)}
+                                    </td>
+                                    <td className="py-2.5 px-2 text-text-muted">
+                                      {day.checkIn ? formatTime(day.checkIn) : "-"}
+                                    </td>
+                                    <td className="py-2.5 px-2 text-text-muted">
+                                      {day.checkOut ? formatTime(day.checkOut) : (
+                                        <span className="text-green-400 text-[10px] font-medium">Active</span>
+                                      )}
+                                    </td>
+                                    <td className="py-2.5 px-2 text-right text-green-400 font-medium">
+                                      {formatMinutes(day.activeMin)}
+                                    </td>
+                                    <td className="py-2.5 px-2 text-right text-yellow-400">
+                                      {formatMinutes(day.breakMin)}
+                                    </td>
+                                    <td className="py-2.5 px-2">
+                                      {day.location ? (
+                                        <span className="flex items-center gap-1 text-text-muted">
+                                          {LOCATION_CONFIG[day.location]?.icon}
+                                          {LOCATION_CONFIG[day.location]?.label || day.location}
+                                        </span>
+                                      ) : (
+                                        <span className="text-text-muted">-</span>
+                                      )}
+                                    </td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                              {/* Monthly summary footer */}
+                              <tfoot>
+                                <tr className="border-t border-white/[0.08] bg-white/[0.02]">
+                                  <td className="py-2.5 px-2 text-text-primary font-semibold text-[11px]" colSpan={3}>
+                                    Monthly Total &middot; {daysWorked} day{daysWorked !== 1 ? "s" : ""} worked &middot; Avg {formatMinutes(avgMinPerDay)}/day
+                                  </td>
+                                  <td className="py-2.5 px-2 text-right text-green-400 font-bold">
+                                    {formatMinutes(totalActiveMin)}
+                                  </td>
+                                  <td className="py-2.5 px-2 text-right text-yellow-400 font-bold">
+                                    {formatMinutes(totalBreakMin)}
+                                  </td>
+                                  <td className="py-2.5 px-2" />
+                                </tr>
+                              </tfoot>
+                            </table>
+                          </div>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                )}
+                  );
+                })()}
 
                 {/* ──── TAB: Work Logs ──── */}
                 {panelTab === "logs" && (

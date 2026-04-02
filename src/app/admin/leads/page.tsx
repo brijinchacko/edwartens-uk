@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
 import { prisma } from "@/lib/prisma";
-import { COURSE_LABELS, LEAD_STATUS_LABELS, formatDate } from "@/lib/utils";
+import { COURSE_LABELS, LEAD_STATUS_LABELS, LEAD_STATUS_COLORS, LEAD_CATEGORIES, formatDate } from "@/lib/utils";
 import { Search, X } from "lucide-react";
 import AddLeadModal from "./AddLeadModal";
 import LeadFilters from "./LeadFilters";
@@ -10,14 +10,6 @@ import LeadFilters from "./LeadFilters";
 export const metadata: Metadata = {
   title: "Lead Management | EDWartens Admin",
   description: "Manage leads and prospects",
-};
-
-const STATUS_COLORS: Record<string, string> = {
-  NEW: "bg-blue-500/10 text-blue-400 border-blue-500/20",
-  CONTACTED: "bg-yellow-500/10 text-yellow-400 border-yellow-500/20",
-  QUALIFIED: "bg-green-500/10 text-green-400 border-green-500/20",
-  ENROLLED: "bg-purple-500/10 text-purple-400 border-purple-500/20",
-  LOST: "bg-red-500/10 text-red-400 border-red-500/20",
 };
 
 interface FilterParams {
@@ -29,6 +21,7 @@ interface FilterParams {
   followUp?: string; // overdue, today, this_week, no_followup
   dateFrom?: string;
   dateTo?: string;
+  category?: string;
   hasNotes?: string; // true/false
   converted?: string; // true/false
   sortBy?: string; // score_desc, score_asc, created_desc
@@ -74,6 +67,11 @@ async function getLeads(filters: FilterParams) {
     // Course interest filter
     if (filters.course && filters.course !== "ALL") {
       where.courseInterest = filters.course;
+    }
+
+    // Category filter
+    if (filters.category && filters.category !== "ALL") {
+      where.category = filters.category;
     }
 
     // Assigned to filter
@@ -204,6 +202,7 @@ export default async function LeadsPage({
     followUp: getParam("followUp"),
     dateFrom: getParam("dateFrom"),
     dateTo: getParam("dateTo"),
+    category: getParam("category"),
     converted: getParam("converted"),
     sortBy: getParam("sortBy"),
     page: parseInt(getParam("page") || "1") || 1,
@@ -217,13 +216,14 @@ export default async function LeadsPage({
   const activeFilterCount = [
     filters.status, filters.source, filters.course, filters.assignedTo,
     filters.followUp, filters.dateFrom, filters.dateTo, filters.converted,
+    filters.category,
   ].filter((f) => f && f !== "ALL").length;
 
   const currentParams: Record<string, string | undefined> = {
     search: filters.search, status: filters.status, source: filters.source,
     course: filters.course, assignedTo: filters.assignedTo, followUp: filters.followUp,
     dateFrom: filters.dateFrom, dateTo: filters.dateTo, converted: filters.converted,
-    sortBy: filters.sortBy,
+    category: filters.category, sortBy: filters.sortBy,
   };
 
   return (
@@ -240,28 +240,39 @@ export default async function LeadsPage({
         <AddLeadModal />
       </div>
 
-      {/* Status Quick Filters */}
-      <div className="flex flex-wrap gap-2">
+      {/* Status Pipeline Filters */}
+      <div className="flex flex-wrap gap-1.5">
         {[
           { value: undefined, label: "All", count: Object.values(counts).reduce((a: number, b: any) => a + b, 0) },
-          { value: "NEW", label: "New", count: counts.NEW || 0 },
-          { value: "CONTACTED", label: "Contacted", count: counts.CONTACTED || 0 },
-          { value: "QUALIFIED", label: "Qualified", count: counts.QUALIFIED || 0 },
-          { value: "ENROLLED", label: "Enrolled", count: counts.ENROLLED || 0 },
-          { value: "LOST", label: "Lost", count: counts.LOST || 0 },
-        ].map((s) => (
-          <Link
-            key={s.label}
-            href={buildFilterUrl(currentParams, { status: s.value })}
-            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
-              (filters.status || undefined) === s.value
-                ? "bg-neon-blue/10 text-neon-blue border border-neon-blue/20"
-                : "bg-white/[0.03] text-text-muted border border-white/[0.06] hover:bg-white/[0.06]"
-            }`}
-          >
-            {s.label} <span className="opacity-60">({s.count})</span>
-          </Link>
-        ))}
+          { value: "NEW", label: "New" },
+          { value: "CONTACTED", label: "Contacted" },
+          { value: "FIRST_CALL", label: "First Call" },
+          { value: "CONSULTATION_ARRANGED", label: "Consultation Arranged" },
+          { value: "CONSULTATION_COMPLETED", label: "Consultation Done" },
+          { value: "QUALIFIED", label: "Qualified" },
+          { value: "REGISTERED", label: "Registered" },
+          { value: "ENROLLED", label: "Enrolled" },
+          { value: "LOST", label: "Lost" },
+        ].map((s) => {
+          const count = s.value ? (counts[s.value] || 0) : s.count;
+          const isActive = (filters.status || undefined) === s.value;
+          const colors = s.value && LEAD_STATUS_COLORS[s.value];
+          return (
+            <Link
+              key={s.label}
+              href={buildFilterUrl(currentParams, { status: s.value })}
+              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors border ${
+                isActive
+                  ? colors
+                    ? `${colors.bg} ${colors.text} ${colors.border}`
+                    : "bg-neon-blue/10 text-neon-blue border-neon-blue/20"
+                  : "bg-white/[0.03] text-text-muted border-white/[0.06] hover:bg-white/[0.06]"
+              }`}
+            >
+              {s.label} <span className="opacity-60">({count})</span>
+            </Link>
+          );
+        })}
       </div>
 
       {/* Search + Filters Row */}
@@ -383,7 +394,7 @@ export default async function LeadsPage({
                         {lead.source}
                       </td>
                       <td className="px-4 py-3">
-                        <span className={`inline-flex px-2 py-0.5 rounded-full text-[10px] font-medium border ${STATUS_COLORS[lead.status] || "bg-white/[0.05] text-text-muted"}`}>
+                        <span className={`inline-flex px-2 py-0.5 rounded-full text-[10px] font-medium border ${LEAD_STATUS_COLORS[lead.status] ? `${LEAD_STATUS_COLORS[lead.status].bg} ${LEAD_STATUS_COLORS[lead.status].text} ${LEAD_STATUS_COLORS[lead.status].border}` : "bg-white/[0.05] text-text-muted"}`}>
                           {LEAD_STATUS_LABELS[lead.status] || lead.status}
                         </span>
                       </td>

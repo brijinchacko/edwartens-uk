@@ -3,6 +3,7 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { hasPermission } from "@/lib/rbac";
 import { logAudit } from "@/lib/audit";
+import { notifyEmployee, notifyRole } from "@/lib/notify";
 
 export async function GET(
   _req: NextRequest,
@@ -72,13 +73,56 @@ export async function PATCH(
         ? new Date(body.followUpDate)
         : null;
     if (body.name !== undefined) allowedFields.name = body.name;
-    if (body.email !== undefined) allowedFields.email = body.email;
-    if (body.phone !== undefined) allowedFields.phone = body.phone;
+    if (body.email !== undefined) {
+      // Check for duplicate email on another lead
+      if (body.email.trim() && body.email.trim().toLowerCase() !== existing.email?.toLowerCase()) {
+        const dupEmail = await prisma.lead.findFirst({
+          where: {
+            email: { equals: body.email.trim(), mode: "insensitive" },
+            id: { not: id },
+          },
+          select: { id: true, name: true, status: true },
+        });
+        if (dupEmail) {
+          return NextResponse.json(
+            {
+              error: `This email already exists on another lead: ${dupEmail.name} (${dupEmail.status}).`,
+              duplicateLeadId: dupEmail.id,
+            },
+            { status: 409 }
+          );
+        }
+      }
+      allowedFields.email = body.email;
+    }
+    if (body.phone !== undefined) {
+      // Check for duplicate phone on another lead
+      if (body.phone.trim() !== existing.phone) {
+        const dupPhone = await prisma.lead.findFirst({
+          where: {
+            phone: body.phone.trim(),
+            id: { not: id },
+          },
+          select: { id: true, name: true, status: true },
+        });
+        if (dupPhone) {
+          return NextResponse.json(
+            {
+              error: `This phone number already exists on another lead: ${dupPhone.name} (${dupPhone.status}).`,
+              duplicateLeadId: dupPhone.id,
+            },
+            { status: 409 }
+          );
+        }
+      }
+      allowedFields.phone = body.phone;
+    }
     if (body.qualification !== undefined)
       allowedFields.qualification = body.qualification;
     if (body.courseInterest !== undefined)
       allowedFields.courseInterest = body.courseInterest;
     if (body.source !== undefined) allowedFields.source = body.source;
+    if (body.category !== undefined) allowedFields.category = body.category || null;
     if (body.alternatePhone !== undefined) allowedFields.alternatePhone = body.alternatePhone || null;
     if (body.enquiryDate !== undefined) allowedFields.enquiryDate = body.enquiryDate ? new Date(body.enquiryDate) : null;
 
@@ -96,6 +140,18 @@ export async function PATCH(
         },
       },
     });
+
+    // Create a note for status changes when statusNote is provided
+    if (body.statusNote && body.status !== undefined && body.status !== existing.status) {
+      const noteContent = `[Status changed: ${existing.status} \u2192 ${body.status}] ${body.statusNote}`;
+      await prisma.leadNote.create({
+        data: {
+          leadId: id,
+          content: noteContent,
+          createdBy: session.user.name || session.user.email || "Admin",
+        },
+      });
+    }
 
     // Audit log
     const auditAction = body.status !== undefined && body.status !== existing.status ? "STATUS_CHANGE" : "UPDATE";
@@ -118,6 +174,29 @@ export async function PATCH(
       entityName: `${lead.name || existing.name} (${lead.email || existing.email})`,
       details: JSON.stringify(details),
     });
+
+    // Notify all counsellors on status change
+    if (body.status !== undefined && body.status !== existing.status) {
+      const LEAD_STATUS_LABELS: Record<string, string> = {
+        NEW: "New", CONTACTED: "Contacted", FIRST_CALL: "First Call",
+        CONSULTATION_ARRANGED: "Consultation Arranged", CONSULTATION_COMPLETED: "Consultation Completed",
+        QUALIFIED: "Qualified", REGISTERED: "Registered", ENROLLED: "Enrolled", LOST: "Lost",
+      };
+      const oldLabel = LEAD_STATUS_LABELS[existing.status] || existing.status;
+      const newLabel = LEAD_STATUS_LABELS[body.status] || body.status;
+      const updatedBy = session.user.name || "Someone";
+      notifyRole(
+        ["ADMISSION_COUNSELLOR", "SALES_LEAD", "ADMIN", "SUPER_ADMIN"],
+        "📋 Lead Status Updated",
+        `${existing.name}: ${oldLabel} → ${newLabel} (by ${updatedBy})`,
+        `/admin/leads/${id}`
+      );
+    }
+
+    // Notification for lead assignment
+    if (body.assignedToId && body.assignedToId !== existing.assignedToId) {
+      await notifyEmployee(body.assignedToId, "Lead Assigned to You", `Lead "${existing.name}" has been assigned to you. Follow up soon.`, `/admin/leads/${id}`);
+    }
 
     // Auto-create WhatsApp task when lead is assigned to a new counsellor
     if (

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { hasPermission } from "@/lib/rbac";
+import { notifyBatchStudents } from "@/lib/notify";
 
 export async function POST(
   req: NextRequest,
@@ -157,6 +158,11 @@ export async function PATCH(
         },
       },
     });
+
+    // Notify batch students when day starts
+    if (body.status === "IN_PROGRESS") {
+      await notifyBatchStudents(id, "Training Day Started", `Day ${day.dayNumber} has started. Join now!`, "/student/sessions");
+    }
 
     return NextResponse.json({ day: updated });
   } catch (error) {

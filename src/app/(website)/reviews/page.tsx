@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { Star, Quote } from "lucide-react";
 import type { Metadata } from "next";
 
@@ -137,8 +138,18 @@ export default function ReviewsPage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(reviewJsonLd) }}
       />
       {/* Hero */}
-      <section className="mesh-gradient-hero py-24 sm:py-32 relative">
+      <section className="mesh-gradient-hero py-24 sm:py-32 relative overflow-hidden">
         <div className="dot-grid absolute inset-0 opacity-20" />
+        <div className="absolute inset-0 z-0">
+          <Image
+            src="/images/stock/students-learning.jpg"
+            alt="EDWartens graduates and students"
+            fill
+            className="object-cover opacity-15"
+            priority
+          />
+          <div className="absolute inset-0 bg-gradient-to-r from-[#0a0a14] via-[#0a0a14]/90 to-[#0a0a14]/70" />
+        </div>
         <div className="max-w-7xl mx-auto px-3 sm:px-5 lg:px-6 relative z-10">
           <p className="text-[11px] uppercase tracking-widest text-neon-blue mb-3">
             Reviews
@@ -207,10 +218,21 @@ export default function ReviewsPage() {
                 </div>
 
                 {/* Author */}
-                <div className="border-t border-white/[0.06] pt-4">
-                  <p className="text-sm font-semibold text-white">{t.name}</p>
-                  <p className="text-xs text-neon-blue">{t.role}</p>
-                  <p className="text-xs text-text-muted mt-1">{t.course}</p>
+                <div className="border-t border-white/[0.06] pt-4 flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full overflow-hidden border border-white/[0.06] flex-shrink-0">
+                    <Image
+                      src={`/images/stock/testimonial-${(testimonials.indexOf(t) % 3) + 1}.jpg`}
+                      alt={t.name}
+                      width={40}
+                      height={40}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-white">{t.name}</p>
+                    <p className="text-xs text-neon-blue">{t.role}</p>
+                    <p className="text-xs text-text-muted mt-0.5">{t.course}</p>
+                  </div>
                 </div>
               </div>
             ))}

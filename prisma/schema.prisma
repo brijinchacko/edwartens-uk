@@ -19,7 +19,11 @@ enum Role {
 enum LeadStatus {
   NEW
   CONTACTED
+  FIRST_CALL
+  CONSULTATION_ARRANGED
+  CONSULTATION_COMPLETED
   QUALIFIED
+  REGISTERED
   ENROLLED
   LOST
 }
@@ -163,6 +167,8 @@ model User {
   employeeProfile Employee?
   activityLogs    ActivityLog[]
   notifications   Notification[]
+  stickyNotes     StickyNote[]
+  callLogs        CallLog[]     @relation("userCalls")
 }
 
 model Employee {
@@ -170,8 +176,13 @@ model Employee {
   userId          String    @unique
   user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   department      String?
+  designation     String?
   specialization  String?
+  workSchedule    Json?
+  weekOff         String?
   bio             String?
+  sipExtension    String?   // Zadarma SIP login or PBX extension (e.g. "100001")
+  zadarmaNumber   String?   // Zadarma virtual number assigned to this user (e.g. "+443001234567")
   hireDate        DateTime  @default(now())
 
   assignedLeads   Lead[]
@@ -184,6 +195,8 @@ model Employee {
   practicalSessions    PracticalSession[] @relation("PracticalTrainer")
   workSessions         EmployeeWorkSession[]
   whatsappTasks        WhatsAppTask[]
+  kpis                 EmployeeKPI[]
+  goals                PerformanceGoal[]
 
   // Microsoft Outlook integration (per-user OAuth)
   msAccessToken    String?
@@ -277,6 +290,7 @@ model Student {
   referralsMade        Referral[]    @relation("ReferralsMade")
   signatures           DocumentSignature[]
   practicalBookings    PracticalBooking[]
+  callLogs             CallLog[]
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
 }
@@ -301,12 +315,16 @@ model Lead {
   utmMedium       String?
   utmCampaign     String?
   convertedToStudentId String?
+  category       String?
   leadScore      Int      @default(0)
   scoreBreakdown Json?
   lastScoredAt   DateTime?
   whatsappTasks  WhatsAppTask[]
+  callLogs       CallLog[]
   createdAt       DateTime   @default(now())
   updatedAt       DateTime   @updatedAt
+
+  @@index([category])
 }
 
 model EmailSequence {
@@ -994,4 +1012,110 @@ model AuditLog {
 
   @@index([userId, createdAt])
   @@index([entity, createdAt])
+}
+
+model EmployeeKPI {
+  id                String   @id @default(cuid())
+  employeeId        String
+  employee          Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  date              DateTime @db.Date
+  callsMade         Int      @default(0)
+  emailsSent        Int      @default(0)
+  notesAdded        Int      @default(0)
+  leadsContacted    Int      @default(0)
+  leadsCreated      Int      @default(0)
+  leadsConverted    Int      @default(0)
+  followUpsDone     Int      @default(0)
+  activeMinutes     Int      @default(0)
+  breakMinutes      Int      @default(0)
+  idleMinutes       Int      @default(0)
+  checkInTime       DateTime?
+  checkOutTime      DateTime?
+  lateArrival       Boolean  @default(false)
+  earlyDeparture    Boolean  @default(false)
+  excessBreaks      Boolean  @default(false)
+  productivityScore Float    @default(0)
+  responseTimeAvg   Int      @default(0)
+
+  @@unique([employeeId, date])
+  @@index([employeeId, date])
+  @@index([date])
+}
+
+model PerformanceGoal {
+  id          String   @id @default(cuid())
+  employeeId  String
+  employee    Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  metric      String   // CALLS_PER_DAY, EMAILS_PER_DAY, NOTES_PER_DAY, CONVERSION_RATE, ACTIVE_HOURS, RESPONSE_TIME
+  targetValue Float
+  period      String   @default("DAILY") // DAILY, WEEKLY, MONTHLY
+  isActive    Boolean  @default(true)
+  createdBy   String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([employeeId, metric, isActive])
+}
+
+model StickyNote {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  content   String   @default("")
+  color     String   @default("yellow") // yellow, blue, green, pink
+  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+}
+
+// ──────────────────────────────────────────────
+// Zadarma Call Logs
+// ──────────────────────────────────────────────
+enum CallDirection {
+  INBOUND
+  OUTBOUND
+  INTERNAL
+}
+
+enum CallStatus {
+  RINGING
+  ANSWERED
+  MISSED
+  BUSY
+  FAILED
+  VOICEMAIL
+}
+
+model CallLog {
+  id            String        @id @default(cuid())
+  zadarmaCallId String?       @unique // pbx_call_id from Zadarma
+  direction     CallDirection
+  status        CallStatus    @default(RINGING)
+  callerNumber  String        // who called
+  calledNumber  String        // who was called
+  sipExtension  String?       // internal SIP extension
+  duration      Int           @default(0) // seconds
+  recordingUrl  String?       // Zadarma recording download link
+  isRecorded    Boolean       @default(false)
+
+  // Link to CRM entities
+  leadId    String?
+  lead      Lead?     @relation(fields: [leadId], references: [id], onDelete: SetNull)
+  studentId String?
+  student   Student?  @relation(fields: [studentId], references: [id], onDelete: SetNull)
+  userId    String?   // CRM user who made/received the call
+  user      User?     @relation("userCalls", fields: [userId], references: [id], onDelete: SetNull)
+
+  notes     String?
+  startedAt DateTime  @default(now())
+  endedAt   DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([leadId])
+  @@index([studentId])
+  @@index([userId])
+  @@index([callerNumber])
+  @@index([calledNumber])
+  @@index([startedAt])
 }

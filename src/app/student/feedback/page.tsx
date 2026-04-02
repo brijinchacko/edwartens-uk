@@ -249,7 +249,7 @@ export default function StudentFeedbackPage() {
                     </span>
                   )}
                   <span className="text-xs text-text-muted ml-auto">
-                    {new Date(fb.createdAt).toLocaleDateString()}
+                    {new Date(fb.createdAt).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: "Europe/London" })}
                   </span>
                 </div>
                 {fb.feedback && <p className="text-sm text-text-secondary">{fb.feedback}</p>}

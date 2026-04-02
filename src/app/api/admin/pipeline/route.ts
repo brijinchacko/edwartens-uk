@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { hasPermission } from "@/lib/rbac";
 
 // Lead stages in pipeline order
-const LEAD_STAGES = ["NEW", "CONTACTED", "QUALIFIED", "ENROLLED", "LOST"] as const;
+const LEAD_STAGES = ["NEW", "CONTACTED", "FIRST_CALL", "CONSULTATION_ARRANGED", "CONSULTATION_COMPLETED", "QUALIFIED", "REGISTERED", "ENROLLED", "LOST"] as const;
 
 // Student stages in pipeline order
 const STUDENT_STAGES = [
@@ -22,11 +22,11 @@ const STUDENT_STAGES = [
 // Which stages belong to each view
 const VIEW_STAGES: Record<string, { leadStatuses: string[]; studentStatuses: string[] }> = {
   full: {
-    leadStatuses: ["NEW", "CONTACTED", "QUALIFIED", "ENROLLED", "LOST"],
+    leadStatuses: ["NEW", "CONTACTED", "FIRST_CALL", "CONSULTATION_ARRANGED", "CONSULTATION_COMPLETED", "QUALIFIED", "REGISTERED", "ENROLLED", "LOST"],
     studentStatuses: ["ONBOARDING", "ACTIVE", "ON_HOLD", "POST_TRAINING", "CAREER_SUPPORT", "COMPLETED", "ALUMNI_PLACED", "ALUMNI_NOT_PLACED", "DROPPED"],
   },
   sales: {
-    leadStatuses: ["NEW", "CONTACTED", "QUALIFIED", "ENROLLED"],
+    leadStatuses: ["NEW", "CONTACTED", "FIRST_CALL", "CONSULTATION_ARRANGED", "CONSULTATION_COMPLETED", "QUALIFIED", "REGISTERED", "ENROLLED"],
     studentStatuses: [],
   },
   training: {

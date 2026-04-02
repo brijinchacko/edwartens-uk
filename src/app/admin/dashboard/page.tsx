@@ -27,6 +27,8 @@ import {
   Code,
 } from "lucide-react";
 import { formatDate } from "@/lib/utils";
+import MyDayClient from "./MyDayClient";
+import WeeklySummaryCard from "./WeeklySummaryCard";
 
 export const metadata: Metadata = {
   title: "Dashboard | EDWartens Admin",
@@ -85,7 +87,7 @@ async function getAdminDashboardData() {
         },
       }),
       prisma.activityLog.findMany({
-        take: 10,
+        take: 5,
         orderBy: { createdAt: "desc" },
         include: { user: { select: { name: true } } },
       }),
@@ -138,6 +140,25 @@ async function getAdminDashboardData() {
       // salesTarget model may not exist yet
     }
 
+    // 7-day follow-up forecast (all leads)
+    const forecastDays: { date: Date; label: string }[] = [];
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(todayStart);
+      d.setDate(d.getDate() + i);
+      forecastDays.push({ date: d, label: d.toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short", timeZone: "Europe/London" }) });
+    }
+    const forecastCounts = await Promise.all(
+      forecastDays.map((fd) => {
+        const dayEnd = new Date(fd.date); dayEnd.setHours(23, 59, 59, 999);
+        return prisma.lead.count({
+          where: { followUpDate: { gte: fd.date, lte: dayEnd }, status: { notIn: ["ENROLLED", "LOST"] } },
+        });
+      })
+    );
+    const followUpForecast = forecastDays.map((fd, i) => ({
+      label: fd.label, count: forecastCounts[i], isToday: i === 0,
+    }));
+
     return {
       activeStudents,
       totalStudents,
@@ -154,6 +175,7 @@ async function getAdminDashboardData() {
       onboardingStudents,
       pendingProjects,
       ungradedAssessments,
+      followUpForecast,
     };
   } catch {
     return {
@@ -172,6 +194,7 @@ async function getAdminDashboardData() {
       onboardingStudents: 0,
       pendingProjects: 0,
       ungradedAssessments: 0,
+      followUpForecast: [],
     };
   }
 }
@@ -201,11 +224,23 @@ async function getSalesLeadDashboardData(userId: string) {
       });
     } catch { /* model may not exist */ }
 
+    // 7-day follow-up forecast dates
+    const forecastDays: { date: Date; label: string }[] = [];
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(todayStart);
+      d.setDate(d.getDate() + i);
+      const end = new Date(d);
+      end.setHours(23, 59, 59, 999);
+      forecastDays.push({ date: d, label: d.toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short", timeZone: "Europe/London" }) });
+    }
+
     const [
       leadCounts,
       followUpsDueToday,
       overdueFollowUps,
       recentLeads,
+      // 7-day forecast counts
+      ...forecastCounts
     ] = await Promise.all([
       prisma.lead.groupBy({
         by: ["status"],
@@ -237,7 +272,25 @@ async function getSalesLeadDashboardData(userId: string) {
         orderBy: { createdAt: "desc" },
         take: 5,
       }),
+      // Forecast: count follow-ups for each of the next 7 days
+      ...forecastDays.map((fd) => {
+        const dayEnd = new Date(fd.date);
+        dayEnd.setHours(23, 59, 59, 999);
+        return prisma.lead.count({
+          where: {
+            assignedToId: emp.id,
+            followUpDate: { gte: fd.date, lte: dayEnd },
+            status: { notIn: ["ENROLLED", "LOST"] },
+          },
+        });
+      }),
     ]);
+
+    const followUpForecast = forecastDays.map((fd, i) => ({
+      label: fd.label,
+      count: forecastCounts[i] as number,
+      isToday: i === 0,
+    }));
 
     const leadPipeline: Record<string, number> = {};
     leadCounts.forEach((lc: any) => {
@@ -257,6 +310,7 @@ async function getSalesLeadDashboardData(userId: string) {
       followUpsDueToday,
       overdueFollowUps,
       recentLeads,
+      followUpForecast,
     };
   } catch {
     return null;
@@ -269,6 +323,14 @@ async function getAdmissionCounsellorData(userId: string) {
     const { todayStart, todayEnd } = getTodayRange();
     const emp = await prisma.employee.findUnique({ where: { userId } });
     if (!emp) return null;
+
+    // 7-day follow-up forecast
+    const forecastDays: { date: Date; label: string }[] = [];
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(todayStart);
+      d.setDate(d.getDate() + i);
+      forecastDays.push({ date: d, label: d.toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short", timeZone: "Europe/London" }) });
+    }
 
     const [
       myStudents,
@@ -323,7 +385,7 @@ async function getAdmissionCounsellorData(userId: string) {
         take: 10,
         orderBy: { followUpDate: "asc" },
       }),
-      // Upcoming batches with students needing readiness
+      // Upcoming batches
       prisma.batch.findMany({
         where: { status: "UPCOMING" },
         select: {
@@ -346,6 +408,26 @@ async function getAdmissionCounsellorData(userId: string) {
       }),
     ]);
 
+    // Forecast counts
+    const forecastCounts = await Promise.all(
+      forecastDays.map((fd) => {
+        const dayEnd = new Date(fd.date);
+        dayEnd.setHours(23, 59, 59, 999);
+        return prisma.lead.count({
+          where: {
+            assignedToId: emp.id,
+            followUpDate: { gte: fd.date, lte: dayEnd },
+            status: { notIn: ["ENROLLED", "LOST"] },
+          },
+        });
+      })
+    );
+    const followUpForecast = forecastDays.map((fd, i) => ({
+      label: fd.label,
+      count: forecastCounts[i],
+      isToday: i === 0,
+    }));
+
     return {
       myStudents,
       onboardingPending,
@@ -354,6 +436,7 @@ async function getAdmissionCounsellorData(userId: string) {
       pendingDocsList,
       followUpsDue,
       upcomingBatches,
+      followUpForecast,
     };
   } catch {
     return null;
@@ -521,196 +604,59 @@ export default async function AdminDashboard() {
     const remaining = data.incentiveEarned - data.incentiveDistributed;
 
     return (
-      <div className="space-y-8">
-        <div>
-          <h1 className="text-2xl font-bold text-text-primary">Sales Dashboard</h1>
-          <p className="text-text-muted mt-1">Your sales performance this month</p>
-        </div>
-
-        {/* Notification Banner */}
-        <NotificationBanner
-          items={[
-            { label: "follow-ups due today", count: data.followUpsDueToday.length, type: "warning" },
-            { label: "overdue follow-ups", count: data.overdueFollowUps.length, type: "danger" },
-          ]}
-        />
-
-        {data.salesAchieved < data.salesTargetCount && (
-          <div className="glass-card p-4 border-l-4 border-red-500 bg-red-500/5">
-            <div className="flex items-center gap-2">
-              <AlertTriangle size={20} className="text-red-400" />
-              <p className="text-red-400 font-medium">
-                You are below your monthly sales target. Consequences may apply.
-              </p>
-            </div>
-          </div>
-        )}
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="space-y-4">
+        {/* Monthly Targets */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           {/* Sales Target */}
-          <Link href="/admin/reports" className="glass-card p-5 hover:border-neon-blue/20 hover:scale-[1.02] transition-all cursor-pointer">
-            <div className="flex items-start justify-between mb-3">
-              <div>
-                <p className="text-text-muted text-sm">My Sales Target</p>
-                <p className="text-2xl font-bold text-text-primary mt-1">
-                  {data.salesAchieved}/{data.salesTargetCount}
-                </p>
-              </div>
-              <div className="p-2.5 rounded-lg bg-neon-blue/10">
-                <Target size={20} className="text-neon-blue" />
-              </div>
+          <Link href="/admin/reports" className="glass-card p-4 hover:border-white/[0.12] transition-colors">
+            <div className="flex items-center justify-between mb-2">
+              <p className="text-xs text-text-muted">Monthly Sales</p>
+              <Target size={14} className="text-neon-blue" />
             </div>
-            <div className="w-full bg-white/[0.06] rounded-full h-3">
-              <div
-                className={`h-3 rounded-full ${salesColor} transition-all`}
-                style={{ width: `${Math.min(salesPct, 100)}%` }}
-              />
+            <div className="flex items-baseline gap-1.5">
+              <span className="text-2xl font-bold text-text-primary">{data.salesAchieved}</span>
+              <span className="text-sm text-text-muted">/ {data.salesTargetCount}</span>
             </div>
-            <p className="text-xs text-text-muted mt-1">{salesPct}% achieved</p>
+            <div className="w-full h-2 bg-white/[0.06] rounded-full mt-2 overflow-hidden">
+              <div className={`h-full rounded-full ${salesColor} transition-all`} style={{ width: `${Math.min(salesPct, 100)}%` }} />
+            </div>
+            <p className="text-[10px] text-text-muted mt-1">{salesPct}% · Hard target: {data.salesTargetCount > 12 ? 12 : data.salesTargetCount}</p>
           </Link>
 
           {/* Lead Target */}
-          <Link href="/admin/leads" className="glass-card p-5 hover:border-neon-blue/20 hover:scale-[1.02] transition-all cursor-pointer">
-            <div className="flex items-start justify-between mb-3">
-              <div>
-                <p className="text-text-muted text-sm">My Lead Target</p>
-                <p className="text-2xl font-bold text-text-primary mt-1">
-                  {data.leadsGenerated}/{data.leadTargetCount}
-                </p>
-              </div>
-              <div className="p-2.5 rounded-lg bg-cyan/10">
-                <Users size={20} className="text-cyan" />
-              </div>
+          <Link href="/admin/leads" className="glass-card p-4 hover:border-white/[0.12] transition-colors">
+            <div className="flex items-center justify-between mb-2">
+              <p className="text-xs text-text-muted">Leads Generated</p>
+              <Users size={14} className="text-cyan" />
             </div>
-            <div className="w-full bg-white/[0.06] rounded-full h-3">
-              <div
-                className={`h-3 rounded-full ${leadColor} transition-all`}
-                style={{ width: `${Math.min(leadPct, 100)}%` }}
-              />
+            <div className="flex items-baseline gap-1.5">
+              <span className="text-2xl font-bold text-text-primary">{data.leadsGenerated}</span>
+              <span className="text-sm text-text-muted">/ {data.leadTargetCount}</span>
             </div>
-            <p className="text-xs text-text-muted mt-1">{leadPct}% achieved</p>
+            <div className="w-full h-2 bg-white/[0.06] rounded-full mt-2 overflow-hidden">
+              <div className={`h-full rounded-full ${leadColor} transition-all`} style={{ width: `${Math.min(leadPct, 100)}%` }} />
+            </div>
+            <p className="text-[10px] text-text-muted mt-1">{leadPct}% achieved</p>
           </Link>
-        </div>
 
-        {/* Incentive */}
-        <div className="glass-card p-5">
-          <div className="flex items-start justify-between mb-4">
-            <div>
-              <p className="text-text-muted text-sm">My Incentive This Month</p>
-              <p className="text-2xl font-bold text-neon-green mt-1">
-                {"\u00a3"}{data.incentiveEarned.toFixed(2)}
-              </p>
-              {data.totalSales < mandatoryThreshold && (
-                <p className="text-xs text-text-muted mt-1">
-                  {"\u00a3"}0 (under mandatory {mandatoryThreshold} sales)
-                </p>
-              )}
+          {/* Incentive */}
+          <div className="glass-card p-4">
+            <div className="flex items-center justify-between mb-2">
+              <p className="text-xs text-text-muted">Incentive Earned</p>
+              <DollarSign size={14} className="text-neon-green" />
             </div>
-            <div className="p-2.5 rounded-lg bg-neon-green/10">
-              <DollarSign size={20} className="text-neon-green" />
+            <div className="flex items-baseline gap-1.5">
+              <span className="text-2xl font-bold text-neon-green">{"\u00a3"}{data.incentiveEarned.toFixed(0)}</span>
             </div>
-          </div>
-          <div className="space-y-1 text-sm text-text-secondary">
-            <p>Eligible sales: {eligibleSales} x {"\u00a3"}{perSaleIncentive} = {"\u00a3"}{(eligibleSales * perSaleIncentive).toFixed(2)}</p>
-            <p>Distributed: {"\u00a3"}{data.incentiveDistributed.toFixed(2)}</p>
-            <p>Remaining to distribute: {"\u00a3"}{remaining.toFixed(2)}</p>
+            <p className="text-[10px] text-text-muted mt-2">
+              {eligibleSales} eligible × {"\u00a3"}{perSaleIncentive} = {"\u00a3"}{(eligibleSales * perSaleIncentive).toFixed(0)}
+            </p>
+            {remaining > 0 && <p className="text-[10px] text-yellow-400 mt-0.5">{"\u00a3"}{remaining.toFixed(0)} pending distribution</p>}
           </div>
         </div>
 
-        {/* Lead Pipeline */}
-        <div className="glass-card p-5">
-          <h2 className="text-lg font-semibold text-text-primary mb-4">My Leads Pipeline</h2>
-          <div className="grid grid-cols-3 gap-4">
-            {[
-              { label: "NEW", count: data.leadPipeline["NEW"] || 0, color: "text-cyan" },
-              { label: "CONTACTED", count: data.leadPipeline["CONTACTED"] || 0, color: "text-neon-blue" },
-              { label: "QUALIFIED", count: data.leadPipeline["QUALIFIED"] || 0, color: "text-neon-green" },
-            ].map((item) => (
-              <Link key={item.label} href={`/admin/leads?status=${item.label}`} className="text-center p-3 rounded-lg hover:bg-white/[0.03] hover:scale-[1.02] transition-all cursor-pointer">
-                <p className={`text-2xl font-bold ${item.color}`}>{item.count}</p>
-                <p className="text-xs text-text-muted mt-1">{item.label}</p>
-              </Link>
-            ))}
-          </div>
-        </div>
-
-        {/* My Follow-ups Due Today */}
-        {data.followUpsDueToday.length > 0 && (
-          <div className="glass-card p-5">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold text-text-primary flex items-center gap-2">
-                <Clock size={18} className="text-yellow-400" />
-                My Follow-ups Due Today
-              </h2>
-              <span className="inline-flex px-2.5 py-1 rounded-full text-xs font-medium bg-yellow-500/10 text-yellow-400">
-                {data.followUpsDueToday.length}
-              </span>
-            </div>
-            <div className="space-y-0">
-              {data.followUpsDueToday.map((lead: any) => (
-                <LeadRow key={lead.id} lead={lead} />
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* My Overdue Follow-ups */}
-        {data.overdueFollowUps.length > 0 && (
-          <div className="glass-card p-5">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold text-text-primary flex items-center gap-2">
-                <AlertTriangle size={18} className="text-red-400" />
-                My Overdue Follow-ups
-              </h2>
-              <span className="inline-flex px-2.5 py-1 rounded-full text-xs font-medium bg-red-500/10 text-red-400">
-                {data.overdueFollowUps.length}
-              </span>
-            </div>
-            <div className="space-y-0">
-              {data.overdueFollowUps.map((lead: any) => (
-                <LeadRow key={lead.id} lead={lead} overdue />
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Recent Leads */}
-        {data.recentLeads.length > 0 && (
-          <div className="glass-card p-5">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold text-text-primary flex items-center gap-2">
-                <Users size={18} className="text-cyan" />
-                Recent Leads
-              </h2>
-              <Link href="/admin/leads" className="text-xs text-neon-blue hover:underline">View all</Link>
-            </div>
-            <div className="space-y-0">
-              {data.recentLeads.map((lead: any) => (
-                <Link
-                  key={lead.id}
-                  href={`/admin/leads/${lead.id}`}
-                  className="flex items-center justify-between py-2.5 px-3 rounded-lg hover:bg-white/[0.03] transition-colors border-b border-white/[0.04] last:border-0"
-                >
-                  <div className="min-w-0 flex-1">
-                    <p className="text-sm text-text-primary font-medium truncate">{lead.name}</p>
-                    <p className="text-xs text-text-muted truncate">{lead.email}</p>
-                  </div>
-                  <div className="flex items-center gap-2 shrink-0 ml-3">
-                    <span className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium ${
-                      lead.status === "NEW" ? "bg-cyan/10 text-cyan" :
-                      lead.status === "CONTACTED" ? "bg-neon-blue/10 text-neon-blue" :
-                      lead.status === "QUALIFIED" ? "bg-neon-green/10 text-neon-green" :
-                      "bg-white/[0.06] text-text-muted"
-                    }`}>
-                      {lead.status}
-                    </span>
-                    <ArrowRight size={14} className="text-text-muted" />
-                  </div>
-                </Link>
-              ))}
-            </div>
-          </div>
-        )}
+        {/* WeeklySummaryCard removed per user request */}
+        <MyDayClient userName={session?.user?.name || ""} userRole={role} userId={userId} />
       </div>
     );
   }
@@ -719,228 +665,14 @@ export default async function AdminDashboard() {
   // ADMISSION_COUNSELLOR Dashboard
   // ═══════════════════════════════════════════════════
   if (role === "ADMISSION_COUNSELLOR") {
-    const data = await getAdmissionCounsellorData(userId);
-    if (!data) {
-      return (
-        <div className="space-y-8">
-          <h1 className="text-2xl font-bold text-text-primary">Dashboard</h1>
-          <p className="text-text-muted">Employee record not found. Please contact admin.</p>
-        </div>
-      );
-    }
-
-    const kpis = [
-      { label: "My Students", value: data.myStudents, icon: Users, color: "text-neon-blue", bgColor: "bg-neon-blue/10" },
-      { label: "Onboarding Pending", value: data.onboardingPending, icon: ClipboardCheck, color: "text-yellow-400", bgColor: "bg-yellow-400/10" },
-      { label: "Documents to Review", value: data.documentsToReview, icon: FileCheck, color: "text-cyan", bgColor: "bg-cyan/10" },
-    ];
-
-    const overdueFollowUps = data.followUpsDue.filter((l: any) => {
-      const d = new Date(l.followUpDate);
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      return d < today;
-    });
-    const todayFollowUps = data.followUpsDue.filter((l: any) => {
-      const d = new Date(l.followUpDate);
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      const tomorrow = new Date(today);
-      tomorrow.setDate(tomorrow.getDate() + 1);
-      return d >= today && d < tomorrow;
-    });
-
     return (
-      <div className="space-y-8">
-        <div>
-          <h1 className="text-2xl font-bold text-text-primary">Admissions Dashboard</h1>
-          <p className="text-text-muted mt-1">Student onboarding and document management</p>
-        </div>
-
-        {/* Notification Banner */}
-        <NotificationBanner
-          items={[
-            { label: "students needing attention", count: data.studentsNeedingAttention.length, type: "warning" },
-            { label: "documents pending review", count: data.documentsToReview, type: "warning" },
-            { label: "overdue follow-ups", count: overdueFollowUps.length, type: "danger" },
-            { label: "follow-ups due today", count: todayFollowUps.length, type: "warning" },
-          ]}
-        />
-
-        {/* KPI Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {kpis.map((kpi) => {
-            const Icon = kpi.icon;
-            return (
-              <div key={kpi.label} className="glass-card p-5">
-                <div className="flex items-start justify-between">
-                  <div>
-                    <p className="text-text-muted text-sm">{kpi.label}</p>
-                    <p className="text-2xl font-bold text-text-primary mt-1">{kpi.value}</p>
-                  </div>
-                  <div className={`p-2.5 rounded-lg ${kpi.bgColor}`}>
-                    <Icon size={20} className={kpi.color} />
-                  </div>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-
-        {/* Students Needing Attention */}
-        {data.studentsNeedingAttention.length > 0 && (
-          <div className="glass-card p-5">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold text-text-primary flex items-center gap-2">
-                <AlertTriangle size={18} className="text-yellow-400" />
-                My Students Needing Attention
-              </h2>
-              <span className="inline-flex px-2.5 py-1 rounded-full text-xs font-medium bg-yellow-500/10 text-yellow-400">
-                {data.studentsNeedingAttention.length}
-              </span>
-            </div>
-            <div className="space-y-0">
-              {data.studentsNeedingAttention.map((student: any) => {
-                const needsDocs = student.documents.length > 0;
-                const needsSoftware = !student.softwareChecklist?.allVerified;
-                const needsPayment = student.paymentStatus !== "PAID";
-                return (
-                  <Link
-                    key={student.id}
-                    href={`/admin/students/${student.id}`}
-                    className="flex items-center justify-between py-2.5 px-3 rounded-lg hover:bg-white/[0.03] transition-colors border-b border-white/[0.04] last:border-0"
-                  >
-                    <div className="min-w-0 flex-1">
-                      <p className="text-sm text-text-primary font-medium truncate">{student.user.name}</p>
-                      <p className="text-xs text-text-muted truncate">{student.user.email}</p>
-                    </div>
-                    <div className="flex items-center gap-1.5 shrink-0 ml-3">
-                      {needsPayment && (
-                        <span className="inline-flex px-1.5 py-0.5 rounded text-[10px] font-medium bg-red-500/10 text-red-400">Payment</span>
-                      )}
-                      {needsDocs && (
-                        <span className="inline-flex px-1.5 py-0.5 rounded text-[10px] font-medium bg-yellow-500/10 text-yellow-400">Docs</span>
-                      )}
-                      {needsSoftware && (
-                        <span className="inline-flex px-1.5 py-0.5 rounded text-[10px] font-medium bg-cyan/10 text-cyan">Software</span>
-                      )}
-                      <ArrowRight size={14} className="text-text-muted" />
-                    </div>
-                  </Link>
-                );
-              })}
-            </div>
-          </div>
-        )}
-
-        {/* Documents Pending My Review */}
-        {data.pendingDocsList.length > 0 && (
-          <div className="glass-card p-5">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold text-text-primary flex items-center gap-2">
-                <FileText size={18} className="text-cyan" />
-                Documents Pending My Review
-              </h2>
-              <span className="inline-flex px-2.5 py-1 rounded-full text-xs font-medium bg-cyan/10 text-cyan">
-                {data.pendingDocsList.length}
-              </span>
-            </div>
-            <div className="space-y-0">
-              {data.pendingDocsList.map((doc: any) => (
-                <Link
-                  key={doc.id}
-                  href={`/admin/students/${doc.student.id}`}
-                  className="flex items-center justify-between py-2.5 px-3 rounded-lg hover:bg-white/[0.03] transition-colors border-b border-white/[0.04] last:border-0"
-                >
-                  <div className="min-w-0 flex-1">
-                    <p className="text-sm text-text-primary font-medium truncate">{doc.name}</p>
-                    <p className="text-xs text-text-muted truncate">{doc.student.user.name} - {doc.type}</p>
-                  </div>
-                  <div className="flex items-center gap-2 shrink-0 ml-3">
-                    <span className="inline-flex px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-500/10 text-yellow-400">
-                      Pending
-                    </span>
-                    <ArrowRight size={14} className="text-text-muted" />
-                  </div>
-                </Link>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Follow-ups Due */}
-        {data.followUpsDue.length > 0 && (
-          <div className="glass-card p-5">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold text-text-primary flex items-center gap-2">
-                <PhoneCall size={18} className="text-yellow-400" />
-                Follow-ups Due
-              </h2>
-              <span className="inline-flex px-2.5 py-1 rounded-full text-xs font-medium bg-yellow-500/10 text-yellow-400">
-                {data.followUpsDue.length}
-              </span>
-            </div>
-            <div className="space-y-0">
-              {data.followUpsDue.map((lead: any) => {
-                const isOverdue = new Date(lead.followUpDate) < new Date(new Date().setHours(0, 0, 0, 0));
-                return <LeadRow key={lead.id} lead={lead} overdue={isOverdue} />;
-              })}
-            </div>
-          </div>
-        )}
-
-        {/* Pre-Batch Readiness */}
-        {data.upcomingBatches.filter((b: any) => b.students.length > 0).length > 0 && (
-          <div className="glass-card p-5">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold text-text-primary flex items-center gap-2">
-                <Calendar size={18} className="text-neon-blue" />
-                Pre-Batch Readiness
-              </h2>
-            </div>
-            {data.upcomingBatches
-              .filter((batch: any) => batch.students.length > 0)
-              .map((batch: any) => (
-                <div key={batch.id} className="mb-4 last:mb-0">
-                  <div className="flex items-center justify-between mb-2">
-                    <p className="text-sm font-medium text-text-primary">{batch.name}</p>
-                    <p className="text-xs text-text-muted">{formatDate(batch.startDate)}</p>
-                  </div>
-                  <div className="space-y-0">
-                    {batch.students.map((student: any) => {
-                      const needsPayment = student.paymentStatus !== "PAID";
-                      const needsDocs = student.documents.some((d: any) => d.status === "UPLOADED");
-                      const needsSoftware = !student.softwareChecklist?.allVerified;
-                      const isReady = !needsPayment && !needsDocs && !needsSoftware;
-                      return (
-                        <Link
-                          key={student.id}
-                          href={`/admin/students/${student.id}`}
-                          className="flex items-center justify-between py-2 px-3 rounded-lg hover:bg-white/[0.03] transition-colors border-b border-white/[0.04] last:border-0"
-                        >
-                          <p className="text-sm text-text-secondary truncate">{student.user.name}</p>
-                          <div className="flex items-center gap-1.5 shrink-0 ml-3">
-                            {isReady ? (
-                              <span className="inline-flex px-1.5 py-0.5 rounded text-[10px] font-medium bg-green-500/10 text-green-400">Ready</span>
-                            ) : (
-                              <>
-                                {needsPayment && <span className="inline-flex px-1.5 py-0.5 rounded text-[10px] font-medium bg-red-500/10 text-red-400">Payment</span>}
-                                {needsDocs && <span className="inline-flex px-1.5 py-0.5 rounded text-[10px] font-medium bg-yellow-500/10 text-yellow-400">Docs</span>}
-                                {needsSoftware && <span className="inline-flex px-1.5 py-0.5 rounded text-[10px] font-medium bg-cyan/10 text-cyan">Software</span>}
-                              </>
-                            )}
-                          </div>
-                        </Link>
-                      );
-                    })}
-                  </div>
-                </div>
-              ))}
-          </div>
-        )}
+      <div className="space-y-4">
+        {/* WeeklySummaryCard removed per user request */}
+        <MyDayClient userName={session?.user?.name || ""} userRole={role} userId={userId} />
       </div>
     );
   }
+
 
   // ═══════════════════════════════════════════════════
   // TRAINER Dashboard
@@ -962,6 +694,8 @@ export default async function AdminDashboard() {
           <h1 className="text-2xl font-bold text-text-primary">Trainer Dashboard</h1>
           <p className="text-text-muted mt-1">Your batches and assessments</p>
         </div>
+
+        {/* WeeklySummaryCard removed per user request */}
 
         {/* Notification Banner */}
         <NotificationBanner
@@ -1198,7 +932,7 @@ export default async function AdminDashboard() {
       icon: Users,
       color: "text-neon-blue",
       bgColor: "bg-neon-blue/10",
-      href: "/admin/students",
+      href: "/admin/students?status=ACTIVE",
     },
     {
       label: "Leads This Week",
@@ -1222,7 +956,7 @@ export default async function AdminDashboard() {
       icon: TrendingUp,
       color: "text-neon-green",
       bgColor: "bg-neon-green/10",
-      href: "/admin/students",
+      href: "/admin/students?status=COMPLETED",
     },
     {
       label: "Upcoming Batches",
@@ -1230,7 +964,7 @@ export default async function AdminDashboard() {
       icon: Layers,
       color: "text-purple",
       bgColor: "bg-purple/10",
-      href: "/admin/batches",
+      href: "/admin/batches?status=UPCOMING",
     },
     {
       label: "Follow-ups Due",
@@ -1240,12 +974,12 @@ export default async function AdminDashboard() {
       color: data.followUpsDueTodayCount > 0 ? "text-red-400" : "text-text-muted",
       bgColor:
         data.followUpsDueTodayCount > 0 ? "bg-red-400/10" : "bg-white/[0.03]",
-      href: "/admin/leads?followUp=overdue",
+      href: "/admin/leads?followUp=today",
     },
   ];
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-4">
       {/* Header */}
       <div>
         <h1 className="text-2xl font-bold text-text-primary">Dashboard</h1>
@@ -1253,6 +987,140 @@ export default async function AdminDashboard() {
           Overview of your CRM and training operations
         </p>
       </div>
+
+      {/* Team Monthly Target — Weekly breakdown: 5/week, 20/month, 12 hard */}
+      {data.salesTeamPerformance && data.salesTeamPerformance.length > 0 && (() => {
+        const teamTotal = data.salesTeamPerformance.reduce((sum: number, t: any) => sum + (t.salesAchieved || 0), 0);
+        const monthlyTarget = 20;
+        const hardTarget = 12;
+        const weeklyTarget = 5;
+
+        const now = new Date();
+        const dayOfMonth = now.getDate();
+        const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+        const daysLeft = daysInMonth - dayOfMonth;
+        const currentWeek = Math.min(Math.ceil(dayOfMonth / 7), 4);
+        const expectedByNow = currentWeek * weeklyTarget;
+
+        // Status
+        const isHardMet = teamTotal >= hardTarget;
+        const isMonthlyMet = teamTotal >= monthlyTarget;
+        const isOnPace = teamTotal >= expectedByNow;
+        const isBehindHard = teamTotal < hardTarget && currentWeek >= 3;
+        const isCritical = teamTotal < hardTarget && daysLeft <= 7;
+
+        // Color logic
+        const mainColor = isMonthlyMet ? "text-green-400" : isHardMet ? "text-[#7BC142]" : isCritical ? "text-red-400" : isBehindHard ? "text-red-400" : isOnPace ? "text-[#7BC142]" : "text-yellow-400";
+        const barColor = isMonthlyMet ? "bg-green-500" : isHardMet ? "bg-[#7BC142]" : isCritical ? "bg-red-500" : isBehindHard ? "bg-red-500" : isOnPace ? "bg-[#7BC142]" : "bg-yellow-500";
+        const borderColor = isCritical ? "border-l-red-500" : isBehindHard ? "border-l-yellow-500" : isHardMet ? "border-l-[#7BC142]" : "";
+        const teamPct = Math.round((teamTotal / monthlyTarget) * 100);
+
+        // Weekly milestones
+        const weeks = [
+          { label: "Week 1", target: 5, achieved: Math.min(teamTotal, 5) },
+          { label: "Week 2", target: 5, achieved: Math.max(0, Math.min(teamTotal - 5, 5)) },
+          { label: "Week 3", target: 5, achieved: Math.max(0, Math.min(teamTotal - 10, 5)) },
+          { label: "Week 4", target: 5, achieved: Math.max(0, Math.min(teamTotal - 15, 5)) },
+        ];
+
+        return (
+          <div className={`glass-card p-5 ${borderColor ? `border-l-4 ${borderColor}` : ""}`}>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-sm font-semibold text-text-primary flex items-center gap-2">
+                <Target size={14} className={mainColor} />
+                Team Sales Target
+              </h2>
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] text-text-muted">Week {currentWeek} of 4</span>
+                <span className="text-[10px] text-text-muted">·</span>
+                <span className="text-[10px] text-text-muted">{daysLeft}d left</span>
+              </div>
+            </div>
+
+            {/* Main stats row */}
+            <div className="grid grid-cols-4 gap-3 mb-4">
+              <div className="p-3 rounded-lg bg-white/[0.03] text-center">
+                <p className="text-[9px] uppercase tracking-wider text-text-muted mb-1">Total</p>
+                <p className={`text-2xl font-bold font-mono ${mainColor}`}>{teamTotal}</p>
+                <p className="text-[10px] text-text-muted">/ {monthlyTarget}</p>
+              </div>
+              <div className={`p-3 rounded-lg text-center ${isHardMet ? "bg-green-500/5 border border-green-500/10" : isBehindHard ? "bg-red-500/5 border border-red-500/10" : "bg-white/[0.03]"}`}>
+                <p className="text-[9px] uppercase tracking-wider text-text-muted mb-1">Hard Target</p>
+                <p className={`text-2xl font-bold font-mono ${isHardMet ? "text-green-400" : isBehindHard ? "text-red-400" : "text-text-primary"}`}>{teamTotal}</p>
+                <p className="text-[10px] text-text-muted">/ {hardTarget}</p>
+              </div>
+              <div className={`p-3 rounded-lg text-center ${isOnPace ? "bg-[#7BC142]/5" : "bg-yellow-500/5"}`}>
+                <p className="text-[9px] uppercase tracking-wider text-text-muted mb-1">This Week</p>
+                <p className={`text-2xl font-bold font-mono ${isOnPace ? "text-[#7BC142]" : "text-yellow-400"}`}>{weeks[currentWeek - 1]?.achieved || 0}</p>
+                <p className="text-[10px] text-text-muted">/ {weeklyTarget}</p>
+              </div>
+              <div className="p-3 rounded-lg bg-white/[0.03] text-center">
+                <p className="text-[9px] uppercase tracking-wider text-text-muted mb-1">Remaining</p>
+                <p className={`text-2xl font-bold font-mono ${monthlyTarget - teamTotal <= 0 ? "text-green-400" : "text-text-primary"}`}>{Math.max(0, monthlyTarget - teamTotal)}</p>
+                <p className="text-[10px] text-text-muted">to go</p>
+              </div>
+            </div>
+
+            {/* Weekly milestone bars */}
+            <div className="grid grid-cols-4 gap-2 mb-3">
+              {weeks.map((w, i) => {
+                const wPct = Math.round((w.achieved / w.target) * 100);
+                const isCurrent = i + 1 === currentWeek;
+                const isPast = i + 1 < currentWeek;
+                const wColor = w.achieved >= w.target ? "bg-green-500" : isPast && w.achieved < w.target ? "bg-red-500" : isCurrent ? "bg-yellow-500" : "bg-white/[0.08]";
+                return (
+                  <div key={w.label} className={`rounded-lg p-2 ${isCurrent ? "border border-white/[0.1] bg-white/[0.02]" : ""}`}>
+                    <div className="flex items-center justify-between mb-1">
+                      <span className={`text-[10px] ${isCurrent ? "text-text-primary font-medium" : "text-text-muted"}`}>{w.label}</span>
+                      <span className="text-[10px] font-mono text-text-muted">{w.achieved}/{w.target}</span>
+                    </div>
+                    <div className="w-full h-2 bg-white/[0.06] rounded-full overflow-hidden">
+                      <div className={`h-full rounded-full transition-all ${wColor}`} style={{ width: `${Math.min(wPct, 100)}%` }} />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Overall progress bar */}
+            <div className="w-full h-2 bg-white/[0.06] rounded-full overflow-hidden mb-2 relative">
+              <div className={`h-full rounded-full transition-all ${barColor}`} style={{ width: `${Math.min(teamPct, 100)}%` }} />
+              {/* Hard target marker at 60% */}
+              <div className="absolute top-0 h-full border-r-2 border-dashed border-white/20" style={{ left: "60%" }} />
+            </div>
+            <div className="flex items-center justify-between text-[10px] text-text-muted">
+              <span>{teamPct}% of monthly target</span>
+              <span className="flex items-center gap-1">
+                <span className="w-1 h-3 border-r border-dashed border-white/20" /> Hard target (60%)
+              </span>
+            </div>
+
+            {/* Status message */}
+            {isCritical && !isHardMet && (
+              <div className="flex items-center gap-2 mt-3 p-2.5 rounded-lg bg-red-500/10 border border-red-500/20">
+                <AlertTriangle size={14} className="text-red-400 shrink-0" />
+                <p className="text-[11px] text-red-400 font-medium">
+                  CRITICAL: {hardTarget - teamTotal} more sales needed in {daysLeft} days to meet hard target. This affects everyone&apos;s performance.
+                </p>
+              </div>
+            )}
+            {isBehindHard && !isCritical && !isHardMet && (
+              <div className="flex items-center gap-2 mt-3 p-2 rounded-lg bg-yellow-500/5 border border-yellow-500/15">
+                <AlertTriangle size={14} className="text-yellow-400 shrink-0" />
+                <p className="text-[11px] text-yellow-400">Behind pace — expected {expectedByNow} by week {currentWeek}, currently at {teamTotal}.</p>
+              </div>
+            )}
+            {isOnPace && !isMonthlyMet && isHardMet && (
+              <p className="text-[11px] text-[#7BC142] mt-2">✓ Hard target met! On pace for full target — keep going.</p>
+            )}
+            {isMonthlyMet && (
+              <p className="text-[11px] text-green-400 mt-2">🎯 Monthly target achieved! Outstanding work.</p>
+            )}
+
+            {/* Individual breakdown removed — team target only */}
+          </div>
+        );
+      })()}
 
       {/* Notification Banner */}
       <NotificationBanner
@@ -1264,12 +1132,43 @@ export default async function AdminDashboard() {
         ]}
       />
 
+      {/* 7-Day Follow-Up Forecast */}
+      {data.followUpForecast && data.followUpForecast.some((d: any) => d.count > 0) && (
+        <div className="glass-card p-5">
+          <h2 className="text-sm font-semibold text-text-primary mb-3 flex items-center gap-2">
+            <Calendar size={16} className="text-neon-blue" />
+            Follow-Up Forecast (Next 7 Days)
+          </h2>
+          <div className="grid grid-cols-7 gap-2">
+            {data.followUpForecast.map((day: any, i: number) => (
+              <div
+                key={i}
+                className={`text-center p-2.5 rounded-lg border transition-all ${
+                  day.isToday ? "border-neon-blue/30 bg-neon-blue/10"
+                    : day.count > 0 ? "border-white/[0.08] bg-white/[0.03]"
+                    : "border-white/[0.04] bg-white/[0.01] opacity-50"
+                }`}
+              >
+                <p className="text-[10px] text-text-muted">{day.label}</p>
+                <p className={`text-lg font-bold font-mono ${day.isToday ? "text-neon-blue" : day.count > 0 ? "text-text-primary" : "text-text-muted"}`}>
+                  {day.count}
+                </p>
+                {day.isToday && <p className="text-[9px] text-neon-blue font-medium">Today</p>}
+              </div>
+            ))}
+          </div>
+          <p className="text-[11px] text-text-muted mt-2">
+            Total this week: {data.followUpForecast.reduce((sum: number, d: any) => sum + d.count, 0)} follow-ups across all counsellors
+          </p>
+        </div>
+      )}
+
       {/* KPI Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {kpis.map((kpi) => {
           const Icon = kpi.icon;
           return (
-            <Link key={kpi.label} href={kpi.href} className="glass-card p-5 hover:border-neon-blue/20 hover:scale-[1.02] transition-all cursor-pointer">
+            <Link key={kpi.label} href={kpi.href} className="glass-card p-5 hover:border-neon-blue/20 transition-all cursor-pointer">
               <div className="flex items-start justify-between">
                 <div>
                   <p className="text-text-muted text-sm">{kpi.label}</p>
@@ -1291,29 +1190,26 @@ export default async function AdminDashboard() {
         })}
       </div>
 
-      {/* Conversion Funnel */}
-      <ConversionFunnel />
-
       {/* Pending Actions */}
       <div className="glass-card p-5">
         <h2 className="text-lg font-semibold text-text-primary mb-4">Pending Actions</h2>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-          <Link href="/admin/students?status=ONBOARDING" className="flex flex-col items-center p-4 rounded-lg bg-white/[0.02] hover:bg-white/[0.05] transition-colors border border-white/[0.04] hover:border-neon-blue/20 hover:scale-[1.02]">
+          <Link href="/admin/students?status=ONBOARDING" className="flex flex-col items-center p-4 rounded-lg bg-white/[0.02] hover:bg-white/[0.05] transition-colors border border-white/[0.04] hover:border-neon-blue/20">
             <ClipboardCheck size={24} className="text-yellow-400 mb-2" />
             <p className="text-2xl font-bold text-text-primary">{data.onboardingStudents}</p>
             <p className="text-xs text-text-muted text-center mt-1">Students Onboarding</p>
           </Link>
-          <Link href="/admin/students" className="flex flex-col items-center p-4 rounded-lg bg-white/[0.02] hover:bg-white/[0.05] transition-colors border border-white/[0.04] hover:border-neon-blue/20 hover:scale-[1.02]">
+          <Link href="/admin/students" className="flex flex-col items-center p-4 rounded-lg bg-white/[0.02] hover:bg-white/[0.05] transition-colors border border-white/[0.04] hover:border-neon-blue/20">
             <FileCheck size={24} className="text-cyan mb-2" />
             <p className="text-2xl font-bold text-text-primary">{data.pendingDocs}</p>
             <p className="text-xs text-text-muted text-center mt-1">Docs Pending Review</p>
           </Link>
-          <Link href="/admin/assessments" className="flex flex-col items-center p-4 rounded-lg bg-white/[0.02] hover:bg-white/[0.05] transition-colors border border-white/[0.04] hover:border-neon-blue/20 hover:scale-[1.02]">
+          <Link href="/admin/assessments" className="flex flex-col items-center p-4 rounded-lg bg-white/[0.02] hover:bg-white/[0.05] transition-colors border border-white/[0.04] hover:border-neon-blue/20">
             <Code size={24} className="text-neon-green mb-2" />
             <p className="text-2xl font-bold text-text-primary">{data.pendingProjects}</p>
             <p className="text-xs text-text-muted text-center mt-1">Ungraded Projects</p>
           </Link>
-          <Link href="/admin/assessments" className="flex flex-col items-center p-4 rounded-lg bg-white/[0.02] hover:bg-white/[0.05] transition-colors border border-white/[0.04] hover:border-neon-blue/20 hover:scale-[1.02]">
+          <Link href="/admin/assessments" className="flex flex-col items-center p-4 rounded-lg bg-white/[0.02] hover:bg-white/[0.05] transition-colors border border-white/[0.04] hover:border-neon-blue/20">
             <BookOpen size={24} className="text-purple mb-2" />
             <p className="text-2xl font-bold text-text-primary">{data.ungradedAssessments}</p>
             <p className="text-xs text-text-muted text-center mt-1">Assessment Attempts</p>
@@ -1321,116 +1217,57 @@ export default async function AdminDashboard() {
         </div>
       </div>
 
-      {/* Follow-ups Due Today */}
-      {data.followUpsDueToday.length > 0 && (
-        <div className="glass-card p-5">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-text-primary flex items-center gap-2">
-              <Clock size={18} className="text-yellow-400" />
-              Follow-ups Due Today
-            </h2>
-            <Link href="/admin/leads" className="text-xs text-neon-blue hover:underline">View all leads</Link>
-          </div>
-          <div className="space-y-0">
-            {data.followUpsDueToday.map((lead: any) => (
-              <LeadRow key={lead.id} lead={lead} />
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Overdue Follow-ups */}
-      {data.overdueFollowUps.length > 0 && (
-        <div className="glass-card p-5">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-text-primary flex items-center gap-2">
-              <AlertTriangle size={18} className="text-red-400" />
-              Overdue Follow-ups
-            </h2>
-            <span className="inline-flex px-2.5 py-1 rounded-full text-xs font-medium bg-red-500/10 text-red-400">
-              {data.overdueFollowUps.length}
-            </span>
-          </div>
-          <div className="space-y-0">
-            {data.overdueFollowUps.map((lead: any) => (
-              <LeadRow key={lead.id} lead={lead} overdue />
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Sales Team Performance */}
-      {data.salesTeamPerformance.length > 0 && (
-        <div className="glass-card p-5">
-          <h2 className="text-lg font-semibold text-text-primary mb-4">
-            Sales Team Performance
-          </h2>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-white/[0.06]">
-                  <th className="text-left px-4 py-2 text-text-muted font-medium">Name</th>
-                  <th className="text-left px-4 py-2 text-text-muted font-medium">Sales Target</th>
-                  <th className="text-left px-4 py-2 text-text-muted font-medium">Achieved</th>
-                  <th className="text-left px-4 py-2 text-text-muted font-medium">Lead Target</th>
-                  <th className="text-left px-4 py-2 text-text-muted font-medium">Leads</th>
-                </tr>
-              </thead>
-              <tbody>
-                {data.salesTeamPerformance.map((st: any) => (
-                  <tr key={st.id} className="border-b border-white/[0.04]">
-                    <td className="px-4 py-2 text-text-primary">{st.employee?.user?.name || "Unknown"}</td>
-                    <td className="px-4 py-2 text-text-secondary">{st.salesTarget || 15}</td>
-                    <td className="px-4 py-2">
-                      <span className={st.salesAchieved >= (st.salesTarget || 15) ? "text-green-400" : "text-red-400"}>
-                        {st.salesAchieved || 0}
-                      </span>
-                    </td>
-                    <td className="px-4 py-2 text-text-secondary">{st.leadTarget || 50}</td>
-                    <td className="px-4 py-2 text-text-secondary">{st.leadsGenerated || 0}</td>
-                  </tr>
+      {/* Follow-ups Due Today & Overdue - Combined 2-column grid */}
+      {(data.followUpsDueToday.length > 0 || data.overdueFollowUps.length > 0) && (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          {data.followUpsDueToday.length > 0 && (
+            <div className="glass-card p-5">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-lg font-semibold text-text-primary flex items-center gap-2">
+                  <Clock size={18} className="text-yellow-400" />
+                  Follow-ups Due Today
+                </h2>
+                <Link href="/admin/leads?followUp=today" className="text-xs text-neon-blue hover:underline">View all</Link>
+              </div>
+              <div className="space-y-0">
+                {data.followUpsDueToday.map((lead: any) => (
+                  <LeadRow key={lead.id} lead={lead} />
                 ))}
-              </tbody>
-            </table>
-          </div>
+              </div>
+            </div>
+          )}
+
+          {data.overdueFollowUps.length > 0 && (
+            <div className="glass-card p-5">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-lg font-semibold text-text-primary flex items-center gap-2">
+                  <AlertTriangle size={18} className="text-red-400" />
+                  Overdue Follow-ups
+                </h2>
+                <Link href="/admin/leads?followUp=overdue" className="inline-flex px-2.5 py-1 rounded-full text-xs font-medium bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-colors">
+                  {data.overdueFollowUps.length} &rarr;
+                </Link>
+              </div>
+              <div className="space-y-0">
+                {data.overdueFollowUps.map((lead: any) => (
+                  <LeadRow key={lead.id} lead={lead} overdue />
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       )}
-
-      {/* Quick Actions */}
-      <div className="glass-card p-5">
-        <h2 className="text-lg font-semibold text-text-primary mb-4">
-          Quick Actions
-        </h2>
-        <div className="flex flex-wrap gap-3">
-          <Link
-            href="/admin/leads?action=add"
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-neon-blue/10 text-neon-blue border border-neon-blue/20 hover:bg-neon-blue/20 transition-colors text-sm font-medium"
-          >
-            <Plus size={16} />
-            Add Lead
-          </Link>
-          <Link
-            href="/admin/batches?action=create"
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-neon-green/10 text-neon-green border border-neon-green/20 hover:bg-neon-green/20 transition-colors text-sm font-medium"
-          >
-            <Layers size={16} />
-            Create Batch
-          </Link>
-          <Link
-            href="/admin/jobs?action=send"
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-purple/10 text-purple border border-purple/20 hover:bg-purple/20 transition-colors text-sm font-medium"
-          >
-            <Send size={16} />
-            Send Job Alert
-          </Link>
-        </div>
-      </div>
 
       {/* Recent Activity */}
       <div className="glass-card p-5">
-        <h2 className="text-lg font-semibold text-text-primary mb-4">
-          Recent Activity
-        </h2>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-semibold text-text-primary">
+            Recent Activity
+          </h2>
+          <Link href="/admin/audit" className="text-xs text-neon-blue hover:underline">
+            View all &rarr;
+          </Link>
+        </div>
         {data.recentActivity.length === 0 ? (
           <p className="text-text-muted text-sm">No recent activity</p>
         ) : (

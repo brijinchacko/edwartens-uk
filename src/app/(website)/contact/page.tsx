@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import {
   Send,
   CheckCircle,
@@ -54,8 +55,18 @@ export default function ContactPage() {
   return (
     <div className="pt-20">
       {/* Hero */}
-      <section className="mesh-gradient-hero py-24 sm:py-32 relative">
+      <section className="mesh-gradient-hero py-24 sm:py-32 relative overflow-hidden">
         <div className="dot-grid absolute inset-0 opacity-20" />
+        <div className="absolute inset-0 z-0">
+          <Image
+            src="/images/stock/modern-office.jpg"
+            alt="EDWartens UK office"
+            fill
+            className="object-cover opacity-15"
+            priority
+          />
+          <div className="absolute inset-0 bg-gradient-to-r from-[#0a0a14] via-[#0a0a14]/90 to-[#0a0a14]/70" />
+        </div>
         <div className="max-w-7xl mx-auto px-3 sm:px-5 lg:px-6 relative z-10">
           <p className="text-[11px] uppercase tracking-widest text-neon-blue mb-3">
             Contact
@@ -77,6 +88,21 @@ export default function ContactPage() {
           <div className="grid lg:grid-cols-5 gap-10">
             {/* Contact Info */}
             <div className="lg:col-span-2 space-y-6">
+              {/* Office Image */}
+              <div className="relative h-48 rounded-xl overflow-hidden border border-white/[0.06]">
+                <Image
+                  src="/images/stock/office-space.jpg"
+                  alt="EDWartens Milton Keynes office"
+                  fill
+                  className="object-cover"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a14]/80 to-transparent" />
+                <div className="absolute bottom-4 left-4">
+                  <p className="text-white font-semibold text-sm">Milton Keynes Office</p>
+                  <p className="text-text-secondary text-xs">8 Lyon Road, MK1 1EX</p>
+                </div>
+              </div>
+
               <div>
                 <h2 className="text-xl font-semibold text-white mb-6">
                   Contact Information

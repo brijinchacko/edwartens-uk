@@ -239,6 +239,7 @@ export default function ProjectPage() {
                           day: "numeric",
                           month: "short",
                           year: "numeric",
+                          timeZone: "Europe/London",
                         })}
                       </p>
                     </div>

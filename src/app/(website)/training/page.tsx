@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import {
   Monitor,
   MapPin,
@@ -259,8 +260,18 @@ export default function TrainingPage() {
   return (
     <div className="pt-20">
       {/* Hero */}
-      <section className="mesh-gradient-hero py-24 sm:py-32 relative">
+      <section className="mesh-gradient-hero py-24 sm:py-32 relative overflow-hidden">
         <div className="dot-grid absolute inset-0 opacity-20" />
+        <div className="absolute inset-0 z-0">
+          <Image
+            src="/images/stock/classroom-training.jpg"
+            alt="EDWartens classroom training facility"
+            fill
+            className="object-cover opacity-15"
+            priority
+          />
+          <div className="absolute inset-0 bg-gradient-to-r from-[#0a0a14] via-[#0a0a14]/90 to-[#0a0a14]/70" />
+        </div>
         <div className="max-w-7xl mx-auto px-3 sm:px-5 lg:px-6 relative z-10">
           <p className="text-[11px] uppercase tracking-widest text-neon-blue mb-3">
             Training
@@ -371,6 +382,20 @@ export default function TrainingPage() {
               Multiple Ways to{" "}
               <span className="gradient-text">Learn</span>
             </h2>
+          </div>
+
+          {/* Training Facility Image Strip */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-12">
+            {[
+              { src: "/images/stock/hands-on-training.jpg", alt: "Hands-on PLC training at EDWartens facility" },
+              { src: "/images/stock/plc-training.jpg", alt: "Students working with Siemens PLCs" },
+              { src: "/images/stock/students-learning.jpg", alt: "Interactive classroom learning environment" },
+            ].map((img) => (
+              <div key={img.src} className="relative h-48 rounded-xl overflow-hidden border border-white/[0.06]">
+                <Image src={img.src} alt={img.alt} fill className="object-cover" />
+                <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a14]/80 to-transparent" />
+              </div>
+            ))}
           </div>
 
           <div className="grid md:grid-cols-3 gap-6">
@@ -597,6 +622,21 @@ export default function TrainingPage() {
               Your Training{" "}
               <span className="gradient-text">Experience</span>
             </h2>
+          </div>
+
+          {/* Experience Image Banner */}
+          <div className="relative h-64 sm:h-80 rounded-2xl overflow-hidden mb-12 border border-white/[0.06]">
+            <Image
+              src="/images/stock/engineering-lab.jpg"
+              alt="EDWartens engineering lab and training equipment"
+              fill
+              className="object-cover"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a14] via-[#0a0a14]/50 to-transparent" />
+            <div className="absolute bottom-6 left-6 right-6">
+              <p className="text-white font-semibold text-lg">Our Training Facility</p>
+              <p className="text-text-secondary text-sm">Fully equipped with Siemens hardware, industrial panels, and simulation software</p>
+            </div>
           </div>
 
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { Clock, Award, Cpu, Brain, ArrowRight, Calendar, MapPin, Users } from "lucide-react";
 import type { Metadata } from "next";
 import { prisma } from "@/lib/prisma";
@@ -155,8 +156,18 @@ export default async function CoursesPage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
       />
       {/* Hero */}
-      <section className="mesh-gradient-hero py-24 sm:py-32 relative">
+      <section className="mesh-gradient-hero py-24 sm:py-32 relative overflow-hidden">
         <div className="dot-grid absolute inset-0 opacity-20" />
+        <div className="absolute inset-0 z-0">
+          <Image
+            src="/images/stock/plc-training.jpg"
+            alt="PLC training and automation courses"
+            fill
+            className="object-cover opacity-15"
+            priority
+          />
+          <div className="absolute inset-0 bg-gradient-to-r from-[#0a0a14] via-[#0a0a14]/90 to-[#0a0a14]/70" />
+        </div>
         <div className="max-w-7xl mx-auto px-3 sm:px-5 lg:px-6 relative z-10">
           <p className="text-[11px] uppercase tracking-widest text-neon-blue mb-3">Our Courses</p>
           <h1 className="text-4xl sm:text-6xl font-bold tracking-tight text-white mb-6">
@@ -204,8 +215,24 @@ export default async function CoursesPage() {
             return (
               <div
                 key={course.title}
-                className={`glass-card rounded-2xl p-8 sm:p-10 lg:p-12 ${course.featured ? "gradient-border" : ""}`}
+                className={`glass-card rounded-2xl overflow-hidden ${course.featured ? "gradient-border" : ""}`}
               >
+                {/* Course Image Banner */}
+                <div className="relative h-48 sm:h-56 w-full">
+                  <Image
+                    src={course.courseType === "PROFESSIONAL_MODULE" ? "/images/stock/industrial-control.jpg" : "/images/stock/programming.jpg"}
+                    alt={`${course.title} - ${course.subtitle}`}
+                    fill
+                    className="object-cover"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a14] via-[#0a0a14]/60 to-transparent" />
+                  <div className="absolute bottom-4 left-6 right-6">
+                    <span className={`inline-block px-3 py-1 rounded-full text-[11px] font-semibold ${course.featured ? "bg-gradient-to-r from-neon-blue to-neon-green text-dark-primary" : "bg-neon-blue/20 text-neon-blue border border-neon-blue/30"}`}>
+                      {course.courseType === "PROFESSIONAL_MODULE" ? "Most Popular" : "Advanced"}
+                    </span>
+                  </div>
+                </div>
+                <div className="p-8 sm:p-10 lg:p-12">
                 <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 lg:gap-12">
                   {/* Left column - 3 cols */}
                   <div className="lg:col-span-3 flex flex-col">
@@ -213,11 +240,6 @@ export default async function CoursesPage() {
                       <div className={`w-12 h-12 rounded-xl bg-${course.color}/10 flex items-center justify-center`}>
                         <Icon size={24} className={`text-${course.color}`} />
                       </div>
-                      {course.featured && (
-                        <span className="px-3 py-1 rounded-full bg-gradient-to-r from-neon-blue to-neon-green text-[11px] font-semibold text-dark-primary">
-                          Most Popular
-                        </span>
-                      )}
                     </div>
 
                     <h2 className="text-2xl sm:text-3xl font-bold text-white mb-1">{course.title}</h2>
@@ -316,6 +338,7 @@ export default async function CoursesPage() {
                       </div>
                     </div>
                   </div>
+                </div>
                 </div>
               </div>
             );

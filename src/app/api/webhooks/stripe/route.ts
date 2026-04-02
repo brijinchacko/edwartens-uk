@@ -3,6 +3,7 @@ import { stripe } from "@/lib/stripe";
 import { prisma } from "@/lib/prisma";
 import { generateTempPassword } from "@/lib/utils";
 import { generateInvoice } from "@/lib/invoice";
+import { notifyUser, notifyAdmins } from "@/lib/notify";
 import bcrypt from "bcryptjs";
 
 export async function POST(req: NextRequest) {
@@ -287,6 +288,61 @@ export async function POST(req: NextRequest) {
         } catch (invoiceError) {
           console.error("Invoice generation error:", invoiceError);
         }
+
+        // Auto-generate fallback invoice record if generateInvoice didn't create one
+        try {
+          const existingInvoice = await prisma.invoice.findFirst({
+            where: { studentId: student.id, paymentId },
+          });
+          if (!existingInvoice) {
+            const lastInv = await prisma.invoice.findFirst({
+              orderBy: { invoiceNumber: "desc" },
+            });
+            const seq =
+              parseInt(lastInv?.invoiceNumber?.split("-").pop() || "0") + 1;
+            const invoiceNumber = `EDW-INV-${new Date().getFullYear()}-${String(seq).padStart(5, "0")}`;
+            const amountPence = (session as any).amount_total || 0;
+            const netPence = Math.round(amountPence / 1.2);
+            const vatPence = amountPence - netPence;
+
+            await prisma.invoice.create({
+              data: {
+                invoiceNumber,
+                studentId: student.id,
+                paymentId,
+                date: new Date(),
+                dueDate: new Date(),
+                description: "Professional Module Training",
+                lineItems: JSON.stringify([
+                  {
+                    description:
+                      "Professional Module — PLC, SCADA & HMI Training",
+                    quantity: 1,
+                    unitPrice: netPence / 100,
+                    amount: netPence / 100,
+                  },
+                ]),
+                subtotal: netPence,
+                vatRate: 20,
+                vatAmount: vatPence,
+                total: amountPence,
+                status: "PAID",
+              },
+            });
+          }
+        } catch (fallbackInvErr) {
+          // Non-critical: don't fail the webhook
+          console.error("Fallback invoice creation error:", fallbackInvErr);
+        }
+
+        // Notifications
+        const amount = ((session as any).amount_total || 0) / 100;
+        const studentName = (session as any).metadata?.customerName || "A student";
+        const studentUser = await prisma.student.findUnique({ where: { id: student.id }, select: { userId: true } });
+        if (studentUser) {
+          await notifyUser(studentUser.userId, "Payment Confirmed", `Your payment of \u00A3${amount} has been received. Thank you!`, "PAYMENT", "/student/payments");
+        }
+        await notifyAdmins("Payment Received", `Payment of \u00A3${amount} received from ${studentName}.`, "/admin/invoices");
       }
     } catch (error) {
       console.error("Webhook processing error:", error);

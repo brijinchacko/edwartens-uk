@@ -61,7 +61,7 @@ The UK automation sector is experiencing a skills gap, which means qualified PLC
     readTime: "8 min read",
     publishedAt: "2025-06-10",
     author: "EDWartens UK Team",
-    image: "https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=1200&h=630&fit=crop",
+    image: "/images/blog/photo-1498050108023-c5249f4df085.jpg",
     seoKeywords: ["how to become a PLC engineer UK", "PLC engineer career path", "PLC engineer qualifications", "automation engineer UK", "PLC programming career"]
   },
   {
@@ -116,7 +116,7 @@ The UK government's push toward Industry 4.0, Net Zero targets, and reshoring of
     readTime: "7 min read",
     publishedAt: "2025-07-05",
     author: "Vaisakh Sankar",
-    image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=1200&h=630&fit=crop",
+    image: "/images/blog/photo-1507003211169-0a1dd7228f2d.jpg",
     seoKeywords: ["PLC engineer salary UK 2026", "automation engineer salary", "controls engineer pay", "PLC programmer salary", "UK engineering salaries"]
   },
   {
@@ -194,7 +194,7 @@ Preparation and authenticity win interviews. Combine strong technical knowledge 
     readTime: "8 min read",
     publishedAt: "2025-07-22",
     author: "EDWartens UK Team",
-    image: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=1200&h=630&fit=crop",
+    image: "/images/blog/photo-1573496359142-b8d87734a5a2.jpg",
     seoKeywords: ["automation engineer interview tips", "PLC engineer interview questions", "controls engineer interview", "engineering job interview", "automation job preparation"]
   },
   {
@@ -272,7 +272,7 @@ The most successful automation engineers combine hands-on experience with target
     readTime: "8 min read",
     publishedAt: "2025-08-14",
     author: "Vaisakh Sankar",
-    image: "https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=1200&h=630&fit=crop",
+    image: "/images/blog/photo-1519389950473-47ba0277781c.jpg",
     seoKeywords: ["best certifications automation engineers", "PLC certification UK", "Siemens certification", "automation engineer CPD", "controls engineer qualifications"]
   },
   {
@@ -352,7 +352,7 @@ A career in industrial automation offers stability, intellectual challenge, and 
     readTime: "9 min read",
     publishedAt: "2025-09-02",
     author: "EDWartens UK Team",
-    image: "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=1200&h=630&fit=crop",
+    image: "/images/blog/photo-1522202176988-66273c2fd55f.jpg",
     seoKeywords: ["career change industrial automation", "electrician to PLC engineer", "IT to automation engineer", "graduate automation jobs UK", "retrain as automation engineer"]
   },
   {
@@ -422,7 +422,7 @@ A strong CV combined with genuine technical ability opens doors. Invest the time
     readTime: "7 min read",
     publishedAt: "2025-09-18",
     author: "Vaisakh Sankar",
-    image: "https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=1200&h=630&fit=crop",
+    image: "/images/blog/photo-1517245386807-bb43f82c33c4.jpg",
     seoKeywords: ["CV tips automation engineers", "PLC engineer CV", "controls engineer resume", "automation engineer resume", "engineering CV advice UK"]
   },
   {
@@ -479,7 +479,7 @@ The engineers who thrive are those who enjoy learning continuously, communicatin
     readTime: "8 min read",
     publishedAt: "2025-10-06",
     author: "EDWartens UK Team",
-    image: "https://images.unsplash.com/photo-1552664730-d307ca884978?w=1200&h=630&fit=crop",
+    image: "/images/blog/photo-1552664730-d307ca884978.jpg",
     seoKeywords: ["day in the life PLC programmer", "PLC engineer daily work", "automation engineer routine", "what do PLC engineers do", "PLC commissioning day"]
   },
   {
@@ -563,7 +563,7 @@ The UK water industry alone is investing billions in SCADA infrastructure upgrad
     readTime: "8 min read",
     publishedAt: "2025-10-24",
     author: "Vaisakh Sankar",
-    image: "https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=1200&h=630&fit=crop",
+    image: "/images/blog/photo-1555066931-4365d14bab8c.jpg",
     seoKeywords: ["SCADA engineer career path", "SCADA engineer salary UK", "SCADA skills", "SCADA specialist", "industrial SCADA career"]
   },
   {
@@ -646,7 +646,7 @@ Freelancing offers flexibility and higher earnings, but also requires accepting 
     readTime: "9 min read",
     publishedAt: "2025-11-10",
     author: "EDWartens UK Team",
-    image: "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=1200&h=630&fit=crop",
+    image: "/images/blog/photo-1516321318423-f06f85e504b3.jpg",
     seoKeywords: ["freelance automation consultant", "automation contractor UK", "freelance PLC engineer", "automation day rates", "self-employed controls engineer"]
   },
   {
@@ -717,7 +717,7 @@ Creating a more inclusive automation industry benefits everyone — and it start
     readTime: "8 min read",
     publishedAt: "2025-11-28",
     author: "EDWartens UK Team",
-    image: "https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?w=1200&h=630&fit=crop",
+    image: "/images/blog/photo-1573497019940-1c28c88b4f3e.jpg",
     seoKeywords: ["women in engineering automation", "women in STEM UK", "diversity in automation", "female engineers UK", "women engineering careers"]
   },
   {
@@ -799,7 +799,7 @@ The investment in a graduate scheme pays dividends throughout your career, provi
     readTime: "8 min read",
     publishedAt: "2025-12-15",
     author: "Vaisakh Sankar",
-    image: "https://images.unsplash.com/photo-1531545514256-b1400bc00f31?w=1200&h=630&fit=crop",
+    image: "/images/blog/photo-1531545514256-b1400bc00f31.jpg",
     seoKeywords: ["graduate schemes automation UK", "automation graduate programme", "engineering graduate scheme 2026", "PLC graduate jobs", "graduate engineer automation"]
   },
   {
@@ -884,7 +884,7 @@ There is no wrong answer. Both routes produce excellent automation engineers whe
     readTime: "8 min read",
     publishedAt: "2026-01-08",
     author: "EDWartens UK Team",
-    image: "https://images.unsplash.com/photo-1504384308090-c894fdcc538d?w=1200&h=630&fit=crop",
+    image: "/images/blog/photo-1504384308090-c894fdcc538d.jpg",
     seoKeywords: ["apprenticeship vs degree automation", "automation apprenticeship UK", "engineering degree vs apprenticeship", "PLC apprenticeship", "degree apprenticeship engineering"]
   },
   {
@@ -978,7 +978,7 @@ A strong LinkedIn presence combined with genuine technical skills and a proactiv
     readTime: "7 min read",
     publishedAt: "2026-01-20",
     author: "Vaisakh Sankar",
-    image: "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=1200&h=630&fit=crop",
+    image: "/images/blog/photo-1486406146926-c627a92ad1ab.jpg",
     seoKeywords: ["LinkedIn profile tips engineers", "automation engineer LinkedIn", "PLC engineer LinkedIn profile", "engineering networking", "LinkedIn for engineers"]
   },
   {
@@ -1063,7 +1063,7 @@ The UK automation market is geographically distributed, meaning excellent opport
     readTime: "8 min read",
     publishedAt: "2026-01-30",
     author: "EDWartens UK Team",
-    image: "https://images.unsplash.com/photo-1497436072909-60f360e1d4b1?w=1200&h=630&fit=crop",
+    image: "/images/blog/photo-1497436072909-60f360e1d4b1.jpg",
     seoKeywords: ["top UK cities automation jobs", "best places PLC engineer jobs", "automation engineer locations UK", "engineering jobs by city", "UK automation hubs"]
   },
   {
@@ -1154,7 +1154,7 @@ Remote work in automation is a spectrum, not a binary choice. The most successfu
     readTime: "8 min read",
     publishedAt: "2026-02-08",
     author: "Vaisakh Sankar",
-    image: "https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=1200&h=630&fit=crop",
+    image: "/images/blog/photo-1550745165-9bc0b252726f.jpg",
     seoKeywords: ["remote work industrial automation", "hybrid working automation engineer", "work from home PLC engineer", "remote automation jobs", "flexible working engineering"]
   },
   {
@@ -1259,7 +1259,7 @@ Soft skills are not innate talents — they are developed through practice, feed
     readTime: "8 min read",
     publishedAt: "2026-02-18",
     author: "EDWartens UK Team",
-    image: "https://images.unsplash.com/photo-1553877522-43269d4ea984?w=1200&h=630&fit=crop",
+    image: "/images/blog/photo-1553877522-43269d4ea984.jpg",
     seoKeywords: ["soft skills automation engineers", "communication skills engineers", "engineering soft skills", "PLC engineer interpersonal skills", "automation teamwork"]
   },
   {
@@ -1359,7 +1359,7 @@ Investing in CPD is investing in yourself. The engineering profession evolves co
     readTime: "8 min read",
     publishedAt: "2026-03-01",
     author: "Vaisakh Sankar",
-    image: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=1200&h=630&fit=crop",
+    image: "/images/blog/photo-1460925895917-afdab827c52f.jpg",
     seoKeywords: ["CPD accreditation engineering", "CPD automation engineer", "continuing professional development", "CPD training UK", "engineering CPD benefits"]
   },
   {
@@ -1467,7 +1467,7 @@ Even a small, well-presented portfolio demonstrates professionalism and initiati
     readTime: "8 min read",
     publishedAt: "2026-03-15",
     author: "EDWartens UK Team",
-    image: "https://images.unsplash.com/photo-1537462715879-360eeb61a0ad?w=1200&h=630&fit=crop",
+    image: "/images/blog/photo-1537462715879-360eeb61a0ad.jpg",
     seoKeywords: ["PLC programmer portfolio", "automation engineer portfolio", "engineering project portfolio", "showcase PLC skills", "automation career portfolio"]
   }
 ];

@@ -235,7 +235,7 @@ export default function AdminFeedbackPage() {
                       &ldquo;{fb.testimonial}&rdquo;
                     </p>
                     <p className="text-xs text-text-muted mt-2">
-                      {new Date(fb.createdAt).toLocaleDateString()}
+                      {new Date(fb.createdAt).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: "Europe/London" })}
                     </p>
                   </div>
                   <button
@@ -318,7 +318,7 @@ export default function AdminFeedbackPage() {
                         </p>
                       </td>
                       <td className="px-4 py-3 text-xs text-text-muted whitespace-nowrap">
-                        {new Date(fb.createdAt).toLocaleDateString()}
+                        {new Date(fb.createdAt).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: "Europe/London" })}
                       </td>
                     </tr>
                   ))

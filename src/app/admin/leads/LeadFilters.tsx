@@ -67,6 +67,33 @@ export default function LeadFilters({ options }: { options: FilterOption }) {
         ))}
       </select>
 
+      {/* Category */}
+      <select
+        value={current("category")}
+        onChange={(e) => updateFilter("category", e.target.value)}
+        className="px-2.5 py-1.5 rounded-lg bg-white/[0.03] border border-white/[0.06] text-text-muted text-xs focus:border-neon-blue/40"
+      >
+        <option value="ALL">All Categories</option>
+        <option value="First Call">First Call</option>
+        <option value="Arranged Call">Arranged Call</option>
+        <option value="Completed Call">Completed Call</option>
+        <option value="Career Guidance Stage 1">Career Guidance Stage 1</option>
+        <option value="Career Guidance Stage 2">Career Guidance Stage 2</option>
+        <option value="Career Guidance Stage 3">Career Guidance Stage 3</option>
+        <option value="Batch Confirmed">Batch Confirmed</option>
+        <option value="Not Interested">Not Interested</option>
+        <option value="Not Interested from 1st Call">Not Interested from 1st Call</option>
+        <option value="Dropped">Dropped</option>
+        <option value="Enrolled">Enrolled</option>
+        <option value="In Training">In Training</option>
+        <option value="Offline Session">Offline Session</option>
+        <option value="Issuing Certificate">Issuing Certificate</option>
+        <option value="Job Support">Job Support</option>
+        <option value="Internship">Internship</option>
+        <option value="Projects">Projects</option>
+        <option value="Placed">Placed</option>
+      </select>
+
       {/* Follow-up */}
       <select
         value={current("followUp")}

@@ -71,10 +71,14 @@ const VIEW_TABS: { value: PipelineView; label: string }[] = [
 
 const STAGE_COLORS: Record<string, { bg: string; border: string; text: string; dot: string }> = {
   // Lead stages
-  NEW: { bg: "bg-blue-500/5", border: "border-blue-500/20", text: "text-blue-400", dot: "bg-blue-400" },
-  CONTACTED: { bg: "bg-cyan-500/5", border: "border-cyan-500/20", text: "text-cyan-400", dot: "bg-cyan-400" },
-  QUALIFIED: { bg: "bg-green-500/5", border: "border-green-500/20", text: "text-green-400", dot: "bg-green-400" },
-  ENROLLED: { bg: "bg-purple-500/5", border: "border-purple-500/20", text: "text-purple-400", dot: "bg-purple-400" },
+  NEW: { bg: "bg-slate-500/5", border: "border-slate-500/20", text: "text-slate-400", dot: "bg-slate-400" },
+  CONTACTED: { bg: "bg-blue-500/5", border: "border-blue-500/20", text: "text-blue-400", dot: "bg-blue-400" },
+  FIRST_CALL: { bg: "bg-cyan-500/5", border: "border-cyan-500/20", text: "text-cyan-400", dot: "bg-cyan-400" },
+  CONSULTATION_ARRANGED: { bg: "bg-purple-500/5", border: "border-purple-500/20", text: "text-purple-400", dot: "bg-purple-400" },
+  CONSULTATION_COMPLETED: { bg: "bg-indigo-500/5", border: "border-indigo-500/20", text: "text-indigo-400", dot: "bg-indigo-400" },
+  QUALIFIED: { bg: "bg-amber-500/5", border: "border-amber-500/20", text: "text-amber-400", dot: "bg-amber-400" },
+  REGISTERED: { bg: "bg-lime-500/5", border: "border-lime-500/20", text: "text-lime-400", dot: "bg-lime-400" },
+  ENROLLED: { bg: "bg-green-500/5", border: "border-green-500/20", text: "text-green-400", dot: "bg-green-400" },
   LOST: { bg: "bg-red-500/5", border: "border-red-500/20", text: "text-red-400", dot: "bg-red-400" },
   // Student stages
   ONBOARDING: { bg: "bg-indigo-500/5", border: "border-indigo-500/20", text: "text-indigo-400", dot: "bg-indigo-400" },
@@ -92,7 +96,11 @@ const STAGE_COLORS: Record<string, { bg: string; border: string; text: string; d
 const STAGE_LABELS: Record<string, string> = {
   NEW: "New",
   CONTACTED: "Contacted",
+  FIRST_CALL: "First Call",
+  CONSULTATION_ARRANGED: "Consultation Arranged",
+  CONSULTATION_COMPLETED: "Consultation Completed",
   QUALIFIED: "Qualified",
+  REGISTERED: "Registered",
   ENROLLED: "Enrolled",
   LOST: "Lost",
   ONBOARDING: "Onboarding",

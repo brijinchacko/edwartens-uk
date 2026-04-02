@@ -134,7 +134,7 @@ export async function POST(req: NextRequest) {
           data: {
             userId: student.user.id,
             title: "Practical Session Invitation",
-            message: `You have been invited to a practical session on ${new Date(date).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}. Please respond by accepting or declining.`,
+            message: `You have been invited to a practical session on ${new Date(date).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: "Europe/London" })}. Please respond by accepting or declining.`,
             type: "PRACTICAL_INVITE",
             link: "/student/practical",
           },

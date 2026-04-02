@@ -80,13 +80,14 @@ export async function POST(
         day: "2-digit",
         month: "short",
         year: "numeric",
+        timeZone: "Europe/London",
       });
       noteContent += `\nNext Follow-up: ${followDate}`;
       if (nextFollowUpMedium) {
         noteContent += ` via ${nextFollowUpMedium}`;
       }
     }
-    noteContent += `\n\u2014 Logged by ${createdBy} at ${new Date().toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" })}`;
+    noteContent += `\n\u2014 Logged by ${createdBy} at ${new Date().toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", timeZone: "Europe/London" })}`;
 
     // Create the lead note
     await prisma.leadNote.create({

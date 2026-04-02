@@ -202,8 +202,8 @@ export default async function SessionsPage() {
               width: `${progressPercent}%`,
               background:
                 progressPercent === 100
-                  ? "#92E02C"
-                  : "linear-gradient(90deg, #2891FF, #92E02C)",
+                  ? "#7BC142"
+                  : "linear-gradient(90deg, #2891FF, #7BC142)",
             }}
           />
         </div>

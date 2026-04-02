@@ -1,0 +1,9 @@
+CREATE TABLE "StickyNote" (
+  id TEXT NOT NULL PRIMARY KEY DEFAULT gen_random_uuid()::text,
+  "userId" TEXT NOT NULL REFERENCES "User"(id) ON DELETE CASCADE,
+  content TEXT NOT NULL DEFAULT '',
+  color TEXT NOT NULL DEFAULT 'yellow',
+  "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+CREATE INDEX idx_stickynote_user ON "StickyNote"("userId");
