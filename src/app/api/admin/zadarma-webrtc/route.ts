@@ -3,46 +3,6 @@ import { auth } from "@/lib/auth";
 import { isCrmRole } from "@/lib/rbac";
 import crypto from "crypto";
 
-function zadarmaSign(method: string, params: Record<string, string> = {}) {
-  const API_KEY = process.env.ZADARMA_API_KEY || "";
-  const API_SECRET = process.env.ZADARMA_API_SECRET || "";
-
-  // 1. Sort params alphabetically by key
-  const sortedKeys = Object.keys(params).sort();
-  // 2. Build query string (RFC 1738 encoding like PHP http_build_query)
-  const paramsStr = sortedKeys.map((k) => `${encodeURIComponent(k)}=${encodeURIComponent(params[k])}`).join("&");
-  // 3. MD5 of the params string
-  const md5Hash = crypto.createHash("md5").update(paramsStr).digest("hex");
-  // 4. Concatenate: method + paramsStr + md5(paramsStr)
-  const signStr = method + paramsStr + md5Hash;
-  // 5. HMAC-SHA1 with secret, base64 encode
-  const signature = crypto.createHmac("sha1", API_SECRET).update(signStr).digest("base64");
-
-  return { key: API_KEY, signature, paramsStr };
-}
-
-async function zadarmaRequest(method: string, httpMethod: string = "GET", params: Record<string, string> = {}) {
-  const API_KEY = process.env.ZADARMA_API_KEY || "";
-  const { signature, paramsStr } = zadarmaSign(method, params);
-
-  const url = httpMethod === "GET" && paramsStr
-    ? `https://api.zadarma.com${method}?${paramsStr}`
-    : `https://api.zadarma.com${method}`;
-
-  const headers: Record<string, string> = {
-    Authorization: `${API_KEY}:${signature}`,
-  };
-
-  const options: RequestInit = { method: httpMethod, headers };
-  if (httpMethod === "POST") {
-    headers["Content-Type"] = "application/x-www-form-urlencoded";
-    options.body = paramsStr;
-  }
-
-  const res = await fetch(url, options);
-  return res.json();
-}
-
 export async function GET() {
   try {
     const session = await auth();
@@ -61,27 +21,76 @@ export async function GET() {
       return NextResponse.json({ error: "Zadarma not configured" }, { status: 400 });
     }
 
-    // Try to get WebRTC key
-    const webrtcData = await zadarmaRequest("/v1/webrtc/get_key/");
+    // Zadarma signature algorithm:
+    // 1. Sort params by key (no params for this request)
+    // 2. paramsStr = http_build_query(sorted_params) => "" for no params
+    // 3. md5hash = md5(paramsStr)
+    // 4. signStr = methodPath + paramsStr + md5hash
+    // 5. signature = base64(hmac_sha1(signStr, secret))
+    // 6. Header: Authorization: key:signature
 
-    // If WebRTC endpoint fails, try getting SIP info as fallback
-    if (webrtcData.status === "error") {
-      // Try the basic info endpoint to verify credentials work
-      const sipData = await zadarmaRequest("/v1/info/balance/");
-      return NextResponse.json({
-        webrtc: webrtcData,
-        sip: sipData,
-        debug: {
-          keyPresent: !!API_KEY,
-          secretPresent: !!API_SECRET,
-          keyLength: API_KEY.length,
-        },
-      });
+    const method = "/v1/webrtc/get_key/";
+    const paramsStr = ""; // No params
+    const md5hash = crypto.createHash("md5").update(paramsStr).digest("hex");
+    const signStr = method + paramsStr + md5hash;
+    const signature = crypto.createHmac("sha1", API_SECRET).update(signStr).digest("base64");
+
+    const res = await fetch(`https://api.zadarma.com${method}`, {
+      method: "GET",
+      headers: {
+        Authorization: `${API_KEY}:${signature}`,
+      },
+    });
+
+    const data = await res.json();
+
+    if (data.status === "success") {
+      return NextResponse.json(data);
     }
 
-    return NextResponse.json(webrtcData);
+    // If the standard method fails, try alternative path formats
+    // Some Zadarma docs show without trailing slash
+    const method2 = "/v1/webrtc/get_key";
+    const signStr2 = method2 + paramsStr + md5hash;
+    const signature2 = crypto.createHmac("sha1", API_SECRET).update(signStr2).digest("base64");
+
+    const res2 = await fetch(`https://api.zadarma.com${method2}`, {
+      method: "GET",
+      headers: {
+        Authorization: `${API_KEY}:${signature2}`,
+      },
+    });
+
+    const data2 = await res2.json();
+
+    if (data2.status === "success") {
+      return NextResponse.json(data2);
+    }
+
+    // Try /v1/info/balance/ to verify if credentials work at all
+    const balanceMethod = "/v1/info/balance/";
+    const balanceSign = crypto.createHmac("sha1", API_SECRET)
+      .update(balanceMethod + paramsStr + md5hash)
+      .digest("base64");
+
+    const balanceRes = await fetch(`https://api.zadarma.com${balanceMethod}`, {
+      headers: { Authorization: `${API_KEY}:${balanceSign}` },
+    });
+
+    const balanceData = await balanceRes.json();
+
+    return NextResponse.json({
+      webrtc_with_slash: data,
+      webrtc_without_slash: data2,
+      balance_test: balanceData,
+      debug: {
+        key: API_KEY.substring(0, 6) + "...",
+        secretLength: API_SECRET.length,
+        signExample: signStr.substring(0, 50) + "...",
+      },
+    });
   } catch (error) {
     console.error("WebRTC key error:", error);
-    return NextResponse.json({ error: "Failed to get WebRTC key" }, { status: 500 });
+    return NextResponse.json({ error: "Failed to get WebRTC key", detail: String(error) }, { status: 500 });
   }
 }
