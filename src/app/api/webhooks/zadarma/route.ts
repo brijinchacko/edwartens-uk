@@ -60,6 +60,9 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    // Determine direction
+    const isOutbound = event.startsWith("NOTIFY_OUT");
+
     // Try to match CRM employee by their Zadarma number
     let crmUserId: string | null = null;
     const employeePhone = isOutbound ? callerNormalized : calledNormalized;
@@ -78,7 +81,6 @@ export async function POST(req: NextRequest) {
     }
 
     // Determine direction and status
-    const isOutbound = event.startsWith("NOTIFY_OUT");
     const direction = event === "NOTIFY_INTERNAL" ? "INTERNAL" : isOutbound ? "OUTBOUND" : "INBOUND";
 
     let status: "RINGING" | "ANSWERED" | "MISSED" | "BUSY" | "FAILED" = "RINGING";
