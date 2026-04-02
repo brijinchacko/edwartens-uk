@@ -47,6 +47,34 @@ export default async function AdminLayout({
           </div>
         </main>
         <NewLeadPopup userRole={userRole} />
+        {/* Zadarma WebRTC Phone Widget */}
+        <script src="https://my.zadarma.com/webphoneWebRTCWidget/v9/js/loader-phone-lib.js?sub_v=1" async />
+        <script src="https://my.zadarma.com/webphoneWebRTCWidget/v9/js/loader-phone-fn.js?sub_v=1" async />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+if (window.addEventListener) {
+  window.addEventListener('load', function() {
+    fetch('/api/admin/zadarma-webrtc')
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        if (data.key) {
+          zadarmaWidgetFn(
+            data.key,
+            data.sip || '',
+            'square',
+            'en',
+            true,
+            {right:'10px',bottom:'5px'}
+          );
+        }
+      })
+      .catch(function(e) { console.log('Zadarma widget init skipped:', e); });
+  }, false);
+}
+`,
+          }}
+        />
       </div>
     </ThemeProvider>
   );
