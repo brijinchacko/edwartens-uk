@@ -560,8 +560,16 @@ async function main() {
   // 11. Sample sales targets and incentives
   // ---------------------------------------------------------------------------
   const now = new Date();
-  await prisma.salesTarget.create({
-    data: {
+  await prisma.salesTarget.upsert({
+    where: {
+      employeeId_month_year: {
+        employeeId: salesLeadEmployee.id,
+        month: now.getMonth() + 1,
+        year: now.getFullYear(),
+      },
+    },
+    update: {},
+    create: {
       employeeId: salesLeadEmployee.id,
       month: now.getMonth() + 1,
       year: now.getFullYear(),
@@ -572,8 +580,16 @@ async function main() {
     },
   });
 
-  await prisma.salesIncentive.create({
-    data: {
+  await prisma.salesIncentive.upsert({
+    where: {
+      employeeId_month_year: {
+        employeeId: salesLeadEmployee.id,
+        month: now.getMonth() + 1,
+        year: now.getFullYear(),
+      },
+    },
+    update: {},
+    create: {
       employeeId: salesLeadEmployee.id,
       month: now.getMonth() + 1,
       year: now.getFullYear(),
