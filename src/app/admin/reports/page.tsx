@@ -13,7 +13,7 @@ export default async function ReportsPage() {
   if (!session?.user) redirect("/login");
 
   const role = (session.user as { role?: string }).role;
-  if (!role || !["SUPER_ADMIN", "ADMIN"].includes(role)) {
+  if (!role || !["SUPER_ADMIN", "ADMIN", "HR_MANAGER"].includes(role)) {
     redirect("/admin/dashboard");
   }
 

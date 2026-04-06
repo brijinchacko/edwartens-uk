@@ -199,11 +199,33 @@ model Employee {
   kpis                 EmployeeKPI[]
   goals                PerformanceGoal[]
 
+  documents            EmployeeDocument[]
+
   // Microsoft Outlook integration (per-user OAuth)
   msAccessToken    String?
   msRefreshToken   String?
   msTokenExpiry    DateTime?
   msEmail          String?  // Their connected Outlook email
+}
+
+model EmployeeDocument {
+  id           String   @id @default(cuid())
+  employeeId   String
+  employee     Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  name         String   // Document title (e.g. "Offer Letter", "ID Proof")
+  category     String   @default("GENERAL") // IDENTITY, CONTRACT, CERTIFICATE, PAYSLIP, OTHER
+  fileUrl      String
+  fileSize     Int?
+  mimeType     String?
+  uploadedBy   String   // User ID of uploader
+  uploaderName String?
+  notes        String?
+  expiryDate   DateTime?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([employeeId])
+  @@index([category])
 }
 
 model EmployeeWorkSession {
@@ -1119,4 +1141,33 @@ model CallLog {
   @@index([callerNumber])
   @@index([calledNumber])
   @@index([startedAt])
+}
+
+model PageView {
+  id         String   @id @default(cuid())
+  path       String
+  referrer   String?
+  referrerHost String?
+  utmSource  String?
+  utmMedium  String?
+  utmCampaign String?
+  country    String?
+  countryCode String?
+  city       String?
+  region     String?
+  device     String?  // mobile, tablet, desktop
+  browser    String?
+  os         String?
+  userAgent  String?
+  ipHash     String?  // SHA-256 of IP (privacy-preserving)
+  sessionId  String?
+  userId     String?
+  createdAt  DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([path])
+  @@index([country])
+  @@index([referrerHost])
+  @@index([sessionId])
+  @@index([utmSource])
 }

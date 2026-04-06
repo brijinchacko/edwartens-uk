@@ -20,6 +20,10 @@ import {
   AlertTriangle,
   Loader2,
   ChevronDown,
+  Edit3,
+  Save,
+  X,
+  Target,
 } from "lucide-react";
 import Leaderboard from "@/components/Leaderboard";
 import ActivityHeatmap from "@/components/ActivityHeatmap";
@@ -145,7 +149,7 @@ export default function KPIDashboardClient({
   userRole,
   userName,
 }: KPIDashboardClientProps) {
-  const isAdmin = ["SUPER_ADMIN", "ADMIN"].includes(userRole);
+  const isAdmin = ["SUPER_ADMIN", "ADMIN", "HR_MANAGER"].includes(userRole);
 
   const [period, setPeriod] = useState<PeriodKey>("today");
   const [selectedEmployee, setSelectedEmployee] = useState<string>(
@@ -158,6 +162,13 @@ export default function KPIDashboardClient({
   const [loadingStats, setLoadingStats] = useState(true);
   const [loadingTrend, setLoadingTrend] = useState(true);
   const [loadingAlerts, setLoadingAlerts] = useState(true);
+
+  // Sales targets state
+  const [targets, setTargets] = useState<any[]>([]);
+  const [loadingTargets, setLoadingTargets] = useState(false);
+  const [editingTarget, setEditingTarget] = useState<string | null>(null);
+  const [editForm, setEditForm] = useState({ salesTarget: 0, leadTarget: 0, hardTarget: 0 });
+  const [savingTarget, setSavingTarget] = useState(false);
 
   /* Fetch employee list for admins */
   useEffect(() => {
@@ -287,6 +298,66 @@ export default function KPIDashboardClient({
   useEffect(() => {
     fetchAlerts();
   }, [fetchAlerts]);
+
+  /* Fetch sales targets (admins only) */
+  const fetchTargets = useCallback(async () => {
+    if (!isAdmin) return;
+    setLoadingTargets(true);
+    try {
+      const now = new Date();
+      const month = now.getMonth() + 1;
+      const year = now.getFullYear();
+      const params = new URLSearchParams({ month: String(month), year: String(year) });
+      if (selectedEmployee) params.set("employeeId", selectedEmployee);
+      const res = await fetch(`/api/admin/sales-targets?${params}`);
+      if (res.ok) {
+        const json = await res.json();
+        setTargets(json.targets ?? []);
+      }
+    } catch {
+      // silent
+    } finally {
+      setLoadingTargets(false);
+    }
+  }, [isAdmin, selectedEmployee]);
+
+  useEffect(() => {
+    fetchTargets();
+  }, [fetchTargets]);
+
+  const handleEditTarget = (t: any) => {
+    setEditingTarget(t.employeeId);
+    setEditForm({
+      salesTarget: t.salesTarget,
+      leadTarget: t.leadTarget,
+      hardTarget: t.hardTarget,
+    });
+  };
+
+  const handleSaveTarget = async (employeeId: string) => {
+    setSavingTarget(true);
+    try {
+      const now = new Date();
+      const res = await fetch("/api/admin/sales-targets", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          employeeId,
+          month: now.getMonth() + 1,
+          year: now.getFullYear(),
+          ...editForm,
+        }),
+      });
+      if (res.ok) {
+        setEditingTarget(null);
+        fetchTargets();
+      }
+    } catch {
+      // silent
+    } finally {
+      setSavingTarget(false);
+    }
+  };
 
   /* ────────────── Render */
   return (
@@ -534,6 +605,131 @@ export default function KPIDashboardClient({
 
       {/* ─── Heatmap Row ─── */}
       <ActivityHeatmap employeeId={selectedEmployee || (isAdmin ? undefined : userId)} />
+
+      {/* ─── Sales Targets (Admins) ─── */}
+      {isAdmin && (
+        <div className="glass-card p-5 animate-slideUp">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-sm font-semibold text-text-primary flex items-center gap-2">
+              <Target size={16} className="text-neon-green" />
+              Sales Targets ({new Date().toLocaleDateString("en-GB", { month: "long", year: "numeric" })})
+            </h3>
+          </div>
+          {loadingTargets ? (
+            <div className="flex items-center justify-center py-8">
+              <Loader2 size={20} className="animate-spin text-text-muted" />
+            </div>
+          ) : targets.length === 0 ? (
+            <div className="text-center py-8 text-text-muted text-sm">
+              No targets set for this month
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="text-xs text-text-muted border-b border-white/[0.06]">
+                    <th className="text-left py-2 px-3">Employee</th>
+                    <th className="text-center py-2 px-3">Sales Target</th>
+                    <th className="text-center py-2 px-3">Achieved</th>
+                    <th className="text-center py-2 px-3">Lead Target</th>
+                    <th className="text-center py-2 px-3">Leads Gen.</th>
+                    <th className="text-center py-2 px-3">Hard Target</th>
+                    <th className="text-center py-2 px-3">Hard Achieved</th>
+                    <th className="text-center py-2 px-3">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {targets.map((t: any) => (
+                    <tr key={t.id} className="border-b border-white/[0.04] last:border-0 hover:bg-white/[0.02]">
+                      <td className="py-2 px-3 text-text-primary font-medium">
+                        {t.employee?.user?.name || "Unknown"}
+                      </td>
+                      {editingTarget === t.employeeId ? (
+                        <>
+                          <td className="py-2 px-3 text-center">
+                            <input
+                              type="number"
+                              value={editForm.salesTarget}
+                              onChange={(e) => setEditForm({ ...editForm, salesTarget: parseInt(e.target.value) || 0 })}
+                              className="w-16 bg-white/[0.05] border border-white/[0.1] rounded px-2 py-1 text-center text-xs text-text-primary focus:outline-none focus:border-neon-blue/40"
+                            />
+                          </td>
+                          <td className="py-2 px-3 text-center text-text-muted">{t.salesAchieved || 0}</td>
+                          <td className="py-2 px-3 text-center">
+                            <input
+                              type="number"
+                              value={editForm.leadTarget}
+                              onChange={(e) => setEditForm({ ...editForm, leadTarget: parseInt(e.target.value) || 0 })}
+                              className="w-16 bg-white/[0.05] border border-white/[0.1] rounded px-2 py-1 text-center text-xs text-text-primary focus:outline-none focus:border-neon-blue/40"
+                            />
+                          </td>
+                          <td className="py-2 px-3 text-center text-text-muted">{t.leadsGenerated || 0}</td>
+                          <td className="py-2 px-3 text-center">
+                            <input
+                              type="number"
+                              value={editForm.hardTarget}
+                              onChange={(e) => setEditForm({ ...editForm, hardTarget: parseInt(e.target.value) || 0 })}
+                              className="w-16 bg-white/[0.05] border border-white/[0.1] rounded px-2 py-1 text-center text-xs text-text-primary focus:outline-none focus:border-neon-blue/40"
+                            />
+                          </td>
+                          <td className="py-2 px-3 text-center text-text-muted">{t.hardAchieved || 0}</td>
+                          <td className="py-2 px-3 text-center">
+                            <div className="flex items-center justify-center gap-1">
+                              <button
+                                onClick={() => handleSaveTarget(t.employeeId)}
+                                disabled={savingTarget}
+                                className="p-1 rounded hover:bg-green-500/20 text-green-400 transition-colors"
+                              >
+                                {savingTarget ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
+                              </button>
+                              <button
+                                onClick={() => setEditingTarget(null)}
+                                className="p-1 rounded hover:bg-red-500/20 text-red-400 transition-colors"
+                              >
+                                <X size={14} />
+                              </button>
+                            </div>
+                          </td>
+                        </>
+                      ) : (
+                        <>
+                          <td className="py-2 px-3 text-center text-text-secondary">{t.salesTarget}</td>
+                          <td className="py-2 px-3 text-center">
+                            <span className={t.salesAchieved >= t.salesTarget ? "text-green-400" : "text-text-muted"}>
+                              {t.salesAchieved || 0}
+                            </span>
+                          </td>
+                          <td className="py-2 px-3 text-center text-text-secondary">{t.leadTarget}</td>
+                          <td className="py-2 px-3 text-center">
+                            <span className={t.leadsGenerated >= t.leadTarget ? "text-green-400" : "text-text-muted"}>
+                              {t.leadsGenerated || 0}
+                            </span>
+                          </td>
+                          <td className="py-2 px-3 text-center text-text-secondary">{t.hardTarget}</td>
+                          <td className="py-2 px-3 text-center">
+                            <span className={t.hardAchieved >= t.hardTarget ? "text-green-400" : "text-text-muted"}>
+                              {t.hardAchieved || 0}
+                            </span>
+                          </td>
+                          <td className="py-2 px-3 text-center">
+                            <button
+                              onClick={() => handleEditTarget(t)}
+                              className="p-1 rounded hover:bg-neon-blue/20 text-neon-blue transition-colors"
+                              title="Edit target"
+                            >
+                              <Edit3 size={14} />
+                            </button>
+                          </td>
+                        </>
+                      )}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* ─── Bottom Row ─── */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">

@@ -45,6 +45,8 @@ import {
   Activity,
   Send,
   Monitor,
+  TrendingUp,
+  ClipboardList,
   User,
 } from "lucide-react";
 import { getInitials } from "@/lib/utils";
@@ -137,6 +139,8 @@ const ADMIN_NAV_GROUPS: NavGroup[] = [
     icon: Cog,
     items: [
       { id: "monitoring", href: "/admin/monitoring", label: "Monitoring", icon: Monitor },
+      { id: "analytics", href: "/admin/analytics", label: "Site Analytics", icon: TrendingUp },
+      { id: "attendance", href: "/admin/attendance", label: "Attendance", icon: ClipboardList },
     ],
   },
 ];

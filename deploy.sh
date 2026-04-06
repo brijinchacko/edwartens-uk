@@ -1,228 +1,153 @@
 #!/bin/bash
+# ═══════════════════════════════════════════════════════
+# EDWartens UK - Production Deploy Script
+# Server: root@72.62.230.223 | App: PM2 edwartens-uk
+# ═══════════════════════════════════════════════════════
+#
+# Usage: ./deploy.sh
+#
+# What this does:
+#   1. Builds locally to catch errors before deploying
+#   2. Syncs source files (excludes .next, node_modules, .env, uploads)
+#   3. Safety checks (removes rogue app/ dir, verifies route count)
+#   4. Rebuilds on server with clean .next
+#   5. Restarts PM2 and verifies key routes
+#
+# Root cause this prevents:
+#   - Rogue app/ directory at root (Next.js prefers app/ over src/app/)
+#   - Corrupted .next from cross-platform rsync (macOS -> Linux)
+#   - Deploying broken code (local build check first)
+
 set -e
 
-echo "=========================================="
-echo "  EDWartens UK - Deployment Script"
-echo "=========================================="
-
-# Configuration
-APP_DIR="/var/www/edwartens-uk"
-APP_PORT=3006
+# ─── Configuration ───
+SERVER="root@72.62.230.223"
+PASS='@@Warterh616'
+REMOTE_DIR="/var/www/edwartens-uk"
 APP_NAME="edwartens-uk"
-DOMAIN="edwartens.co.uk"
-REPO_URL="https://github.com/brijinchacko/edwartens-uk.git"
 
-# Colors
 GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
 RED='\033[0;31m'
+YELLOW='\033[1;33m'
 NC='\033[0m'
 
-log() { echo -e "${GREEN}[✓]${NC} $1"; }
-warn() { echo -e "${YELLOW}[!]${NC} $1"; }
-err() { echo -e "${RED}[✗]${NC} $1"; }
+log()  { echo -e "${GREEN}[OK]${NC} $1"; }
+warn() { echo -e "${YELLOW}[!!]${NC} $1"; }
+err()  { echo -e "${RED}[FAIL]${NC} $1"; exit 1; }
 
-# Step 1: Check prerequisites
 echo ""
-echo "Step 1: Checking prerequisites..."
+echo "═══════════════════════════════════════"
+echo "  EDWartens UK - Deploy to Production"
+echo "═══════════════════════════════════════"
+echo ""
 
-if ! command -v node &> /dev/null; then
-    warn "Node.js not found. Installing Node.js 20..."
-    curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
-    apt-get install -y nodejs
+# ─── Step 1: Local build ───
+echo "[1/5] Building locally..."
+npx next build 2>&1 | tail -3
+LOCAL_ROUTES=$(cat .next/server/app-paths-manifest.json 2>/dev/null | python3 -c 'import json,sys;d=json.load(sys.stdin);print(len(d))' 2>/dev/null || echo "0")
+if [ "$LOCAL_ROUTES" -lt 50 ]; then
+  err "Local build has only $LOCAL_ROUTES routes. Expected 200+. Fix build errors first."
 fi
+log "Local build OK ($LOCAL_ROUTES routes)"
 
-NODE_VERSION=$(node -v | cut -d'v' -f2 | cut -d'.' -f1)
-if [ "$NODE_VERSION" -lt 18 ]; then
-    err "Node.js 18+ required. Current: $(node -v). Upgrading..."
-    curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
-    apt-get install -y nodejs
-fi
-log "Node.js $(node -v)"
+# ─── Step 2: Sync source files ───
+echo "[2/5] Syncing source to server..."
+sshpass -p "$PASS" rsync -azP --delete \
+  --exclude='node_modules' \
+  --exclude='.git' \
+  --exclude='.env' \
+  --exclude='.env.*' \
+  --exclude='.next' \
+  --exclude='uploads' \
+  --exclude='public/uploads' \
+  --exclude='app/' \
+  ./ "$SERVER:$REMOTE_DIR/" 2>&1 | tail -3
+log "Source synced"
 
-if ! command -v pm2 &> /dev/null; then
-    warn "PM2 not found. Installing..."
-    npm install -g pm2
-fi
-log "PM2 installed"
+# ─── Step 3: Safety checks on server ───
+echo "[3/5] Running safety checks..."
+sshpass -p "$PASS" ssh -o StrictHostKeyChecking=no "$SERVER" "
+  cd $REMOTE_DIR
 
-# Step 2: Check PostgreSQL
-echo ""
-echo "Step 2: Checking PostgreSQL..."
+  # Check 1: Remove rogue app/ directory (CRITICAL - breaks all routes)
+  if [ -d 'app/' ]; then
+    echo '  WARNING: Removing rogue app/ directory at project root'
+    rm -rf app/
+  else
+    echo '  No rogue app/ directory'
+  fi
 
-if ! command -v psql &> /dev/null; then
-    warn "PostgreSQL not found. Installing..."
-    apt-get update
-    apt-get install -y postgresql postgresql-contrib
-    systemctl start postgresql
-    systemctl enable postgresql
-fi
-log "PostgreSQL available"
+  # Check 2: Verify src/app exists with routes
+  PAGE_COUNT=\$(find src/app -name 'page.tsx' | wc -l)
+  echo \"  Found \$PAGE_COUNT page.tsx files in src/app/\"
+  if [ \"\$PAGE_COUNT\" -lt 50 ]; then
+    echo '  ERROR: Too few page files. Source may be corrupted.'
+    exit 1
+  fi
 
-# Step 3: Create database (if not exists)
-echo ""
-echo "Step 3: Setting up database..."
-
-DB_PASSWORD=$(openssl rand -base64 16 | tr -dc 'a-zA-Z0-9' | head -c 20)
-
-sudo -u postgres psql -tc "SELECT 1 FROM pg_roles WHERE rolname='edwartens'" | grep -q 1 || \
-    sudo -u postgres psql -c "CREATE USER edwartens WITH PASSWORD '${DB_PASSWORD}';"
-
-sudo -u postgres psql -tc "SELECT 1 FROM pg_database WHERE datname='edwartens_uk'" | grep -q 1 || \
-    sudo -u postgres psql -c "CREATE DATABASE edwartens_uk OWNER edwartens;"
-
-sudo -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE edwartens_uk TO edwartens;" 2>/dev/null || true
-sudo -u postgres psql -d edwartens_uk -c "GRANT ALL ON SCHEMA public TO edwartens;" 2>/dev/null || true
-
-# If DB already existed, update password
-sudo -u postgres psql -c "ALTER USER edwartens WITH PASSWORD '${DB_PASSWORD}';" 2>/dev/null || true
-
-log "Database ready (user: edwartens, db: edwartens_uk)"
-
-# Step 4: Clone/update repo
-echo ""
-echo "Step 4: Setting up application..."
-
-mkdir -p "$APP_DIR"
-cd "$APP_DIR"
-
-if [ -d ".git" ]; then
-    log "Repo exists. Pulling latest..."
-    git pull origin main
-else
-    log "Cloning repository..."
-    git clone "$REPO_URL" .
-fi
-
-# Step 5: Create .env
-echo ""
-echo "Step 5: Configuring environment..."
-
-NEXTAUTH_SECRET=$(openssl rand -base64 32)
-
-cat > .env << ENVEOF
-DATABASE_URL="postgresql://edwartens:${DB_PASSWORD}@localhost:5432/edwartens_uk"
-NEXTAUTH_SECRET="${NEXTAUTH_SECRET}"
-NEXTAUTH_URL="https://${DOMAIN}"
-AUTH_SECRET="${NEXTAUTH_SECRET}"
-AUTH_URL="https://${DOMAIN}"
-AUTH_TRUST_HOST=true
-NEXT_PUBLIC_SITE_URL="https://${DOMAIN}"
-NEXT_PUBLIC_GLOBAL_SITE_URL="https://edwartens.com"
-STRIPE_SECRET_KEY="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"
-STRIPE_PUBLISHABLE_KEY="pk_live_51OsWXhJfVFWEKRR5RQ5R2C7VEC6Ubj1KSbosnaTshz9CNdBdESbtpy8MyrijGFyHannAiMz20Z2j3NVUyB3n4Zrg00Jh0Q1vzt"
-STRIPE_WEBHOOK_SECRET="whsec_15dE7HtHH6qMLgFxSBU4v7vojd0nUpVR"
-NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY="pk_live_51OsWXhJfVFWEKRR5RQ5R2C7VEC6Ubj1KSbosnaTshz9CNdBdESbtpy8MyrijGFyHannAiMz20Z2j3NVUyB3n4Zrg00Jh0Q1vzt"
-NEXT_PUBLIC_BASE_URL="https://${DOMAIN}"
-RESEND_API_KEY="re_placeholder"
-RESEND_FROM_EMAIL="noreply@edwartens.co.uk"
-UPLOAD_DIR="./uploads"
-ENVEOF
-
-log ".env configured"
-
-# Step 6: Install dependencies
-echo ""
-echo "Step 6: Installing dependencies..."
-npm install
-log "Dependencies installed"
-
-# Step 7: Build
-echo ""
-echo "Step 7: Building application..."
-npx prisma generate
-npx prisma db push
-npx prisma db seed
-npm run build
-log "Application built successfully"
-
-# Step 8: Create uploads directory
-mkdir -p uploads/documents
-log "Upload directory created"
-
-# Step 9: Start/restart with PM2
-echo ""
-echo "Step 8: Starting application with PM2..."
-
-pm2 describe "$APP_NAME" > /dev/null 2>&1 && pm2 delete "$APP_NAME"
-PORT=$APP_PORT pm2 start npm --name "$APP_NAME" -- start
-pm2 save
-log "Application running on port $APP_PORT"
-
-# Step 10: Nginx configuration
-echo ""
-echo "Step 9: Configuring Nginx..."
-
-if command -v nginx &> /dev/null; then
-    # Check if config already exists
-    if [ ! -f "/etc/nginx/sites-available/${DOMAIN}" ]; then
-        cat > /etc/nginx/sites-available/${DOMAIN} << NGINXEOF
-server {
-    listen 80;
-    server_name ${DOMAIN} www.${DOMAIN};
-
-    client_max_body_size 10M;
-
-    location / {
-        proxy_pass http://localhost:${APP_PORT};
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade \$http_upgrade;
-        proxy_set_header Connection 'upgrade';
-        proxy_set_header Host \$host;
-        proxy_set_header X-Real-IP \$remote_addr;
-        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto \$scheme;
-        proxy_cache_bypass \$http_upgrade;
-    }
-}
-NGINXEOF
-        ln -sf /etc/nginx/sites-available/${DOMAIN} /etc/nginx/sites-enabled/
-        nginx -t && systemctl reload nginx
-        log "Nginx configured for ${DOMAIN}"
-    else
-        warn "Nginx config already exists for ${DOMAIN}. Skipping."
+  # Check 3: Verify key files exist
+  for f in src/app/layout.tsx 'src/app/(website)/page.tsx' src/app/admin/dashboard/page.tsx src/middleware.ts next.config.ts; do
+    if [ ! -f \"\$f\" ]; then
+      echo \"  ERROR: Missing critical file: \$f\"
+      exit 1
     fi
+  done
+  echo '  All critical files present'
+"
+log "Safety checks passed"
 
-    # SSL
-    if command -v certbot &> /dev/null; then
-        if [ ! -d "/etc/letsencrypt/live/${DOMAIN}" ]; then
-            warn "Setting up SSL certificate..."
-            certbot --nginx -d ${DOMAIN} -d www.${DOMAIN} --non-interactive --agree-tos --email info@wartens.com || warn "SSL setup failed - you may need to run certbot manually"
-        else
-            log "SSL certificate already exists"
-        fi
+# ─── Step 4: Build on server ───
+echo "[4/5] Building on production server..."
+sshpass -p "$PASS" ssh -o StrictHostKeyChecking=no "$SERVER" "
+  cd $REMOTE_DIR
+  pm2 stop $APP_NAME 2>/dev/null || true
+  rm -rf .next
+  npx prisma generate 2>&1 | tail -1
+  npx next build 2>&1 | tail -10
+
+  # Verify build produced routes
+  ROUTE_COUNT=\$(cat .next/server/app-paths-manifest.json | python3 -c 'import json,sys;d=json.load(sys.stdin);print(len(d))' 2>/dev/null || echo '0')
+  echo \"\"
+  echo \"  Build produced \$ROUTE_COUNT routes\"
+  if [ \"\$ROUTE_COUNT\" -lt 50 ]; then
+    echo '  ERROR: Build produced too few routes. NOT restarting.'
+    exit 1
+  fi
+"
+log "Server build OK"
+
+# ─── Step 5: Restart and verify ───
+echo "[5/5] Restarting and verifying..."
+sshpass -p "$PASS" ssh -o StrictHostKeyChecking=no "$SERVER" "
+  cd $REMOTE_DIR
+  pm2 start $APP_NAME
+  sleep 5
+
+  echo '  Route verification:'
+  FAIL=0
+  for path in / /login /contact /admin/dashboard; do
+    CODE=\$(curl -s -o /dev/null -w '%{http_code}' http://localhost:3006\$path)
+    if [ \"\$path\" = '/admin/dashboard' ]; then
+      if [ \"\$CODE\" = '307' ]; then echo \"    \$path -> \$CODE (OK: auth redirect)\";
+      else echo \"    \$path -> \$CODE (FAIL: expected 307)\"; FAIL=1; fi
     else
-        warn "Certbot not found. Install with: apt install certbot python3-certbot-nginx"
+      if [ \"\$CODE\" = '200' ]; then echo \"    \$path -> \$CODE (OK)\";
+      else echo \"    \$path -> \$CODE (FAIL: expected 200)\"; FAIL=1; fi
     fi
-else
-    warn "Nginx not installed. Install with: apt install nginx"
-fi
+  done
 
-# Done
+  if [ \"\$FAIL\" = '1' ]; then
+    echo ''
+    echo '  WARNING: Some routes failed verification!'
+    echo '  Check: pm2 logs $APP_NAME'
+  else
+    echo ''
+    echo '  All routes verified!'
+  fi
+"
+
 echo ""
-echo "=========================================="
-echo -e "${GREEN}  Deployment Complete!${NC}"
-echo "=========================================="
+echo "═══════════════════════════════════════"
+log "Deploy complete!"
+echo "═══════════════════════════════════════"
 echo ""
-echo "  App URL:    https://${DOMAIN}"
-echo "  App Port:   ${APP_PORT}"
-echo "  PM2 Name:   ${APP_NAME}"
-echo "  DB User:    edwartens"
-echo "  DB Name:    edwartens_uk"
-echo ""
-echo "  Login Credentials:"
-echo "  Super Admin: jbc@wartens.com / Admin@2026!"
-echo "  Admin:       admin@edwartens.co.uk / admin2026!"
-echo "  Sales Lead:  staff@edwartens.co.uk / staff2026!"
-echo "  Counsellor:  counsellor@edwartens.co.uk / counsellor2026!"
-echo "  Trainer:     trainer@edwartens.co.uk / trainer2026!"
-echo "  Student:     demo@edwartens.co.uk / demo2026!"
-echo ""
-echo "  Useful commands:"
-echo "  pm2 logs ${APP_NAME}    # View logs"
-echo "  pm2 restart ${APP_NAME} # Restart app"
-echo "  pm2 status              # Check all apps"
-echo ""
-echo "  IMPORTANT: Update Stripe webhook URL to:"
-echo "  https://${DOMAIN}/api/webhooks/stripe"
-echo "=========================================="

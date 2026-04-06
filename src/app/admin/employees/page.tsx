@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { formatDate, getInitials } from "@/lib/utils";
 import { UserCog } from "lucide-react";
 import AddEmployeeModal from "./AddEmployeeModal";
+import EmployeeCard from "./EmployeeCard";
 
 export const metadata: Metadata = {
   title: "Employees | EDWartens Admin",
@@ -66,61 +67,21 @@ export default async function EmployeesPage() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {employees.map((emp: any) => (
-            <div key={emp.id} className="glass-card p-5">
-              <div className="flex items-start gap-3">
-                {emp.user.avatar ? (
-                  <img
-                    src={emp.user.avatar}
-                    alt={emp.user.name}
-                    className="w-10 h-10 rounded-full"
-                  />
-                ) : (
-                  <div className="w-10 h-10 rounded-full bg-neon-blue/20 flex items-center justify-center text-sm font-medium text-neon-blue shrink-0">
-                    {getInitials(emp.user.name)}
-                  </div>
-                )}
-                <div className="flex-1 min-w-0">
-                  <h3 className="text-text-primary font-semibold truncate">
-                    {emp.user.name}
-                  </h3>
-                  <p className="text-xs text-text-muted truncate">
-                    {emp.user.email}
-                  </p>
-                </div>
-                <span
-                  className={`inline-flex px-2 py-0.5 rounded-full text-[10px] font-medium border shrink-0 ${ROLE_COLORS[emp.user.role] || "bg-white/[0.05] text-text-muted"}`}
-                >
-                  {emp.user.role}
-                </span>
-              </div>
-
-              {(emp.department || emp.specialization) && (
-                <div className="mt-3 space-y-1">
-                  {emp.department && (
-                    <p className="text-xs text-text-muted">
-                      Dept: {emp.department}
-                    </p>
-                  )}
-                  {emp.specialization && (
-                    <p className="text-xs text-text-muted">
-                      Spec: {emp.specialization}
-                    </p>
-                  )}
-                </div>
-              )}
-
-              <div className="mt-3 pt-3 border-t border-white/[0.04] flex items-center justify-between text-xs text-text-muted">
-                <span>{emp._count.assignedLeads} leads</span>
-                <span>{emp._count.batches} batches</span>
-                <span>
-                  {emp.user.isActive ? (
-                    <span className="text-green-400">Active</span>
-                  ) : (
-                    <span className="text-red-400">Inactive</span>
-                  )}
-                </span>
-              </div>
-            </div>
+            <EmployeeCard
+              key={emp.id}
+              employee={{
+                id: emp.id,
+                name: emp.user.name,
+                email: emp.user.email,
+                role: emp.user.role,
+                avatar: emp.user.avatar,
+                isActive: emp.user.isActive,
+                department: emp.department,
+                specialization: emp.specialization,
+                leads: emp._count.assignedLeads,
+                batches: emp._count.batches,
+              }}
+            />
           ))}
         </div>
       )}

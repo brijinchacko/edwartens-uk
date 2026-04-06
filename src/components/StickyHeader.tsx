@@ -190,18 +190,22 @@ export function StickyHeader({ userRole }: { userRole: string }) {
           <div className="flex-1 max-w-xl">
             <GlobalSearch />
           </div>
-          <a
-            href="/admin/leads?addLead=true"
-            className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-[#7BC142]/10 border border-[#7BC142]/20 text-[#7BC142] text-[11px] font-medium hover:bg-[#7BC142]/20 transition-colors"
-          >
-            <span className="text-sm">+</span> Lead
-          </a>
-          <a
-            href="/admin/students"
-            className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-neon-blue/10 border border-neon-blue/20 text-neon-blue text-[11px] font-medium hover:bg-neon-blue/20 transition-colors"
-          >
-            <span className="text-sm">+</span> Student
-          </a>
+          {userRole !== "HR_MANAGER" && (
+            <a
+              href="/admin/leads?addLead=true"
+              className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-[#7BC142]/10 border border-[#7BC142]/20 text-[#7BC142] text-[11px] font-medium hover:bg-[#7BC142]/20 transition-colors"
+            >
+              <span className="text-sm">+</span> Lead
+            </a>
+          )}
+          {userRole !== "HR_MANAGER" && (
+            <a
+              href="/admin/students"
+              className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-neon-blue/10 border border-neon-blue/20 text-neon-blue text-[11px] font-medium hover:bg-neon-blue/20 transition-colors"
+            >
+              <span className="text-sm">+</span> Student
+            </a>
+          )}
         </div>
 
         {/* Right: UK Clock + Timer + StickyNotes + Bell */}

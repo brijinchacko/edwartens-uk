@@ -3,10 +3,10 @@
 import { useEffect, useRef, useState } from "react";
 
 const stats = [
-  { value: 10, suffix: "+", label: "Years Experience" },
-  { value: 30000, suffix: "+", label: "Engineers Trained" },
-  { value: 500, suffix: "+", label: "Career Transitions" },
-  { value: 4, suffix: "", label: "Countries" },
+  { value: 13, suffix: "+", label: "Years Experience" },
+  { value: 500, suffix: "+", label: "Engineers Trained" },
+  { value: 200, suffix: "+", label: "Career Transitions" },
+  { value: 18, suffix: "", label: "Countries" },
 ];
 
 function StatCard({ value, suffix, label }: { value: number; suffix: string; label: string }) {

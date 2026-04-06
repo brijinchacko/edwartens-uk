@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import GoogleAnalytics from "@/components/GoogleAnalytics";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -142,16 +143,7 @@ export default function RootLayout({
         <link rel="alternate" hrefLang="en-ae" href="https://edwartens.com/uae" />
         <link rel="alternate" hrefLang="en-us" href="https://edwartens.com/us" />
         <link rel="alternate" hrefLang="x-default" href="https://edwartens.co.uk" />
-        {/* Google Analytics */}
-        <script async src="https://www.googletagmanager.com/gtag/js?id=G-3NJTPRY5QX" />
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `window.dataLayer = window.dataLayer || [];
-function gtag(){dataLayer.push(arguments);}
-gtag('js', new Date());
-gtag('config', 'G-3NJTPRY5QX');`,
-          }}
-        />
+        {/* Google Analytics - loaded conditionally by GoogleAnalytics component based on cookie consent */}
       </head>
       <body className="min-h-full flex flex-col">
         <script
@@ -159,65 +151,63 @@ gtag('config', 'G-3NJTPRY5QX');`,
           dangerouslySetInnerHTML={{
             __html: JSON.stringify({
               "@context": "https://schema.org",
-              "@type": "EducationalOrganization",
+              "@type": ["EducationalOrganization", "LocalBusiness"],
+              "@id": "https://edwartens.co.uk/#organization",
               name: "EDWartens UK",
-              alternateName: "EDWartens",
+              alternateName: ["EDWartens", "ED Wartens", "Edwartens PLC Training"],
+              description: "EDWartens UK is a CPD Accredited industrial automation training provider offering PLC, SCADA, HMI, and AI courses. Part of the Wartens group, our trainers are practicing automation engineers. Voted UK Startup National Winner 2025 and Best PLC Training Provider UK 2025.",
               url: "https://edwartens.co.uk",
-              logo: "https://edwartens.co.uk/images/EDWARTENS LOGO UK.png",
-              description:
-                "Industry-leading PLC, SCADA, and Industrial Automation training provider in the UK. CPD Accredited. Training Division of Wartens.",
+              logo: { "@type": "ImageObject", url: "https://edwartens.co.uk/images/EDWARTENS LOGO UK.png" },
+              image: "https://edwartens.co.uk/images/stock/hero-automation.jpg",
+              telephone: "+443333398394",
+              email: "info@wartens.com",
               address: {
                 "@type": "PostalAddress",
-                streetAddress: "8, Lyon Road",
+                streetAddress: "8 Lyon Road",
                 addressLocality: "Milton Keynes",
+                addressRegion: "England",
                 postalCode: "MK1 1EX",
                 addressCountry: "GB",
               },
-              hasMap: "https://maps.app.goo.gl/rtnU2t8Wr68HZQmC6",
-              telephone: "+443333398394",
-              email: "info@wartens.com",
-              sameAs: [
-                "https://www.linkedin.com/company/ed-wartens-uk/",
-                "https://www.youtube.com/channel/UC50h3bbLfdXOz9AxjHtzgdQ",
-                "https://www.instagram.com/edwartensuk/",
-                "https://www.facebook.com/edwartensuk/",
-                "https://x.com/WartensUK",
+              geo: { "@type": "GeoCoordinates", latitude: "52.0406", longitude: "-0.7594" },
+              areaServed: [
+                { "@type": "Country", name: "United Kingdom" },
+                { "@type": "Country", name: "Germany" },
+                { "@type": "Country", name: "Netherlands" },
+                { "@type": "Country", name: "Poland" },
+                { "@type": "Country", name: "Ireland" },
+                { "@type": "Country", name: "Belgium" },
+                { "@type": "Country", name: "Sweden" },
+                { "@type": "Country", name: "France" },
+                { "@type": "Country", name: "Italy" },
+                { "@type": "Country", name: "Spain" },
+                { "@type": "Country", name: "Czech Republic" },
+                { "@type": "Country", name: "Austria" },
+                { "@type": "Country", name: "Denmark" },
+                { "@type": "Country", name: "Norway" },
+                { "@type": "Country", name: "Finland" },
+                { "@type": "Country", name: "Portugal" },
+                { "@type": "Country", name: "Switzerland" },
               ],
-              parentOrganization: {
-                "@type": "Organization",
-                name: "Wartens Ltd",
-                url: "https://wartens.com",
-                legalName: "Wartens Ltd",
-                taxID: "473020522",
-                duns: "231167762",
-                identifier: {
-                  "@type": "PropertyValue",
-                  name: "Company Registration Number",
-                  value: "15262249",
-                },
-              },
-              legalName: "Wartens Ltd",
-              taxID: "473020522",
-              duns: "231167762",
-              identifier: {
-                "@type": "PropertyValue",
-                name: "Company Registration Number",
-                value: "15262249",
-              },
-              hasCredential: [
-                {
-                  "@type": "EducationalOccupationalCredential",
-                  credentialCategory: "CPD",
-                },
-                {
-                  "@type": "EducationalOccupationalCredential",
-                  credentialCategory: "CPD Accredited",
-                },
-                {
-                  "@type": "EducationalOccupationalCredential",
-                  credentialCategory: "UKRLP Registered",
-                },
+              hasCredential: [{ "@type": "EducationalOccupationalCredential", name: "CPD Accredited", credentialCategory: "Professional Development" }],
+              award: [
+                "UK Startup Awards 2025 - National Winner",
+                "UK Startup Awards 2025 - Midlands Winner",
+                "Radio Lemon Live 2025 - Best PLC Training Provider UK",
+                "Great British Entrepreneur Awards 2025 - Finalist",
+                "Independent Education Awards - Finalist",
+                "Atal Achievement Award 2024",
               ],
+              foundingDate: "2023",
+              parentOrganization: { "@type": "Organization", name: "Wartens Ltd", url: "https://wartens.com" },
+              sameAs: ["https://www.linkedin.com/company/edwartens", "https://wartens.com", "https://traininginplc.com"],
+              openingHoursSpecification: {
+                "@type": "OpeningHoursSpecification",
+                dayOfWeek: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+                opens: "08:30",
+                closes: "17:00",
+              },
+              priceRange: "££",
             }),
           }}
         />
@@ -231,8 +221,7 @@ gtag('config', 'G-3NJTPRY5QX');`,
               url: "https://edwartens.co.uk",
               potentialAction: {
                 "@type": "SearchAction",
-                target:
-                  "https://edwartens.co.uk/blog?q={search_term_string}",
+                target: "https://edwartens.co.uk/blog?q={search_term_string}",
                 "query-input": "required name=search_term_string",
               },
             }),
@@ -299,56 +288,8 @@ gtag('config', 'G-3NJTPRY5QX');`,
             }),
           }}
         />
-        {/* FAQPage schema removed from root layout — course-specific FAQs are on individual course pages */}
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{
-            __html: JSON.stringify({
-              "@context": "https://schema.org",
-              "@type": "LocalBusiness",
-              "@id": "https://edwartens.co.uk/#localbusiness",
-              name: "EDWartens UK",
-              image: "https://edwartens.co.uk/images/EDWARTENS LOGO UK.png",
-              url: "https://edwartens.co.uk",
-              telephone: "+443333398394",
-              email: "info@wartens.com",
-              priceRange: "££",
-              address: {
-                "@type": "PostalAddress",
-                streetAddress: "8, Lyon Road",
-                addressLocality: "Milton Keynes",
-                addressRegion: "Buckinghamshire",
-                postalCode: "MK1 1EX",
-                addressCountry: "GB",
-              },
-              geo: {
-                "@type": "GeoCoordinates",
-                latitude: 52.0406,
-                longitude: -0.7594,
-              },
-              openingHoursSpecification: [
-                {
-                  "@type": "OpeningHoursSpecification",
-                  dayOfWeek: [
-                    "Monday",
-                    "Tuesday",
-                    "Wednesday",
-                    "Thursday",
-                    "Friday",
-                  ],
-                  opens: "09:00",
-                  closes: "17:30",
-                },
-              ],
-              aggregateRating: {
-                "@type": "AggregateRating",
-                ratingValue: "4.9",
-                reviewCount: "150",
-                bestRating: "5",
-              },
-            }),
-          }}
-        />
+        {/* LocalBusiness merged into Organization schema above */}
+        <GoogleAnalytics />
         {children}
       </body>
     </html>

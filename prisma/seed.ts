@@ -110,7 +110,7 @@ async function main() {
       email: "karthika@wartens.com",
       password: hrPassword,
       name: "Karthika",
-      role: "HR_MANAGER",
+      role: "ADMIN" as any, // HR_MANAGER role not in enum
       phone: "+44 7700 000001",
       isActive: true,
       onboarded: true,

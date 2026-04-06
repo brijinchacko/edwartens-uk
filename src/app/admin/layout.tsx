@@ -46,7 +46,7 @@ export default async function AdminLayout({
             {children}
           </div>
         </main>
-        <NewLeadPopup userRole={userRole} />
+        {userRole !== "HR_MANAGER" && <NewLeadPopup userRole={userRole} />}
         {/* Zadarma WebRTC Phone Widget */}
         <script src="https://my.zadarma.com/webphoneWebRTCWidget/v9/js/loader-phone-lib.js?sub_v=1" async />
         <script src="https://my.zadarma.com/webphoneWebRTCWidget/v9/js/loader-phone-fn.js?sub_v=1" async />

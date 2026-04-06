@@ -7,8 +7,32 @@ import type { NextRequest } from "next/server";
  * If missing → redirect to /login.
  * This prevents cached pages from being shown after logout.
  */
+// 301 redirects for old URLs that Google indexed
+const REDIRECTS: Record<string, string> = {
+  "/plc-scada-training-in-uk": "/plc-training-uk",
+  "/plc-training": "/courses/professional",
+  "/scada-training": "/courses/professional",
+  "/automation-training": "/training",
+  "/plc-courses": "/courses",
+  "/courses/plc-scada-training": "/courses/professional",
+  "/plc-scada-training": "/courses/professional",
+  "/plc-programming-course": "/courses/professional",
+  "/industrial-automation-training": "/training",
+  "/scada-hmi-training": "/courses/professional",
+  "/siemens-plc-training": "/courses/professional",
+  "/plc-training-near-me": "/plc-training-uk",
+  "/plc-course-uk": "/plc-training-uk",
+  "/scada-course-uk": "/plc-training-uk",
+};
+
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
+
+  // Handle old URL redirects (301 permanent)
+  const redirect = REDIRECTS[pathname] || REDIRECTS[pathname.toLowerCase()];
+  if (redirect) {
+    return NextResponse.redirect(new URL(redirect, request.url), 301);
+  }
 
   // Check for NextAuth session cookie (works for both JWT and database sessions)
   const sessionToken =
@@ -44,5 +68,22 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/admin/:path*", "/student/:path*"],
+  matcher: [
+    "/admin/:path*",
+    "/student/:path*",
+    "/plc-scada-training-in-uk",
+    "/plc-training",
+    "/scada-training",
+    "/automation-training",
+    "/plc-courses",
+    "/courses/plc-scada-training",
+    "/plc-scada-training",
+    "/plc-programming-course",
+    "/industrial-automation-training",
+    "/scada-hmi-training",
+    "/siemens-plc-training",
+    "/plc-training-near-me",
+    "/plc-course-uk",
+    "/scada-course-uk",
+  ],
 };

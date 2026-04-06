@@ -22,7 +22,7 @@ Our CPD-accredited course covers:
 ✅ Hands-on Lab Training in Milton Keynes
 
 📅 New batches start every week
-💷 Course fee: £1,799 (installment options available)
+💷 Course fee: £2,140 + VAT (installment options available)
 📍 Location: Milton Keynes, UK
 
 Would you like to book a *free consultation* to discuss the course? I can arrange a call at your convenience.

@@ -4,11 +4,13 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { Menu, X, Globe, ChevronDown, LayoutDashboard } from "lucide-react";
+import CurrencyToggle from "./CurrencyToggle";
 
 // Desktop nav - compact, only key pages
 const desktopLinks = [
   { label: "Courses", href: "/courses" },
   { label: "Training", href: "/training" },
+  { label: "Locations", href: "/plc-training-uk" },
   { label: "Case Studies", href: "/case-studies" },
   { label: "About", href: "/about" },
   { label: "Blog", href: "/blog" },
@@ -20,6 +22,7 @@ const mobileLinks = [
   { label: "Home", href: "/" },
   { label: "Courses", href: "/courses" },
   { label: "Training", href: "/training" },
+  { label: "Locations", href: "/plc-training-uk" },
   { label: "Case Studies", href: "/case-studies" },
   { label: "Careers", href: "/placements" },
   { label: "Reviews", href: "/reviews" },
@@ -126,6 +129,11 @@ export default function Navbar() {
                 Login
               </Link>
             )}
+
+            {/* Currency toggle - desktop */}
+            <div className="hidden lg:block">
+              <CurrencyToggle />
+            </div>
 
             {/* Region selector */}
             <div className="relative">

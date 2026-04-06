@@ -94,6 +94,7 @@ const ROLE_PERMISSIONS: Record<string, Permission[]> = {
     "dashboard:read",
   ],
   HR_MANAGER: [
+    "users:manage",
     "students:read",
     "alumni:read",
     "dashboard:read",
@@ -139,6 +140,7 @@ export const ROLE_LABELS: Record<string, string> = {
   SALES_LEAD: "Sales Lead",
   ADMISSION_COUNSELLOR: "Admission Counsellor",
   TRAINER: "Trainer",
+  HR_MANAGER: "HR Manager",
   STUDENT: "Student",
 };
 
@@ -149,13 +151,13 @@ export function getNavItemsForRole(role: string): string[] {
       return [
         "dashboard", "leads", "pipeline", "students", "batches", "sessions",
         "assessments", "question-bank", "career", "certificates", "invoices", "jobs", "alumni", "alumni-network", "referrals", "team-activity", "employees",
-        "kpi", "reports", "feedback", "users", "emails", "drip-campaigns", "calendar", "notifications", "import", "audit", "monitoring", "settings",
+        "kpi", "reports", "feedback", "users", "emails", "drip-campaigns", "calendar", "notifications", "import", "audit", "monitoring", "analytics", "attendance", "settings",
       ];
     case "ADMIN":
       return [
         "dashboard", "leads", "pipeline", "students", "batches", "sessions",
         "assessments", "question-bank", "career", "certificates", "invoices", "jobs", "alumni", "alumni-network", "referrals", "team-activity", "employees",
-        "kpi", "reports", "feedback", "emails", "drip-campaigns", "calendar", "notifications", "import", "settings",
+        "kpi", "reports", "feedback", "emails", "drip-campaigns", "calendar", "notifications", "import", "analytics", "settings",
       ];
     case "SALES_LEAD":
       return ["dashboard", "leads", "pipeline", "kpi", "emails", "calendar", "notifications", "settings"];
@@ -166,7 +168,7 @@ export function getNavItemsForRole(role: string): string[] {
     case "TRAINER":
       return ["dashboard", "batches", "sessions", "assessments", "question-bank", "students", "notifications", "settings"];
     case "HR_MANAGER":
-      return ["dashboard", "employees", "students", "alumni", "alumni-network", "team-activity", "reports", "notifications", "settings"];
+      return ["dashboard", "employees", "team-activity", "kpi", "reports", "attendance", "monitoring", "users", "notifications", "settings"];
     default:
       return ["dashboard"];
   }

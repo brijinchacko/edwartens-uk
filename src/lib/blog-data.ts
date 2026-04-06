@@ -474,6 +474,7 @@ import { digitalAIPosts } from "./blog-digital-ai";
 import { industryPosts } from "./blog-industry";
 import { careerPosts } from "./blog-career";
 import { companyPosts } from "./blog-company";
+import { seo2025Posts } from "./blog-seo-2025";
 
 const allPosts: BlogPost[] = [
   ...blogPosts,
@@ -482,6 +483,7 @@ const allPosts: BlogPost[] = [
   ...industryPosts,
   ...careerPosts,
   ...companyPosts,
+  ...seo2025Posts,
 ];
 
 export function getAllPosts(): BlogPost[] {

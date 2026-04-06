@@ -39,7 +39,7 @@ export default async function ProfilePage() {
         department={user.employeeProfile?.department || ""}
         specialization={user.employeeProfile?.specialization || ""}
         designation={user.employeeProfile?.designation || ""}
-        zadarmaNumber={user.employeeProfile?.zadarmaNumber || ""}
+        zadarmaNumber={(user.employeeProfile as any)?.zadarmaNumber || ""}
       />
     </div>
   );

@@ -1,9 +1,11 @@
 import type { MetadataRoute } from "next";
 import { getAllPosts } from "@/lib/blog-data";
+import { getAllCities } from "@/lib/seo-cities";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const baseUrl = "https://edwartens.co.uk";
   const posts = getAllPosts();
+  const cities = getAllCities();
   const now = new Date();
 
   const blogUrls = posts.map((post) => ({
@@ -11,6 +13,20 @@ export default function sitemap(): MetadataRoute.Sitemap {
     lastModified: new Date(post.publishedAt),
     changeFrequency: "monthly" as const,
     priority: 0.6,
+  }));
+
+  const cityUrls = cities.map((city) => ({
+    url: `${baseUrl}/${city.slug}`,
+    lastModified: now,
+    changeFrequency: "weekly" as const,
+    priority: city.isUK ? 0.8 : 0.7,
+    alternates: {
+      languages: {
+        "en-GB": `${baseUrl}/${city.slug}`,
+        [`en-${city.countryCode}`]: `${baseUrl}/${city.slug}`,
+        "x-default": `${baseUrl}/${city.slug}`,
+      },
+    },
   }));
 
   return [
@@ -48,5 +64,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
 
     // Blog posts
     ...blogUrls,
+
+    // SEO City Landing Pages
+    ...cityUrls,
   ];
 }

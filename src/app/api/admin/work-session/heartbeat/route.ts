@@ -102,7 +102,7 @@ export async function POST(req: NextRequest) {
         // Notify admins
         const employeeName = employee.user.name || "An employee";
         await notifyByRole(
-          ["SUPER_ADMIN", "ADMIN"],
+          ["SUPER_ADMIN", "ADMIN", "HR_MANAGER"],
           "Employee Idle Alert",
           `${employeeName} has been idle for 15+ minutes`,
           "IDLE_ALERT",

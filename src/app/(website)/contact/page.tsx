@@ -12,6 +12,7 @@ import {
   Clock,
   ArrowLeft,
 } from "lucide-react";
+import VATNotice from "@/components/VATNotice";
 
 export default function ContactPage() {
   const [submitted, setSubmitted] = useState(false);
@@ -309,8 +310,11 @@ export default function ContactPage() {
                     />
                   </div>
 
+                  {/* VAT Notice */}
+                  <VATNotice />
+
                   {error && (
-                    <p className="text-sm text-red-400 mb-4">{error}</p>
+                    <p className="text-sm text-red-400 mb-4 mt-4">{error}</p>
                   )}
 
                   <button

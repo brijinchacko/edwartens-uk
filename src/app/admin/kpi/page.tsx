@@ -13,6 +13,7 @@ const ALLOWED_ROLES = [
   "ADMIN",
   "SALES_LEAD",
   "ADMISSION_COUNSELLOR",
+  "HR_MANAGER",
 ];
 
 export default async function KPIDashboardPage() {

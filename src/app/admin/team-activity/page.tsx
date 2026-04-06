@@ -14,8 +14,8 @@ export default async function TeamActivityPage() {
 
   const user = session.user as { role: string };
 
-  // Only SUPER_ADMIN and ADMIN can see team activity
-  if (!["SUPER_ADMIN", "ADMIN"].includes(user.role)) {
+  // SUPER_ADMIN, ADMIN, and HR_MANAGER can see team activity
+  if (!["SUPER_ADMIN", "ADMIN", "HR_MANAGER"].includes(user.role)) {
     redirect("/admin/dashboard");
   }
 

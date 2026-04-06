@@ -234,18 +234,33 @@ export default async function AIModulePage() {
   const courseJsonLd = {
     "@context": "https://schema.org",
     "@type": "Course",
-    name: "AI & Industrial Automation Module",
-    description: "Advanced training in AI-powered industrial automation, machine learning for manufacturing, and smart factory systems. CPD Accredited.",
-    provider: { "@type": "EducationalOrganization", name: "EDWartens UK", url: "https://edwartens.co.uk" },
-    educationalCredentialAwarded: "CPD Certification",
-    courseMode: ["Classroom", "Online"],
+    name: "AI & Machine Learning in Industrial Automation Module",
+    description: "5-day advanced CPD Accredited programme covering AI and ML in industry, Python for engineers, predictive maintenance, computer vision, AI-SCADA, and digital twins.",
     url: "https://edwartens.co.uk/courses/ai-module",
-    hasCourseInstance: aiBatches.slice(0, 5).map(b => ({
-      "@type": "CourseInstance",
-      courseMode: "Blended",
-      startDate: b.startDate.toISOString().split("T")[0],
-      location: { "@type": "Place", name: "Milton Keynes, UK" },
-    })),
+    provider: { "@type": "Organization", name: "EDWartens UK", url: "https://edwartens.co.uk" },
+    educationalCredentialAwarded: "CPD Accredited Certificate in AI & Industrial Automation",
+    timeRequired: "P5D",
+    courseMode: ["onsite", "online"],
+    teaches: ["Artificial Intelligence", "Machine Learning", "Python for Engineers", "Predictive Maintenance", "Computer Vision", "AI-SCADA Integration", "Digital Twins", "Industrial IoT"],
+    occupationalCategory: "AI Automation Engineer",
+    offers: { "@type": "Offer", price: "2140", priceCurrency: "GBP", availability: "https://schema.org/InStock", url: "https://edwartens.co.uk/courses/ai-module" },
+    hasCourseInstance: [
+      {
+        "@type": "CourseInstance",
+        courseMode: ["onsite", "online"],
+        location: {
+          "@type": "Place",
+          name: "EDWartens Milton Keynes Training Centre",
+          address: { "@type": "PostalAddress", streetAddress: "8 Lyon Road", addressLocality: "Milton Keynes", postalCode: "MK1 1EX", addressCountry: "GB" },
+        },
+      },
+      ...aiBatches.slice(0, 5).map(b => ({
+        "@type": "CourseInstance" as const,
+        courseMode: "Blended" as const,
+        startDate: b.startDate.toISOString().split("T")[0],
+        location: { "@type": "Place" as const, name: "EDWartens Milton Keynes Training Centre" },
+      })),
+    ],
   };
 
   return (

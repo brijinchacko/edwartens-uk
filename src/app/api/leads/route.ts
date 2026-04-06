@@ -5,7 +5,7 @@ import { notifyRole } from "@/lib/notify";
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { name, email, phone, qualification, courseInterest, message, subject } = body;
+    const { name, email, phone, qualification, courseInterest, message, subject, source } = body;
 
     if (!name || !email || !phone) {
       return NextResponse.json({ error: "Name, email, and phone are required" }, { status: 400 });
@@ -60,7 +60,7 @@ export async function POST(req: NextRequest) {
         phone,
         qualification: qualification || null,
         courseInterest: courseInterest || null,
-        source: "website",
+        source: source || "website",
         assignedToId,
       },
     });

@@ -13,7 +13,7 @@ export default async function MonitoringPage() {
   if (!session?.user) redirect("/login");
 
   const user = session.user as { role: string };
-  if (user.role !== "SUPER_ADMIN") redirect("/admin/dashboard");
+  if (!["SUPER_ADMIN", "HR_MANAGER"].includes(user.role)) redirect("/admin/dashboard");
 
   return <MonitoringClient />;
 }

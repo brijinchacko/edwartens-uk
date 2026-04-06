@@ -1,8 +1,11 @@
 import type { Metadata } from "next";
+import { redirect } from "next/navigation";
+import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { formatDate, getInitials } from "@/lib/utils";
 import { ROLE_LABELS } from "@/lib/rbac";
-import { Shield, UserPlus } from "lucide-react";
+import { Shield } from "lucide-react";
+import CreateUserButton from "./CreateUserButton";
 
 export const metadata: Metadata = {
   title: "User Management | EDWartens Admin",
@@ -42,8 +45,14 @@ async function getUsers() {
 }
 
 export default async function UsersPage() {
-  const users = await getUsers();
+  const session = await auth();
+  if (!session?.user) redirect("/login");
+  const currentUser = session.user as { role: string };
+  if (!["SUPER_ADMIN", "ADMIN", "HR_MANAGER"].includes(currentUser.role)) {
+    redirect("/admin/dashboard");
+  }
 
+  const users = await getUsers();
   const activeCount = users.filter((u) => u.isActive).length;
 
   return (
@@ -58,10 +67,7 @@ export default async function UsersPage() {
             active)
           </p>
         </div>
-        <button className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-neon-blue/10 text-neon-blue border border-neon-blue/20 hover:bg-neon-blue/20 transition-colors text-sm font-medium w-fit">
-          <UserPlus size={16} />
-          Create User
-        </button>
+        <CreateUserButton userRole={currentUser.role} />
       </div>
 
       {/* Stats */}

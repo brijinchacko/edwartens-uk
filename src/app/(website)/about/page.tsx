@@ -241,6 +241,20 @@ export default function AboutPage() {
 
       {/* Wartens Ecosystem */}
       <Ecosystem />
+
+      {/* AboutPage Schema (JSON-LD) */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "AboutPage",
+            name: "About EDWartens UK",
+            description: "EDWartens UK is the training division of Wartens Ltd, a global industrial automation and engineering company. Founded by Joseph Brijin Chacko CEng, EDWartens offers CPD Accredited PLC, SCADA, and AI training.",
+            mainEntity: { "@id": "https://edwartens.co.uk/#organization" },
+          }),
+        }}
+      />
     </div>
   );
 }

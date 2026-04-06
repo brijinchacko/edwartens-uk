@@ -41,3 +41,44 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "Failed to fetch targets" }, { status: 500 });
   }
 }
+
+export async function PUT(req: NextRequest) {
+  try {
+    const session = await auth();
+    if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+    const role = session.user.role;
+    if (!["SUPER_ADMIN", "ADMIN", "HR_MANAGER"].includes(role)) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+
+    const body = await req.json();
+    const { employeeId, month, year, salesTarget, leadTarget, hardTarget } = body;
+
+    if (!employeeId || !month || !year) {
+      return NextResponse.json({ error: "employeeId, month, and year are required" }, { status: 400 });
+    }
+
+    const target = await prisma.salesTarget.upsert({
+      where: { employeeId_month_year: { employeeId, month, year } },
+      update: {
+        ...(salesTarget !== undefined ? { salesTarget } : {}),
+        ...(leadTarget !== undefined ? { leadTarget } : {}),
+        ...(hardTarget !== undefined ? { hardTarget } : {}),
+      },
+      create: {
+        employeeId,
+        month,
+        year,
+        salesTarget: salesTarget ?? 20,
+        leadTarget: leadTarget ?? 50,
+        hardTarget: hardTarget ?? 12,
+      },
+    });
+
+    return NextResponse.json({ target });
+  } catch (error) {
+    console.error("Sales target update error:", error);
+    return NextResponse.json({ error: "Failed to update target" }, { status: 500 });
+  }
+}

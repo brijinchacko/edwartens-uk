@@ -518,6 +518,130 @@ async function getTrainerData(userId: string) {
   }
 }
 
+// ─── HR_MANAGER data fetcher ───
+async function getHRDashboardData() {
+  const now = new Date();
+  const { todayStart, todayEnd } = getTodayRange();
+  const weekStart = new Date(now);
+  weekStart.setDate(now.getDate() - 7);
+  weekStart.setHours(0, 0, 0, 0);
+  const yesterdayStart = new Date(todayStart);
+  yesterdayStart.setDate(yesterdayStart.getDate() - 1);
+  const yesterdayEnd = new Date(yesterdayStart);
+  yesterdayEnd.setHours(23, 59, 59, 999);
+
+  try {
+    const [
+      totalEmployees,
+      activeEmployees,
+      todaySessions,
+      weekSessions,
+      yesterdayOpenSessions,
+      recentActivityLogs,
+    ] = await Promise.all([
+      prisma.employee.count(),
+      prisma.employee.count({ where: { user: { isActive: true } } }),
+      // Today's work sessions
+      prisma.employeeWorkSession.findMany({
+        where: { date: { gte: todayStart, lte: todayEnd } },
+        include: {
+          employee: { include: { user: { select: { name: true, role: true } } } },
+        },
+      }),
+      // Week's sessions for avg hours
+      prisma.employeeWorkSession.findMany({
+        where: { date: { gte: weekStart, lte: todayEnd } },
+        select: { totalMinutes: true, status: true },
+      }),
+      // Yesterday's sessions without checkout (forgot checkout)
+      prisma.employeeWorkSession.count({
+        where: {
+          date: { gte: yesterdayStart, lte: yesterdayEnd },
+          checkOutAt: null,
+          status: { not: "CHECKED_OUT" },
+        },
+      }),
+      // Recent activity logs
+      prisma.activityLog.findMany({
+        take: 10,
+        orderBy: { createdAt: "desc" },
+        include: { user: { select: { name: true } } },
+      }),
+    ]);
+
+    // Compute today stats
+    const checkedInToday = todaySessions.length;
+    const currentlyIdle = todaySessions.filter((s) => s.status === "IDLE").length;
+    const lateToday = todaySessions.filter((s) => {
+      const checkIn = new Date(s.checkInAt);
+      return checkIn.getHours() > 9 || (checkIn.getHours() === 9 && checkIn.getMinutes() > 30);
+    }).length;
+
+    // Weekly avg hours
+    const weekCompletedSessions = weekSessions.filter((s) => s.totalMinutes && s.totalMinutes > 0);
+    const totalWeekMinutes = weekCompletedSessions.reduce((acc, s) => acc + (s.totalMinutes || 0), 0);
+    const uniqueDays = new Set(weekSessions.map(() => "day")).size || 1;
+    const avgHoursWeek = weekCompletedSessions.length > 0
+      ? Math.round((totalWeekMinutes / weekCompletedSessions.length / 60) * 10) / 10
+      : 0;
+
+    // Auto-checkouts this week
+    const autoCheckoutsWeek = weekSessions.filter((s) => {
+      return s.status === "CHECKED_OUT" && s.totalMinutes && s.totalMinutes >= 870; // ~14.5hrs = auto checkout at 11:59PM
+    }).length;
+
+    // Today's workforce status
+    const todayStatus = todaySessions.map((s) => {
+      const checkIn = new Date(s.checkInAt);
+      const isLate = checkIn.getHours() > 9 || (checkIn.getHours() === 9 && checkIn.getMinutes() > 30);
+      return {
+        id: s.employeeId,
+        name: s.employee.user.name,
+        role: s.employee.user.role,
+        status: s.status,
+        checkInTime: checkIn.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", timeZone: "Asia/Kolkata" }),
+        isLate,
+        location: (s as any).workLocation || "",
+      };
+    });
+
+    // Recent activity formatted
+    const recentActivity = recentActivityLogs.map((log) => ({
+      id: log.id,
+      userName: log.user.name,
+      action: log.action,
+      createdAt: log.createdAt,
+    }));
+
+    return {
+      totalEmployees,
+      activeEmployees,
+      checkedInToday,
+      currentlyIdle,
+      lateToday,
+      avgHoursWeek,
+      autoCheckoutsWeek,
+      forgotCheckout: yesterdayOpenSessions,
+      todayStatus,
+      recentActivity,
+    };
+  } catch (error) {
+    console.error("HR dashboard data error:", error);
+    return {
+      totalEmployees: 0,
+      activeEmployees: 0,
+      checkedInToday: 0,
+      currentlyIdle: 0,
+      lateToday: 0,
+      avgHoursWeek: 0,
+      autoCheckoutsWeek: 0,
+      forgotCheckout: 0,
+      todayStatus: [],
+      recentActivity: [],
+    };
+  }
+}
+
 // ─── Notification Banner component ───
 function NotificationBanner({ items }: { items: { label: string; count: number; type: "warning" | "danger" }[] }) {
   const activeItems = items.filter((i) => i.count > 0);
@@ -904,6 +1028,154 @@ export default async function AdminDashboard() {
                   ) : (
                     <p className="text-xs text-text-muted ml-3">No students assigned</p>
                   )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // ═══════════════════════════════════════════════════
+  // HR_MANAGER Dashboard
+  // ═══════════════════════════════════════════════════
+  if (role === "HR_MANAGER") {
+    const hrData = await getHRDashboardData();
+    return (
+      <div className="space-y-4">
+        <div>
+          <h1 className="text-2xl font-bold text-text-primary">HR Dashboard</h1>
+          <p className="text-text-muted mt-1">Employee workforce overview</p>
+        </div>
+
+        {/* KPI Cards */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+          <Link href="/admin/employees" className="glass-card p-4 hover:border-neon-blue/20 transition-colors">
+            <p className="text-xs text-text-muted">Total Employees</p>
+            <p className="text-2xl font-bold text-text-primary mt-1">{hrData.totalEmployees}</p>
+            <p className="text-[10px] text-green-400 mt-0.5">{hrData.activeEmployees} active</p>
+          </Link>
+          <Link href="/admin/team-activity" className="glass-card p-4 hover:border-neon-blue/20 transition-colors">
+            <p className="text-xs text-text-muted">Checked In Today</p>
+            <p className="text-2xl font-bold text-neon-green mt-1">{hrData.checkedInToday}</p>
+            <p className="text-[10px] text-text-muted mt-0.5">of {hrData.activeEmployees}</p>
+          </Link>
+          <Link href="/admin/team-activity" className="glass-card p-4 hover:border-neon-blue/20 transition-colors">
+            <p className="text-xs text-text-muted">Currently Idle</p>
+            <p className="text-2xl font-bold text-yellow-400 mt-1">{hrData.currentlyIdle}</p>
+          </Link>
+          <Link href="/admin/attendance" className="glass-card p-4 hover:border-neon-blue/20 transition-colors">
+            <p className="text-xs text-text-muted">Late Arrivals Today</p>
+            <p className="text-2xl font-bold text-red-400 mt-1">{hrData.lateToday}</p>
+          </Link>
+          <Link href="/admin/attendance" className="glass-card p-4 hover:border-neon-blue/20 transition-colors">
+            <p className="text-xs text-text-muted">Avg Hours/Day (Week)</p>
+            <p className="text-2xl font-bold text-neon-blue mt-1">{hrData.avgHoursWeek}h</p>
+          </Link>
+          <Link href="/admin/attendance" className="glass-card p-4 hover:border-neon-blue/20 transition-colors">
+            <p className="text-xs text-text-muted">Auto-Checkouts (Week)</p>
+            <p className="text-2xl font-bold text-orange-400 mt-1">{hrData.autoCheckoutsWeek}</p>
+          </Link>
+        </div>
+
+        {/* Notification Banner */}
+        {(hrData.forgotCheckout > 0 || hrData.currentlyIdle > 0 || hrData.lateToday > 0) && (
+          <div className={`glass-card p-4 border-l-4 ${hrData.forgotCheckout > 0 ? "border-red-500 bg-red-500/5" : "border-yellow-500 bg-yellow-500/5"}`}>
+            <div className="flex items-center gap-2">
+              <Bell size={20} className={hrData.forgotCheckout > 0 ? "text-red-400" : "text-yellow-400"} />
+              <p className={`${hrData.forgotCheckout > 0 ? "text-red-400" : "text-yellow-400"} font-medium text-sm`}>
+                {[
+                  hrData.forgotCheckout > 0 ? `${hrData.forgotCheckout} employee(s) forgot to check out yesterday` : "",
+                  hrData.currentlyIdle > 0 ? `${hrData.currentlyIdle} employee(s) currently idle` : "",
+                  hrData.lateToday > 0 ? `${hrData.lateToday} late arrival(s) today` : "",
+                ].filter(Boolean).join(" · ")}
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* Today's Team Status */}
+        <div className="glass-card p-5">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-sm font-semibold text-text-primary flex items-center gap-2">
+              <Users size={16} className="text-neon-blue" />
+              Today&apos;s Workforce
+            </h2>
+            <Link href="/admin/team-activity" className="text-xs text-neon-blue hover:underline">View live &rarr;</Link>
+          </div>
+          <div className="space-y-2">
+            {hrData.todayStatus.map((emp: any) => (
+              <Link key={emp.id} href={`/admin/employees/${emp.id}`}
+                className="flex items-center justify-between py-2 px-3 rounded-lg hover:bg-white/[0.03] transition-colors border-b border-white/[0.04] last:border-0"
+              >
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className={`w-2 h-2 rounded-full shrink-0 ${emp.status === "ACTIVE" ? "bg-green-400" : emp.status === "IDLE" ? "bg-yellow-400" : emp.status === "BREAK" ? "bg-blue-400" : "bg-white/20"}`} />
+                  <div className="min-w-0">
+                    <p className="text-sm text-text-primary font-medium truncate">{emp.name}</p>
+                    <p className="text-[10px] text-text-muted">{emp.role.replace(/_/g, " ")}</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3 text-xs shrink-0">
+                  {emp.checkInTime && (
+                    <span className={`${emp.isLate ? "text-red-400" : "text-text-muted"}`}>
+                      In: {emp.checkInTime}{emp.isLate ? " (Late)" : ""}
+                    </span>
+                  )}
+                  <span className="text-text-muted">{emp.location || ""}</span>
+                  <span className={`inline-flex px-2 py-0.5 rounded-full text-[10px] font-medium ${
+                    emp.status === "ACTIVE" ? "bg-green-500/20 text-green-400" :
+                    emp.status === "IDLE" ? "bg-yellow-500/20 text-yellow-400" :
+                    emp.status === "BREAK" ? "bg-blue-500/20 text-blue-400" :
+                    "bg-white/10 text-white/40"
+                  }`}>{emp.status}</span>
+                  <ArrowRight size={14} className="text-text-muted" />
+                </div>
+              </Link>
+            ))}
+          </div>
+        </div>
+
+        {/* Weekly Summary + Quick Links */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <WeeklySummaryCard />
+          <div className="glass-card p-5">
+            <h2 className="text-sm font-semibold text-text-primary mb-4">Quick Actions</h2>
+            <div className="grid grid-cols-2 gap-3">
+              <Link href="/admin/attendance" className="flex flex-col items-center p-4 rounded-lg bg-white/[0.02] hover:bg-white/[0.05] transition-colors border border-white/[0.04] hover:border-neon-blue/20">
+                <ClipboardCheck size={24} className="text-neon-green mb-2" />
+                <p className="text-xs text-text-muted text-center">Attendance Reports</p>
+              </Link>
+              <Link href="/admin/kpi" className="flex flex-col items-center p-4 rounded-lg bg-white/[0.02] hover:bg-white/[0.05] transition-colors border border-white/[0.04] hover:border-neon-blue/20">
+                <TrendingUp size={24} className="text-neon-blue mb-2" />
+                <p className="text-xs text-text-muted text-center">KPI Dashboard</p>
+              </Link>
+              <Link href="/admin/users" className="flex flex-col items-center p-4 rounded-lg bg-white/[0.02] hover:bg-white/[0.05] transition-colors border border-white/[0.04] hover:border-neon-blue/20">
+                <Plus size={24} className="text-cyan mb-2" />
+                <p className="text-xs text-text-muted text-center">Create User</p>
+              </Link>
+              <Link href="/admin/monitoring" className="flex flex-col items-center p-4 rounded-lg bg-white/[0.02] hover:bg-white/[0.05] transition-colors border border-white/[0.04] hover:border-neon-blue/20">
+                <Eye size={24} className="text-purple mb-2" />
+                <p className="text-xs text-text-muted text-center">Monitoring</p>
+              </Link>
+            </div>
+          </div>
+        </div>
+
+        {/* Recent Activity */}
+        {hrData.recentActivity.length > 0 && (
+          <div className="glass-card p-5">
+            <h2 className="text-sm font-semibold text-text-primary mb-3">Recent Employee Activity</h2>
+            <div className="space-y-2">
+              {hrData.recentActivity.map((log: any) => (
+                <div key={log.id} className="flex items-start gap-3 py-2 border-b border-white/[0.04] last:border-0">
+                  <div className="w-2 h-2 rounded-full bg-neon-blue mt-2 shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm text-text-secondary">
+                      <span className="text-text-primary font-medium">{log.userName}</span> {log.action}
+                    </p>
+                    <p className="text-xs text-text-muted mt-0.5">{formatDate(log.createdAt)}</p>
+                  </div>
                 </div>
               ))}
             </div>

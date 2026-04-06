@@ -141,6 +141,17 @@ export async function POST(req: NextRequest) {
       details: JSON.stringify({ workLocation, note }),
     });
 
+    // Notify HR about check-in (fire-and-forget)
+    try {
+      const { notifyRole } = await import("@/lib/notify");
+      notifyRole(
+        ["SUPER_ADMIN", "ADMIN", "HR_MANAGER"],
+        `🟢 ${session.user.name || "Employee"} checked in`,
+        `Location: ${workLocation}${note ? ` | Note: ${note}` : ""}`,
+        `/admin/team-activity`
+      ).catch(() => {});
+    } catch {}
+
     // Send follow-up reminder on check-in (fire-and-forget)
     try {
       const todayStart = new Date(); todayStart.setHours(0, 0, 0, 0);

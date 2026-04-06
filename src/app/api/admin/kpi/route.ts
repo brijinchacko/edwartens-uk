@@ -17,7 +17,7 @@ export async function GET(req: NextRequest) {
     const groupBy = searchParams.get("groupBy") || "day"; // day | week | month
 
     // Non-admin roles can only see their own KPIs
-    const isAdmin = session.user.role === "SUPER_ADMIN" || session.user.role === "ADMIN";
+    const isAdmin = ["SUPER_ADMIN", "ADMIN", "HR_MANAGER"].includes(session.user.role);
     let targetEmployeeId = employeeId;
 
     if (!isAdmin) {

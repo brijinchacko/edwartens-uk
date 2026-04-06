@@ -78,11 +78,7 @@ export async function POST(req: NextRequest) {
     if (employeePhone) {
       const emp = await prisma.employee.findFirst({
         where: {
-          OR: [
-            { zadarmaNumber: { contains: employeePhone.slice(-10) } },
-            { sipExtension: { contains: employeePhone.slice(-6) } },
-            { user: { phone: { contains: employeePhone.slice(-10) } } },
-          ],
+          user: { phone: { contains: employeePhone.slice(-10) } },
         },
         select: { userId: true },
       });

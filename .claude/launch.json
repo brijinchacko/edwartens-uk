@@ -3,9 +3,9 @@
   "configurations": [
     {
       "name": "edwartens-uk-dev",
-      "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "dev"],
-      "port": 3000
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["next", "dev", "-p", "3001"],
+      "port": 3001
     }
   ]
 }

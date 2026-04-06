@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 import Image from "next/image";
 import { Mail, Phone, MapPin } from "lucide-react";
@@ -5,14 +7,21 @@ import { Mail, Phone, MapPin } from "lucide-react";
 const quickLinks = [
   { label: "Courses", href: "/courses" },
   { label: "Training", href: "/training" },
+  { label: "UK Training Locations", href: "/plc-training-uk" },
+  { label: "EU Training Locations", href: "/plc-training-europe" },
   { label: "Placements", href: "/placements" },
   { label: "Reviews", href: "/reviews" },
   { label: "Contact", href: "/contact" },
   { label: "Blog", href: "/blog" },
+  { label: "Career Guide", href: "/automation-engineer-career-guide" },
+  { label: "Salary Guide", href: "/plc-engineer-salary-uk" },
+  { label: "FAQ", href: "/faq" },
+  { label: "Free Resources", href: "/resources" },
 ];
 
 const legalLinks = [
   { label: "Privacy", href: "/privacy" },
+  { label: "EU Privacy Rights", href: "/eu-privacy" },
   { label: "Terms", href: "/terms" },
   { label: "Cookies", href: "/cookies" },
   { label: "Complaints", href: "/complaints" },
@@ -22,16 +31,15 @@ const legalLinks = [
 const ecosystemCompanies = [
   { name: "Wartens", href: "https://wartens.com" },
   { name: "Oscabe", href: "https://oscabe.com" },
-  { name: "roboTED", href: "#" },
-  { name: "3BOX AI", href: "#" },
-  { name: "nxtED", href: "#" },
-  { name: "IUNI", href: "#" },
+  { name: "roboTED", href: "https://roboted.co.uk" },
+  { name: "3BOX AI", href: "https://3box.ai" },
+  { name: "nxtED", href: "https://nxted.co.uk" },
+  { name: "IUNI", href: "https://iuni.co.uk" },
   { name: "TraininginPLC", href: "https://traininginplc.com" },
-  { name: "Oforo", href: "#" },
-  { name: "Seekof", href: "#" },
-  { name: "LADX", href: "#" },
-  { name: "Partshire", href: "#" },
-  { name: "WeMelt", href: "#" },
+  { name: "Oforo", href: "https://oforo.com" },
+  { name: "Seekof", href: "https://seekof.com" },
+  { name: "LADX", href: "https://ladx.co.uk" },
+  { name: "Partshire", href: "https://partshire.com" },
 ];
 
 const socialLinks = [
@@ -177,6 +185,14 @@ export default function Footer() {
                 <Link href="/verify" className="text-xs text-text-muted hover:text-neon-blue transition-colors">
                   Verify Certificate
                 </Link>
+              </li>
+              <li>
+                <button
+                  onClick={() => window.dispatchEvent(new CustomEvent("open-cookie-settings"))}
+                  className="text-xs text-text-muted hover:text-neon-blue transition-colors"
+                >
+                  Cookie Settings
+                </button>
               </li>
             </ul>
           </div>

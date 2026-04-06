@@ -433,7 +433,7 @@ export default function LeadActions({
     { label: "Welcome", message: "Hi! Thank you for your interest in EDWartens UK industrial automation training! Would you like to book a free consultation to discuss the course? I can arrange a call at your convenience. Best regards, EDWartens UK Team" },
     { label: "Follow-up", message: "Hi! Just following up on your enquiry about our PLC/SCADA training course. Are you still interested? I'd be happy to answer any questions or arrange a consultation. Best regards, EDWartens UK" },
     { label: "Consultation Reminder", message: "Hi! Just a reminder about your upcoming consultation with EDWartens UK. Please let me know if the scheduled time still works for you. Best regards, EDWartens UK" },
-    { label: "Course Details", message: "Hi! Here are the details for our Professional PLC/SCADA Training: CPD Accredited, Siemens S7-1200/1500, WinCC SCADA, Hands-on Lab Training. Location: Milton Keynes, UK. Fee: 1,799 GBP (installment options available). New batches start every week. Would you like to enrol? Best regards, EDWartens UK" },
+    { label: "Course Details", message: "Hi! Here are the details for our Professional PLC/SCADA Training: CPD Accredited, Siemens S7-1200/1500, WinCC SCADA, Hands-on Lab Training. Location: Milton Keynes, UK. Fee: 2,140 GBP + VAT (installment options available). New batches start every week. Would you like to enrol? Best regards, EDWartens UK" },
     { label: "Payment Reminder", message: "Hi! Just a gentle reminder about your pending payment for the EDWartens UK training course. Please let me know if you need any help with the payment process. Best regards, EDWartens UK" },
     { label: "Custom", message: "" },
   ];

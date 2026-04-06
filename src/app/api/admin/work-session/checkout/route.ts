@@ -154,7 +154,7 @@ export async function POST(req: NextRequest) {
     const breakMins = (updatedSession.breakMinutes || 0) % 60;
 
     notifyRole(
-      ["SUPER_ADMIN", "ADMIN"],
+      ["SUPER_ADMIN", "ADMIN", "HR_MANAGER"],
       `🔴 ${empName} checked out`,
       `Total: ${hours}h ${mins}m | Active: ${activeH}h ${activeMins}m | Idle: ${idleH}h ${idleMins}m | Breaks: ${breakH}h ${breakMins}m\nSummary: ${summary}`,
       `/admin/team-activity`

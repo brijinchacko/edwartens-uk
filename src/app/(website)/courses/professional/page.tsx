@@ -237,19 +237,33 @@ export default async function ProfessionalModulePage() {
   const courseJsonLd = {
     "@context": "https://schema.org",
     "@type": "Course",
-    name: "Professional Module — PLC & SCADA Training",
-    description: "Comprehensive career-focused programme covering Siemens PLC programming, HMI design, and WinCC SCADA. CPD Accredited with dedicated career support.",
-    provider: { "@type": "EducationalOrganization", name: "EDWartens UK", url: "https://edwartens.co.uk" },
-    educationalCredentialAwarded: "CPD Certification",
-    courseMode: ["Classroom", "Online"],
+    name: "Professional PLC & SCADA Automation Module",
+    description: "5-day intensive CPD Accredited course covering Siemens PLC, TIA Portal, HMI development, and WinCC SCADA. Includes 15 hours of recorded sessions and dedicated career support.",
     url: "https://edwartens.co.uk/courses/professional",
-    offers: { "@type": "Offer", price: "2140", priceCurrency: "GBP", availability: "https://schema.org/InStock" },
-    hasCourseInstance: profBatches.slice(0, 5).map(b => ({
-      "@type": "CourseInstance",
-      courseMode: "Blended",
-      startDate: b.startDate.toISOString().split("T")[0],
-      location: { "@type": "Place", name: "Milton Keynes, UK" },
-    })),
+    provider: { "@type": "Organization", name: "EDWartens UK", url: "https://edwartens.co.uk" },
+    educationalCredentialAwarded: "CPD Accredited Certificate in PLC & SCADA Automation",
+    timeRequired: "P5D",
+    courseMode: ["onsite", "online"],
+    teaches: ["PLC Programming", "Siemens TIA Portal", "SCADA Systems", "WinCC SCADA", "HMI Development", "Industrial Automation", "Ladder Logic", "Industrial Communication Protocols"],
+    occupationalCategory: "Automation Engineer",
+    offers: { "@type": "Offer", price: "2140", priceCurrency: "GBP", availability: "https://schema.org/InStock", url: "https://edwartens.co.uk/courses/professional" },
+    hasCourseInstance: [
+      {
+        "@type": "CourseInstance",
+        courseMode: ["onsite", "online"],
+        location: {
+          "@type": "Place",
+          name: "EDWartens Milton Keynes Training Centre",
+          address: { "@type": "PostalAddress", streetAddress: "8 Lyon Road", addressLocality: "Milton Keynes", postalCode: "MK1 1EX", addressCountry: "GB" },
+        },
+      },
+      ...profBatches.slice(0, 5).map(b => ({
+        "@type": "CourseInstance" as const,
+        courseMode: "Blended" as const,
+        startDate: b.startDate.toISOString().split("T")[0],
+        location: { "@type": "Place" as const, name: "EDWartens Milton Keynes Training Centre" },
+      })),
+    ],
   };
 
   return (
