@@ -2,7 +2,7 @@
 
 import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { Upload, FileText, Award } from "lucide-react";
+import { Upload, FileText, Award, KeyRound, Copy, Check, X } from "lucide-react";
 
 const DOCUMENT_TYPES = [
   "ID_PROOF",
@@ -10,6 +10,8 @@ const DOCUMENT_TYPES = [
   "RESUME",
   "CV",
   "PAYMENT_PROOF",
+  "TERMS_AND_CONDITIONS",
+  "PHOTO",
   "OTHER",
 ];
 
@@ -19,6 +21,8 @@ const DOC_TYPE_LABELS: Record<string, string> = {
   RESUME: "Resume",
   CV: "CV",
   PAYMENT_PROOF: "Payment Proof",
+  TERMS_AND_CONDITIONS: "Terms and Conditions",
+  PHOTO: "Photo",
   OTHER: "Other",
 };
 
@@ -45,6 +49,12 @@ export default function StudentQuickActions({
   // Invoice state
   const [generatingInvoice, setGeneratingInvoice] = useState(false);
   const [invoiceMsg, setInvoiceMsg] = useState("");
+
+  // Password reset state
+  const [resettingPassword, setResettingPassword] = useState(false);
+  const [resetCreds, setResetCreds] = useState<{ email: string; tempPassword: string } | null>(null);
+  const [resetError, setResetError] = useState("");
+  const [copiedField, setCopiedField] = useState<"email" | "password" | null>(null);
 
   async function handleUpload() {
     const file = fileInputRef.current?.files?.[0];
@@ -129,6 +139,43 @@ export default function StudentQuickActions({
     router.push("/admin/certificates");
   }
 
+  async function handleResetPassword() {
+    const ok = window.confirm(
+      `Reset login password for ${studentName}?\n\nThe student's current password will stop working immediately. You will be shown the new password ONCE — copy and share it with the student.`
+    );
+    if (!ok) return;
+
+    setResettingPassword(true);
+    setResetError("");
+
+    try {
+      const res = await fetch(`/api/admin/students/${studentId}/reset-password`, {
+        method: "POST",
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        setResetError(err.error || "Failed to reset password");
+        return;
+      }
+      const data = await res.json();
+      setResetCreds({ email: data.email, tempPassword: data.tempPassword });
+    } catch {
+      setResetError("Failed to reset password");
+    } finally {
+      setResettingPassword(false);
+    }
+  }
+
+  async function copyToClipboard(text: string, field: "email" | "password") {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopiedField(field);
+      setTimeout(() => setCopiedField(null), 1500);
+    } catch {
+      // Clipboard may be unavailable — silently ignore; user can copy manually.
+    }
+  }
+
   return (
     <div className="glass-card p-5">
       <h2 className="text-base font-semibold text-text-primary mb-4">
@@ -165,7 +212,25 @@ export default function StudentQuickActions({
           <Award size={14} />
           Issue Certificate
         </button>
+
+        {/* Reset Login Password — generates a fresh password and shows it
+            once so the admin can share it with the student manually. Use
+            this when the welcome email never arrived or the student
+            forgot their password. */}
+        <button
+          onClick={handleResetPassword}
+          disabled={resettingPassword}
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-500/10 text-amber-400 border border-amber-500/20 text-xs font-medium hover:bg-amber-500/20 transition-colors disabled:opacity-50"
+        >
+          <KeyRound size={14} />
+          {resettingPassword ? "Resetting..." : "Reset Login"}
+        </button>
       </div>
+
+      {/* Reset error feedback (failure path only — success opens the modal) */}
+      {resetError && (
+        <p className="text-xs text-red-400 mb-3">{resetError}</p>
+      )}
 
       {/* Invoice feedback */}
       {invoiceMsg && (
@@ -223,6 +288,90 @@ export default function StudentQuickActions({
           >
             {uploading ? "Uploading..." : "Upload"}
           </button>
+        </div>
+      )}
+
+      {/* One-time credentials modal — backdrop click is intentionally
+          inert so the admin can't accidentally dismiss before saving the
+          password. Same pattern as the lead Add/Update modals. */}
+      {resetCreds && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+          <div className="relative w-full max-w-md mx-4 rounded-xl border border-white/[0.06] bg-[#0a0a14]/95 backdrop-blur-xl shadow-2xl">
+            <div className="flex items-center justify-between px-5 pt-4 pb-3 border-b border-white/[0.06]">
+              <h3 className="text-sm font-semibold text-white">New Login Credentials</h3>
+              <button
+                onClick={() => setResetCreds(null)}
+                className="text-text-muted hover:text-white"
+                aria-label="Close"
+              >
+                <X size={16} />
+              </button>
+            </div>
+
+            <div className="p-5 space-y-4">
+              <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2">
+                <p className="text-xs text-amber-300">
+                  This password is shown <strong>once</strong>. Copy it now and
+                  share it with the student — it cannot be retrieved again.
+                </p>
+              </div>
+
+              <div>
+                <label className="block text-xs text-text-muted mb-1">Login URL</label>
+                <div className="px-3 py-2 rounded-lg bg-white/[0.04] border border-white/[0.08] text-xs text-text-secondary break-all">
+                  /login
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs text-text-muted mb-1">Email</label>
+                <div className="flex items-center gap-2">
+                  <div className="flex-1 px-3 py-2 rounded-lg bg-white/[0.04] border border-white/[0.08] text-xs text-white break-all font-mono">
+                    {resetCreds.email}
+                  </div>
+                  <button
+                    onClick={() => copyToClipboard(resetCreds.email, "email")}
+                    className="p-2 rounded-lg bg-white/[0.04] border border-white/[0.08] text-text-muted hover:text-white"
+                    aria-label="Copy email"
+                  >
+                    {copiedField === "email" ? <Check size={14} className="text-green-400" /> : <Copy size={14} />}
+                  </button>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs text-text-muted mb-1">Temporary Password</label>
+                <div className="flex items-center gap-2">
+                  <div className="flex-1 px-3 py-2 rounded-lg bg-white/[0.04] border border-white/[0.08] text-sm text-green-400 break-all font-mono select-all">
+                    {resetCreds.tempPassword}
+                  </div>
+                  <button
+                    onClick={() => copyToClipboard(resetCreds.tempPassword, "password")}
+                    className="p-2 rounded-lg bg-white/[0.04] border border-white/[0.08] text-text-muted hover:text-white"
+                    aria-label="Copy password"
+                  >
+                    {copiedField === "password" ? <Check size={14} className="text-green-400" /> : <Copy size={14} />}
+                  </button>
+                </div>
+              </div>
+
+              <p className="text-xs text-text-muted">
+                The student should sign in at <span className="text-white">/login</span> using
+                the <strong>Student</strong> tab and change their password after the
+                first login.
+              </p>
+
+              <div className="flex justify-end pt-2">
+                <button
+                  onClick={() => setResetCreds(null)}
+                  className="px-4 py-2 rounded-lg bg-neon-blue/20 text-neon-blue border border-neon-blue/30 text-xs font-medium hover:bg-neon-blue/30 transition-colors"
+                >
+                  I&apos;ve saved it
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       )}
     </div>
